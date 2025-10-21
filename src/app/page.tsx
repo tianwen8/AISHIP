@@ -91,7 +91,28 @@ export default function HomePage() {
   const [voice, setVoice] = useState("none");
   const [estimatedCost, setEstimatedCost] = useState(0);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [referenceFile, setReferenceFile] = useState<File | null>(null);
+  const [referencePreview, setReferencePreview] = useState<string | null>(null);
   const router = useRouter();
+
+  // Handle file upload
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setReferenceFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setReferencePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Remove reference file
+  const handleRemoveReference = () => {
+    setReferenceFile(null);
+    setReferencePreview(null);
+  };
 
   // Real-time cost estimation
   useEffect(() => {
@@ -117,6 +138,36 @@ export default function HomePage() {
   }, [prompt, duration, voice]);
 
   const handleGenerate = async () => {
+    if (!prompt.trim()) {
+      alert("Please enter a description for your video");
+      return;
+    }
+
+    setIsGenerating(true);
+
+    try {
+      // Create a temporary runId and redirect immediately
+      const tempRunId = `temp_${Date.now()}`
+
+      // Store generation params in sessionStorage for canvas to use
+      sessionStorage.setItem('generationParams', JSON.stringify({
+        prompt,
+        duration,
+        platform,
+        voice,
+        referenceImage: referencePreview, // Include reference image base64
+      }))
+
+      // Immediately redirect to canvas page
+      router.push(`/workspace/${tempRunId}`)
+    } catch (error: any) {
+      alert(`Error: ${error.message}`)
+      setIsGenerating(false)
+    }
+  }
+
+  // Old synchronous approach (kept as backup)
+  const handleGenerateOld = async () => {
     if (!prompt.trim()) {
       alert("Please enter a description for your video");
       return;
@@ -203,7 +254,57 @@ export default function HomePage() {
             className="w-full h-32 text-lg border-0 outline-none resize-none placeholder-gray-400"
           />
 
-          <div className="border-t border-gray-200 mt-4 pt-4">
+          {/* Reference Image/Video Upload */}
+          <div className="border-t border-gray-200 mt-4 pt-4 mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Reference Image or Video (Optional)
+            </label>
+            {!referencePreview ? (
+              <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer hover:bg-gray-50 transition">
+                <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                  <svg
+                    className="w-10 h-10 mb-2 text-gray-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                    />
+                  </svg>
+                  <p className="text-sm text-gray-500">
+                    <span className="font-semibold">Click to upload</span> or drag and drop
+                  </p>
+                  <p className="text-xs text-gray-500">PNG, JPG, MP4 (MAX. 10MB)</p>
+                </div>
+                <input
+                  type="file"
+                  className="hidden"
+                  accept="image/*,video/*"
+                  onChange={handleFileUpload}
+                />
+              </label>
+            ) : (
+              <div className="relative">
+                <img
+                  src={referencePreview}
+                  alt="Reference preview"
+                  className="w-full h-48 object-cover rounded-lg"
+                />
+                <button
+                  onClick={handleRemoveReference}
+                  className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-red-600 transition"
+                >
+                  ✕
+                </button>
+              </div>
+            )}
+          </div>
+
+          <div className="border-t border-gray-200 pt-4">
             {/* Duration Selector */}
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -273,17 +374,19 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Cost Estimate */}
+            {/* Cost Estimate (Credits primary, USD secondary) */}
             {estimatedCost > 0 && (
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-700">Estimated Cost:</span>
-                  <span className="text-lg font-bold text-blue-700">
-                    ~{estimatedCost.toFixed(1)} credits
-                  </span>
-                </div>
-                <div className="text-xs text-gray-600 mt-1">
-                  ≈ ${(estimatedCost * 0.1).toFixed(2)} USD
+                  <div className="text-right">
+                    <div className="text-lg font-bold text-blue-700">
+                      ~{estimatedCost.toFixed(1)} credits
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      (≈ ${(estimatedCost * 0.1).toFixed(2)})
+                    </div>
+                  </div>
                 </div>
               </div>
             )}

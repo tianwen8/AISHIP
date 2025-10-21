@@ -2,9 +2,10 @@
 
 **Project Name**: AI Video Studio
 **Target Market**: Global English-speaking content creators (TikTok/YouTube Shorts/Instagram Reels)
-**Document Version**: 3.1
-**Last Updated**: 2025-10-20
-**Status**: Week 2 Development Complete - Core Engine Implemented + GPT-5 Audit Complete
+**Document Version**: 3.2
+**Last Updated**: 2025-10-21
+**Status**: Week 3 Development - Canvas UX Optimization Complete
+**Git Repo**: https://github.com/tianwen8/soravideos
 
 ---
 
@@ -631,7 +632,8 @@ CREATE TABLE workflow_templates (
 ## 📊 PART 0.7: 当前开发状态（给 GPT-5 审核用）
 
 **最后更新时间**: 2025-10-20 14:00
-**当前 Git Commit**: 即将提交到 GitHub
+**当前 Git Commit**: `5d525fd` - feat: 完成 MVP Phase 1 核心功能
+**GitHub 仓库**: https://github.com/tianwen8/soravideos
 
 ### 已完成的开发任务 ✅
 
@@ -1234,14 +1236,29 @@ curl http://localhost:3001/api/runs/run_abc123 \
 
 ---
 
-### 🔄 Week 3: Frontend Integration (Next Up)
+### ✅ Week 3: Canvas UX Optimization (100% Complete)
 
-**Tasks**:
-1. Canvas page (`/workspace/new`)
-2. React Flow integration for node visualization
-3. Video player component
-4. Homepage input form
-5. Credit balance display
+**Summary**: Completely redesigned workflow generation UX to eliminate progress bars and intermediate screens. Implemented progressive node animation system where nodes appear one by one with animated connecting lines as the primary interaction feedback.
+
+**Key Achievements**:
+- ✅ SSE streaming for real-time workflow generation
+- ✅ Progressive node animation (300ms delays between nodes)
+- ✅ Horizontal column layout (5 columns: Prompt → Scenes → Videos → Audio → Merge)
+- ✅ Auto-fit canvas with React Flow `fitView()` integration
+- ✅ Reference image/video upload with preview
+- ✅ Credit-primary display (de-emphasized USD)
+- ✅ Toolbar repositioned to header (removed canvas obstruction)
+- ✅ Custom node components (PromptNode, T2INode, I2VNode, TTSNode, MergeNode)
+- ✅ Multiple connection lines converging to merge node
+- ✅ No page reloads - seamless state transitions
+
+**Files Modified**:
+- `src/app/api/generate-stream/route.ts` - SSE endpoint
+- `src/app/workspace/[runId]/page.tsx` - Canvas with progressive animation
+- `src/app/page.tsx` - Reference upload + credit display
+- `src/components/nodes/*.tsx` - 5 custom node components
+
+**User Feedback**: "在按我们沟通的方向靠近" (Moving in the right direction)
 
 ---
 
@@ -1756,14 +1773,134 @@ Authorization: Bearer <session_token>
 - ✅ Simple Orchestrator (execution engine)
 - ✅ API endpoints (/workflows/generate, /runs/:id)
 
-### 🔄 Week 3: Frontend (In Progress)
-- [ ] Canvas page with React Flow
-- [ ] Real-time progress visualization
-- [ ] Video player component
-- [ ] Homepage input form
-- [ ] Credit balance display
+### ✅ Week 3: Canvas UX Optimization (100% Complete)
 
-### 📅 Week 4: Polish & Launch
+#### Task 3.1: SSE Streaming Implementation ✅
+**Files Created/Modified**:
+- `src/app/api/generate-stream/route.ts` - Server-Sent Events endpoint
+- `src/app/workspace/[runId]/page.tsx` - SSE client integration
+
+**Implementation**:
+- Real-time workflow generation progress streaming
+- Events: `status`, `workflow`, `complete`, `error`
+- Progressive node animation with 300ms delays
+- Error handling with try-catch for controller closure
+
+**Benefits**:
+- No page reloads needed
+- Immediate visual feedback
+- Smooth user experience
+
+#### Task 3.2: Progressive Node Animation ✅
+**Implementation**:
+- `generateNodesWithAnimation()` function with async/await
+- Nodes appear one by one with animated connecting lines
+- Eliminates progress bar UI
+- Uses node animations as primary interaction feedback
+
+**Node Appearance Sequence**:
+1. Prompt Node (with reference image support)
+2. Scene Nodes (T2I) - appear progressively every 300ms
+3. Video Nodes (I2V) - appear after corresponding scene
+4. Audio Node (TTS)
+5. Merge Node
+
+#### Task 3.3: Horizontal Column Layout ✅
+**Layout Structure** (5 columns):
+```
+Column 1 (x=50):    Prompt Node
+Column 2 (x=400):   Scene Nodes (T2I) - vertical stack
+Column 3 (x=750):   Video Nodes (I2V) - vertical stack
+Column 4 (x=1100):  Audio Node (TTS)
+Column 5 (x=1450):  Merge Node
+```
+
+**Connection Logic**:
+- Prompt → All scenes (multiple lines)
+- Each scene → corresponding video
+- All videos → merge (multiple lines converge)
+- Audio → merge
+
+**Benefits**:
+- Clear left-to-right workflow visualization
+- Easy to understand video generation pipeline
+- Professional presentation
+
+#### Task 3.4: Auto-fit Canvas ✅
+**Implementation**:
+- Created `CanvasContent` component using `useReactFlow` hook
+- Auto-calls `fitView({ duration: 500, padding: 0.1 })` when nodes appear
+- Ensures all nodes visible during progressive generation
+
+**Code**:
+```typescript
+function CanvasContent({ nodes, isGenerating, ... }) {
+  const { fitView } = useReactFlow();
+  useEffect(() => {
+    if (isGenerating && nodes.length > 0) {
+      setTimeout(() => {
+        fitView({ duration: 500, padding: 0.1 });
+      }, 100);
+    }
+  }, [nodes.length, isGenerating, fitView]);
+  return <><Background /><Controls /></>;
+}
+```
+
+#### Task 3.5: Reference Image Upload ✅
+**Files Modified**:
+- `src/app/page.tsx` - Added file upload input with preview
+- `src/components/nodes/PromptNode.tsx` - Display reference image
+
+**Features**:
+- Image/video upload with preview
+- Base64 encoding for sessionStorage
+- Display in Prompt Node on canvas
+
+#### Task 3.6: Credit Display Optimization ✅
+**Design Change**:
+- Primary: Credits in large bold text (`~4.5 credits`)
+- Secondary: USD in small text below (`(≈ $0.45)`)
+- De-emphasizes USD to avoid price sensitivity
+
+**Implementation**:
+```typescript
+<div className="text-lg font-bold text-blue-700">
+  ~{estimatedCost.toFixed(1)} credits
+</div>
+<div className="text-xs text-gray-500">
+  (≈ ${(estimatedCost * 0.1).toFixed(2)})
+</div>
+```
+
+#### Task 3.7: Toolbar Repositioning ✅
+**Change**:
+- Moved T2I/I2V/TTS buttons from canvas center to header
+- Placed next to "Generate Video" button
+- Eliminates canvas obstruction
+- Professional header layout with cost display
+
+#### Task 3.8: Custom Node Components ✅
+**Files Created**:
+- `src/components/nodes/PromptNode.tsx` - User prompt + reference image
+- `src/components/nodes/T2INode.tsx` - Text-to-Image scene
+- `src/components/nodes/I2VNode.tsx` - Image-to-Video generation
+- `src/components/nodes/TTSNode.tsx` - Text-to-Speech voiceover
+- `src/components/nodes/MergeNode.tsx` - Final video merge
+
+**Features**:
+- Gradient headers with emoji icons
+- Credit cost display
+- Copy button for prompts
+- Professional styling with shadows
+- Connectable handles (React Flow)
+
+---
+
+### 📅 Week 4: Node Editing & Polish (Next)
+- [ ] Make nodes editable (prompts, model selection, parameters)
+- [ ] Node copy/delete functionality
+- [ ] Single node regeneration
 - [ ] Template system
 - [ ] User dashboard
 - [ ] Testing & bug fixes
