@@ -243,14 +243,16 @@ export default function WorkspacePage() {
         setProgressMessage("Complete!");
         setProgressPercent(100);
 
-        // Update run data with completion status
-        setRun({
+        // Update run data with completion status (preserve existing fields)
+        setRun((prevRun) => ({
+          ...prevRun,
           run_uuid: data.runUuid,
           status: RunStatus.Completed,
-          workflow_plan: data.workflowPlan || {},
-          estimated_credits: data.estimatedCredits || 0,
+          workflow_plan: data.workflowPlan || prevRun?.workflow_plan || {},
+          graph_snapshot: data.workflowPlan || prevRun?.graph_snapshot || {},
+          estimated_credits: data.estimatedCredits || prevRun?.estimated_credits || 0,
           used_credits: 0,
-        });
+        } as any));
 
         // URL already updated in "init" event, no need to update again
 
