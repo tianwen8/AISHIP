@@ -669,17 +669,119 @@ export default function WorkspacePage() {
         throw new Error("Failed to execute workflow");
       }
 
-      const result = await response.json();
-      alert(`Workflow execution started! Run UUID: ${result.runUuid}`);
+      // Handle SSE stream
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
 
-      // Poll for status updates
-      // TODO: Implement WebSocket or polling
+      if (!reader) {
+        throw new Error("Response body is not readable");
+      }
+
+      let buffer = "";
+      let currentEvent = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+
+        if (done) {
+          break;
+        }
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+
+        // Keep the last incomplete line in the buffer
+        buffer = lines.pop() || "";
+
+        for (const line of lines) {
+          if (line.startsWith("event:")) {
+            currentEvent = line.substring(6).trim();
+            continue;
+          }
+
+          if (line.startsWith("data:")) {
+            const dataStr = line.substring(5).trim();
+            if (!dataStr) continue;
+
+            try {
+              const data = JSON.parse(dataStr);
+              await handleExecutionEvent(currentEvent || "message", data);
+            } catch (e) {
+              console.error("Failed to parse SSE data:", dataStr, e);
+            }
+          }
+        }
+      }
     } catch (err: any) {
+      console.error("Execution error:", err);
       alert(`Execution failed: ${err.message}`);
     } finally {
       setIsExecuting(false);
     }
   };
+
+  // Handle execution SSE events
+  async function handleExecutionEvent(eventType: string, data: any) {
+    console.log("Execution Event:", eventType, data);
+
+    switch (eventType) {
+      case "execution_start":
+        console.log("Execution started:", data);
+        break;
+
+      case "node_start":
+        // Update node status to 'running'
+        setNodes((nds) =>
+          nds.map((node) =>
+            node.id === data.nodeId
+              ? { ...node, data: { ...node.data, status: "running" } }
+              : node
+          )
+        );
+        break;
+
+      case "node_complete":
+        // Update node status to 'completed' with artifact URLs
+        setNodes((nds) =>
+          nds.map((node) =>
+            node.id === data.nodeId
+              ? {
+                  ...node,
+                  data: {
+                    ...node.data,
+                    status: "completed",
+                    artifactUrl: data.artifactUrl,
+                    thumbnailUrl: data.thumbnailUrl,
+                  },
+                }
+              : node
+          )
+        );
+        break;
+
+      case "node_error":
+        // Update node status to 'failed'
+        setNodes((nds) =>
+          nds.map((node) =>
+            node.id === data.nodeId
+              ? {
+                  ...node,
+                  data: { ...node.data, status: "failed", error: data.error },
+                }
+              : node
+          )
+        );
+        break;
+
+      case "workflow_complete":
+        alert(`Workflow completed! Final video: ${data.finalVideoUrl}`);
+        break;
+
+      case "error":
+        alert(`Error: ${data.message}`);
+        break;
+    }
+  }
 
   if (loading) {
     return (
