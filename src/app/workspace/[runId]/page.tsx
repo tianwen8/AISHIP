@@ -917,9 +917,9 @@ export default function WorkspacePage() {
           {/* Generate Button */}
           <button
             onClick={handleExecute}
-            disabled={isExecuting || run.status !== RunStatus.Pending}
+            disabled={isExecuting || run.status === RunStatus.Running}
             className={`px-6 py-3 text-lg font-semibold rounded-lg transition ${
-              isExecuting || run.status !== RunStatus.Pending
+              isExecuting || run.status === RunStatus.Running
                 ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                 : "bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700"
             }`}
