@@ -215,6 +215,20 @@ export default function WorkspacePage() {
     console.log("SSE Event:", event, data);
 
     switch (event) {
+      case "init":
+        // Immediately update URL with real runId (no page reload)
+        window.history.replaceState(null, '', `/workspace/${data.runUuid}`);
+
+        // Update run state with initial data
+        setRun({
+          run_uuid: data.runUuid,
+          status: RunStatus.Running,
+          workflow_plan: {},
+          estimated_credits: 0,
+          used_credits: 0,
+        });
+        break;
+
       case "status":
         setProgressMessage(data.message);
         setProgressPercent(data.progress || 0);
@@ -229,7 +243,7 @@ export default function WorkspacePage() {
         setProgressMessage("Complete!");
         setProgressPercent(100);
 
-        // Set run data from the complete event
+        // Update run data with completion status
         setRun({
           run_uuid: data.runUuid,
           status: RunStatus.Completed,
@@ -238,8 +252,7 @@ export default function WorkspacePage() {
           used_credits: 0,
         });
 
-        // Replace temporary runId with real runId in URL
-        router.replace(`/workspace/${data.runUuid}`);
+        // URL already updated in "init" event, no need to update again
 
         // Clear sessionStorage
         sessionStorage.removeItem("generationParams");

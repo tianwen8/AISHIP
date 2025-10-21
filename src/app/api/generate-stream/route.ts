@@ -38,13 +38,23 @@ export async function POST(req: NextRequest) {
           return
         }
 
-        // 2. Send initial status
-        sendEvent("status", { message: "Analyzing your request...", progress: 10 })
-
         // MVP: Use test user
         const userUuid = "test-user-001"
 
-        // 3. Generate workflow with progress updates
+        // 2. Create runUuid immediately and send to client
+        const runUuid = getUuid()
+        const graphUuid = getUuid()
+
+        sendEvent("init", {
+          runUuid,
+          graphUuid,
+          message: "Workflow generation started"
+        })
+
+        // 3. Send initial status
+        sendEvent("status", { message: "Analyzing your request...", progress: 10 })
+
+        // 4. Generate workflow with progress updates
         sendEvent("status", { message: "Planning scenes...", progress: 30 })
 
         const planner = new AIPlanner()
@@ -57,14 +67,13 @@ export async function POST(req: NextRequest) {
           style: undefined,
         })
 
-        // 4. Send workflow plan
+        // 5. Send workflow plan
         sendEvent("status", { message: "Creating workflow...", progress: 60 })
         sendEvent("workflow", { workflowPlan })
 
-        // 5. Create Graph
+        // 6. Create Graph
         sendEvent("status", { message: "Saving project...", progress: 80 })
 
-        const graphUuid = getUuid()
         await createGraph({
           uuid: graphUuid,
           user_uuid: userUuid,
@@ -73,8 +82,7 @@ export async function POST(req: NextRequest) {
           graph_definition: workflowPlan,
         })
 
-        // 6. Create Run
-        const runUuid = getUuid()
+        // 7. Create Run
         await createRun({
           uuid: runUuid,
           user_uuid: userUuid,
@@ -82,7 +90,7 @@ export async function POST(req: NextRequest) {
           graph_snapshot: workflowPlan,
         })
 
-        // 7. Send completion
+        // 8. Send completion
         sendEvent("status", { message: "Complete!", progress: 100 })
         sendEvent("complete", {
           runUuid,

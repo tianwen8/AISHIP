@@ -2,9 +2,9 @@
 
 **Project Name**: AI Video Studio
 **Target Market**: Global English-speaking content creators (TikTok/YouTube Shorts/Instagram Reels)
-**Document Version**: 3.2
+**Document Version**: 3.3
 **Last Updated**: 2025-10-21
-**Status**: Week 3 Development - Canvas UX Optimization Complete
+**Status**: Week 3+ - Canvas Animation Fix & Workflow Execution Development
 **Git Repo**: https://github.com/tianwen8/soravideos
 
 ---
@@ -1895,17 +1895,105 @@ function CanvasContent({ nodes, isGenerating, ... }) {
 - Professional styling with shadows
 - Connectable handles (React Flow)
 
+#### Task 3.9: Animation Continuity Fix ✅
+**Problem**: After progressive node animation completed, page redirected to new URL causing white screen "Loading workspace..."
+
+**Root Cause**:
+- Used `router.replace()` which triggers full page reload
+- Temporary runId (`temp_xxx`) → Real runId transition caused page jump
+
+**Solution**:
+1. **Backend (generate-stream/route.ts)**:
+   - Create real `runUuid` immediately at start
+   - Send new `init` SSE event with real IDs
+   - Client updates URL early, no transition needed
+
+2. **Frontend (workspace/[runId]/page.tsx)**:
+   - Added `init` event handler to update URL via `window.history.replaceState()`
+   - Replaced `router.replace()` with `replaceState()` (no page reload)
+   - URL updates silently without interrupting animation
+
+**Result**:
+- ✅ Seamless animation from start to finish
+- ✅ No white screen or page reload
+- ✅ URL updates to real runId immediately
+- ✅ All nodes appear progressively on same page
+
+**User Experience**:
+```
+Homepage → Click Generate → Canvas appears → Prompt node shows
+→ Connection line animates → Scene 1 appears → Line extends
+→ Video 1 appears → ... → All nodes complete
+(全程无页面跳转，流畅体验)
+```
+
 ---
 
-### 📅 Week 4: Node Editing & Polish (Next)
-- [ ] Make nodes editable (prompts, model selection, parameters)
-- [ ] Node copy/delete functionality
-- [ ] Single node regeneration
-- [ ] Template system
-- [ ] User dashboard
-- [ ] Testing & bug fixes
-- [ ] Performance optimization
-- [ ] Documentation
+### 🔄 Week 4: Workflow Execution Engine (Current)
+
+#### Phase 1: Core Execution (Priority 1)
+- [ ] **Task 4.1**: Create workflow execution API (`POST /api/runs/:runId/execute`)
+  - Connect to SimpleOrchestrator
+  - SSE streaming for real-time node status updates
+  - Event types: `node_start`, `node_complete`, `node_error`, `workflow_complete`
+
+- [ ] **Task 4.2**: Node Status Visualization (无进度条设计)
+  - Pending: 灰色半透明，表示等待
+  - Running: 蓝色边框脉冲动画 + "Generating..." 文字
+  - Completed: 绿色边框 + 显示缩略图（图片/视频第一帧）
+  - Failed: 红色边框 + 错误消息 + Retry按钮
+  - **设计理念**: 节点本身就是状态指示器，不使用百分比进度条
+
+- [ ] **Task 4.3**: Canvas Real-time Updates
+  - Listen to execution SSE events
+  - Update node states dynamically
+  - Display artifact thumbnails when complete
+
+#### Phase 2: Node Editing (Priority 2)
+- [ ] **Task 4.4**: Prompt Editing
+  - Double-click node → Edit modal
+  - Click ✏️ icon → Inline editing
+  - Mark modified nodes
+
+- [ ] **Task 4.5**: Model Selection
+  - Dropdown menu for each node
+  - Real-time cost recalculation
+  - Model comparison (quality/speed/cost)
+
+#### Phase 3: Smart Features (Priority 3)
+- [ ] **Task 4.6**: Single Node Regeneration
+  - Right-click menu: Regenerate
+  - Only re-execute modified nodes
+  - Reuse cached results for unmodified nodes
+
+- [ ] **Task 4.7**: Intelligent Caching
+  - Detect unchanged nodes
+  - Display "Cached - 0 credits" badge
+  - Save user credits
+
+**Node Status Design Philosophy**:
+```
+节点状态呈现方式（不使用进度条）：
+
+⏸️ Pending:
+  - 灰色边框，50%透明度
+  - 显示"Waiting..."
+
+🔄 Running:
+  - 蓝色边框脉冲动画（CSS animation）
+  - 显示旋转加载图标
+  - 文字："Generating..."
+
+✅ Completed:
+  - 绿色边框（#10b981）
+  - 显示生成的缩略图
+  - 点击可预览大图
+
+❌ Failed:
+  - 红色边框（#ef4444）
+  - 显示错误图标和消息
+  - "Retry" 按钮
+```
 
 ---
 
