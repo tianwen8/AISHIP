@@ -663,7 +663,8 @@ export default function WorkspacePage() {
     setIsExecuting(true);
 
     try {
-      const response = await fetch(`/api/runs/${runId}/execute`, {
+      // Use run.run_uuid instead of params.runId to handle URL update timing
+      const response = await fetch(`/api/runs/${run.run_uuid}/execute`, {
         method: "POST",
       });
 
