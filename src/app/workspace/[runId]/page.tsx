@@ -774,10 +774,12 @@ export default function WorkspacePage() {
         break;
 
       case "workflow_complete":
+        setIsExecuting(false);
         alert(`Workflow completed! Final video: ${data.finalVideoUrl}`);
         break;
 
       case "error":
+        setIsExecuting(false);
         alert(`Error: ${data.message}`);
         break;
     }
