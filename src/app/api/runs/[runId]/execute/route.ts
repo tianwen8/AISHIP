@@ -10,9 +10,9 @@ import type { WorkflowPlan } from "@/services/ai-planner"
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { runId: string } }
+  { params }: { params: Promise<{ runId: string }> }
 ) {
-  const runId = params.runId
+  const { runId } = await params
 
   // Create SSE stream
   const encoder = new TextEncoder()
