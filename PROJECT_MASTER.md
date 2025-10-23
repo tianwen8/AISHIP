@@ -2,9 +2,9 @@
 
 **Project Name**: AI Video Studio
 **Target Market**: Global English-speaking content creators (TikTok/YouTube Shorts/Instagram Reels)
-**Document Version**: 3.3
-**Last Updated**: 2025-10-21
-**Status**: Week 3+ - Canvas Animation Fix & Workflow Execution Development
+**Document Version**: 3.4
+**Last Updated**: 2025-10-23
+**Status**: Week 4 Phase 1 Complete - Starting Phase 2 (Node Editing)
 **Git Repo**: https://github.com/tianwen8/soravideos
 
 ---
@@ -1931,23 +1931,34 @@ Homepage → Click Generate → Canvas appears → Prompt node shows
 
 ### 🔄 Week 4: Workflow Execution Engine (Current)
 
-#### Phase 1: Core Execution (Priority 1)
-- [ ] **Task 4.1**: Create workflow execution API (`POST /api/runs/:runId/execute`)
-  - Connect to SimpleOrchestrator
-  - SSE streaming for real-time node status updates
-  - Event types: `node_start`, `node_complete`, `node_error`, `workflow_complete`
+#### Phase 1: Core Execution (Priority 1) ✅ COMPLETED
 
-- [ ] **Task 4.2**: Node Status Visualization (无进度条设计)
-  - Pending: 灰色半透明，表示等待
-  - Running: 蓝色边框脉冲动画 + "Generating..." 文字
-  - Completed: 绿色边框 + 显示缩略图（图片/视频第一帧）
-  - Failed: 红色边框 + 错误消息 + Retry按钮
+- [x] **Task 4.1**: Create workflow execution API (`POST /api/runs/:runId/execute`) ✅
+  - ✅ Mock orchestrator implementation (setTimeout simulation)
+  - ✅ SSE streaming for real-time node status updates
+  - ✅ Event types: `node_start`, `node_complete`, `node_error`, `workflow_complete`
+  - ✅ File: `src/app/api/runs/[runId]/execute/route.ts`
+
+- [x] **Task 4.2**: Node Status Visualization (无进度条设计) ✅
+  - ✅ Pending: 灰色边框，60%透明度
+  - ✅ Running: 蓝色边框脉冲动画 + 旋转spinner + "Generating..." 文字
+  - ✅ Completed: 绿色边框 + 显示缩略图/视频/音频预览
+  - ✅ Failed: 红色边框 + 错误消息显示
+  - ✅ 所有节点已支持：T2INode, I2VNode, TTSNode, MergeNode
   - **设计理念**: 节点本身就是状态指示器，不使用百分比进度条
 
-- [ ] **Task 4.3**: Canvas Real-time Updates
-  - Listen to execution SSE events
-  - Update node states dynamically
-  - Display artifact thumbnails when complete
+- [x] **Task 4.3**: Canvas Real-time Updates ✅
+  - ✅ Listen to execution SSE events with proper parsing
+  - ✅ Update node states dynamically via setNodes
+  - ✅ Display artifact thumbnails when complete
+  - ✅ File: `src/app/workspace/[runId]/page.tsx`
+
+**Phase 1 Bug Fixes**:
+- ✅ Fixed Next.js 15 params async issue (await params)
+- ✅ Fixed SSE parsing error (proper event/data extraction)
+- ✅ Fixed button disabled logic (allow re-execution after completion)
+- ✅ Fixed run.run_uuid usage instead of params.runId
+- ✅ Fixed node vertical spacing (250px → 380px to prevent overlap)
 
 #### Phase 2: Node Editing (Priority 2)
 - [ ] **Task 4.4**: Prompt Editing
