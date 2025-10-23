@@ -317,9 +317,10 @@ export default function WorkspacePage() {
         data: {
           label: `Scene ${index + 1}`,
           prompt: scene.description,
-          model: scene.t2iModel || "flux-dev",
-          credits: scene.t2iCredits || 0.5,
+          model: scene.t2iModel || "fal-ai/flux-dev",
+          credits: scene.t2iCredits || 0.25,
           sceneIndex: index + 1,
+          onModelChange: handleModelChange,
         },
       });
 
@@ -473,9 +474,10 @@ export default function WorkspacePage() {
         data: {
           label: `Scene ${index + 1}`,
           prompt: scene.description,
-          model: scene.t2iModel?.replace('fal-ai/', '').replace('elevenlabs/', '') || "flux-dev",
-          credits: scene.t2iCredits || 0.5,
+          model: scene.t2iModel || "fal-ai/flux-dev",
+          credits: scene.t2iCredits || 0.25,
           sceneIndex: index + 1,
+          onModelChange: handleModelChange,
         },
       });
 
@@ -655,6 +657,46 @@ export default function WorkspacePage() {
     const shareUrl = `${window.location.origin}/workspace/${runId}`;
     navigator.clipboard.writeText(shareUrl);
     alert(`Workflow URL copied to clipboard!\n${shareUrl}`);
+  };
+
+  // Handle model change in nodes
+  const handleModelChange = (nodeId: string, newModel: string, newCredits: number) => {
+    // Update node data
+    setNodes((nds) =>
+      nds.map((node) =>
+        node.id === nodeId
+          ? {
+              ...node,
+              data: {
+                ...node.data,
+                model: newModel,
+                credits: newCredits,
+              },
+            }
+          : node
+      )
+    );
+
+    // Recalculate total estimated credits
+    if (run) {
+      const updatedNodes = nodes.map((node) =>
+        node.id === nodeId
+          ? { ...node, data: { ...node.data, model: newModel, credits: newCredits } }
+          : node
+      );
+
+      const totalCredits = updatedNodes.reduce((sum, node) => {
+        if (node.data && typeof node.data.credits === 'number') {
+          return sum + node.data.credits;
+        }
+        return sum;
+      }, 0);
+
+      setRun((prevRun) => ({
+        ...prevRun!,
+        estimated_credits: totalCredits,
+      }));
+    }
   };
 
   const handleExecute = async () => {
