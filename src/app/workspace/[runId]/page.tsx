@@ -284,7 +284,7 @@ export default function WorkspacePage() {
     };
 
     let yPos = 100;
-    const sceneSpacing = 250;
+    const sceneSpacing = 380; // Increased to accommodate thumbnails/videos in completed state
 
     const newNodes: Node[] = [];
     const newEdges: Edge[] = [];
@@ -444,7 +444,7 @@ export default function WorkspacePage() {
     };
 
     let yPos = 100;
-    const sceneSpacing = 250;
+    const sceneSpacing = 380; // Increased to accommodate thumbnails/videos in completed state
 
     const generatedNodes: Node[] = [];
     const generatedEdges: Edge[] = [];
