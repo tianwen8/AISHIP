@@ -5,6 +5,7 @@
 
 import { Handle, Position, NodeProps } from "reactflow";
 import { useState } from "react";
+import { I2V_MODELS, calculateI2VCost, getModelById } from "@/config/models";
 
 type NodeStatus = 'pending' | 'running' | 'completed' | 'failed';
 
@@ -18,9 +19,10 @@ interface I2VNodeData {
   artifactUrl?: string;
   thumbnailUrl?: string;
   error?: string;
+  onModelChange?: (nodeId: string, newModel: string, newCredits: number) => void;
 }
 
-export default function I2VNode({ data, selected }: NodeProps<I2VNodeData>) {
+export default function I2VNode({ data, selected, id }: NodeProps<I2VNodeData>) {
   const [copied, setCopied] = useState(false);
   const status = data.status || 'pending';
 
@@ -28,6 +30,15 @@ export default function I2VNode({ data, selected }: NodeProps<I2VNodeData>) {
     navigator.clipboard.writeText(`Duration: ${data.duration}s, Model: ${data.model}`);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleModelChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newModelId = e.target.value;
+    const newCredits = calculateI2VCost(newModelId, data.duration);
+
+    if (data.onModelChange) {
+      data.onModelChange(id, newModelId, newCredits);
+    }
   };
 
   // Status-based styling
@@ -110,12 +121,21 @@ export default function I2VNode({ data, selected }: NodeProps<I2VNodeData>) {
           </div>
         </div>
 
-        {/* Model */}
+        {/* Model Selection */}
         <div className="mb-3">
           <div className="text-xs text-gray-500 mb-1">Model</div>
-          <div className="text-xs font-mono bg-gray-100 px-2 py-1 rounded">
-            {data.model}
-          </div>
+          <select
+            value={data.model}
+            onChange={handleModelChange}
+            disabled={status === 'running' || status === 'completed'}
+            className="w-full text-xs bg-white border border-gray-300 rounded px-2 py-1.5 focus:outline-none focus:border-green-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+          >
+            {I2V_MODELS.map((model) => (
+              <option key={model.id} value={model.id}>
+                {model.name} ({model.credits}/s) - {model.quality}
+              </option>
+            ))}
+          </select>
         </div>
 
         {/* Footer */}
