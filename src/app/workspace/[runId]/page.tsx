@@ -380,8 +380,9 @@ export default function WorkspacePage() {
           label: "Voiceover",
           script: workflow.voiceover.script,
           voice: workflow.voiceover.voice || "female",
-          model: workflow.voiceover.ttsModel || "turbo-v2",
-          credits: workflow.voiceover.ttsCredits || 0.3,
+          model: workflow.voiceover.ttsModel || "elevenlabs/turbo-v2",
+          credits: workflow.voiceover.ttsCredits || 0.5,
+          onModelChange: handleModelChange,
         },
       });
 
@@ -530,8 +531,9 @@ export default function WorkspacePage() {
           label: "Voiceover",
           script: workflow.voiceover.script,
           voice: workflow.voiceover.voice || "female",
-          model: workflow.voiceover.ttsModel?.replace('fal-ai/', '').replace('elevenlabs/', '') || "turbo-v2",
-          credits: workflow.voiceover.ttsCredits || 0.3,
+          model: workflow.voiceover.ttsModel || "elevenlabs/turbo-v2",
+          credits: workflow.voiceover.ttsCredits || 0.5,
+          onModelChange: handleModelChange,
         },
       });
     }
@@ -626,7 +628,8 @@ export default function WorkspacePage() {
             script: "Enter your voiceover script...",
             voice: "female",
             model: "elevenlabs/turbo-v2",
-            credits: 0.3,
+            credits: 0.5,
+            onModelChange: handleModelChange,
           },
         };
         break;
