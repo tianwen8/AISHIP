@@ -323,7 +323,7 @@ export class SimpleOrchestrator {
       })
 
       const result = await this.adapters.tts.call({
-        model: "elevenlabs/turbo-v2",
+        model: "fal-ai/elevenlabs/tts/turbo-v2.5",
         text: voiceoverPlan.script,
         voice: voiceoverPlan.voice === "male" ? "male_1" : "female_1",
         language: voiceoverPlan.language,

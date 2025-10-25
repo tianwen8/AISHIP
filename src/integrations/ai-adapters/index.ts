@@ -26,47 +26,47 @@ export const AI_MODELS = {
 
   // T2I Models
   t2i: {
-    "fal-ai/flux-dev": {
+    "fal-ai/flux/dev": {
       displayName: "FLUX Dev",
       costTier: "standard",
       cost: 0.025, // $0.025 per image
       provider: "fal",
       bestFor: "General purpose image generation",
     },
-    "fal-ai/flux-schnell": {
+    "fal-ai/flux/schnell": {
       displayName: "FLUX Schnell",
       costTier: "budget",
       cost: 0.003,
       provider: "fal",
       bestFor: "Fast preview images",
     },
-    "fal-ai/nanobanana": {
-      displayName: "NanoBanana",
+    "fal-ai/flux-lora": {
+      displayName: "FLUX LoRA",
       costTier: "budget",
       cost: 0.002,
       provider: "fal",
-      bestFor: "Cartoon and stylized images",
+      bestFor: "Custom trained models",
     },
   },
 
   // T2V / I2V Models
   t2v: {
-    "fal-ai/veo-3": {
-      displayName: "Veo 3",
+    "fal-ai/minimax-video": {
+      displayName: "MiniMax Video",
       costTier: "premium",
       costPerSecond: 0.15,
       provider: "fal",
-      bestFor: "Highest quality videos",
+      bestFor: "Highest quality videos with audio",
     },
-    "fal-ai/sora-2": {
-      displayName: "Sora 2",
+    "fal-ai/ltx-video": {
+      displayName: "LTX Video",
       costTier: "premium",
       costPerSecond: 0.2,
       provider: "fal",
-      bestFor: "Physically realistic motion",
+      bestFor: "Cinematic quality",
     },
-    "fal-ai/kling-v1": {
-      displayName: "Kling v1",
+    "fal-ai/kling-video/v1/standard/image-to-video": {
+      displayName: "Kling V1 Standard",
       costTier: "standard",
       costPerSecond: 0.08,
       provider: "fal",
@@ -76,19 +76,19 @@ export const AI_MODELS = {
 
   // TTS Models
   tts: {
-    "elevenlabs/turbo-v2": {
-      displayName: "ElevenLabs Turbo",
+    "fal-ai/elevenlabs/tts/turbo-v2.5": {
+      displayName: "ElevenLabs Turbo V2.5",
       costTier: "standard",
       costPer1000Chars: 0.5,
       provider: "fal",
       bestFor: "Natural voice synthesis",
     },
-    "openai/tts-1": {
-      displayName: "OpenAI TTS",
-      costTier: "budget",
-      costPer1000Chars: 0.015,
+    "fal-ai/elevenlabs/tts/eleven-v3": {
+      displayName: "ElevenLabs V3",
+      costTier: "premium",
+      costPer1000Chars: 0.7,
       provider: "fal",
-      bestFor: "Fast voice generation",
+      bestFor: "Premium voice quality",
     },
   },
 }
@@ -96,7 +96,7 @@ export const AI_MODELS = {
 // Default model selections
 export const DEFAULT_MODELS = {
   llm: "deepseek/deepseek-v3",
-  t2i: "fal-ai/flux-dev",
-  t2v: "fal-ai/kling-v1",
-  tts: "elevenlabs/turbo-v2",
+  t2i: "fal-ai/flux/dev",
+  t2v: "fal-ai/kling-video/v1/standard/image-to-video",
+  tts: "fal-ai/elevenlabs/tts/turbo-v2.5",
 }

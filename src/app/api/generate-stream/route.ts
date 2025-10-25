@@ -103,9 +103,9 @@ export async function POST(req: NextRequest) {
             aspectRatio: "9:16",
             recommendedModels: {
               llm: "deepseek/deepseek-chat",
-              t2i: "fal-ai/flux-dev",
-              t2v: "fal-ai/kling-v1",  // Default to Kling V1
-              tts: voice && voice !== "none" ? "elevenlabs/turbo-v2" : undefined
+              t2i: "fal-ai/flux/dev",
+              t2v: "fal-ai/kling-video/v1/standard/image-to-video",
+              tts: voice && voice !== "none" ? "fal-ai/elevenlabs/tts/turbo-v2.5" : undefined
             },
             estimatedCredits: 14.5
           }

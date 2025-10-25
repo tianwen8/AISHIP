@@ -39,7 +39,7 @@ export interface ModelOption {
 
 export const T2I_MODELS: ModelOption[] = [
   {
-    id: "fal-ai/flux-dev",
+    id: "fal-ai/flux/dev",
     name: "FLUX Dev",
     provider: "Fal.ai",
     quality: "High Quality",
@@ -49,7 +49,7 @@ export const T2I_MODELS: ModelOption[] = [
     description: "Balanced quality and speed, best for most use cases",
   },
   {
-    id: "fal-ai/flux-schnell",
+    id: "fal-ai/flux/schnell",
     name: "FLUX Schnell",
     provider: "Fal.ai",
     quality: "Good Quality",
@@ -58,8 +58,8 @@ export const T2I_MODELS: ModelOption[] = [
     description: "Faster generation with good results",
   },
   {
-    id: "fal-ai/nanobanana-flux",
-    name: "Nanobanana FLUX",
+    id: "fal-ai/flux-lora",
+    name: "FLUX LoRA",
     provider: "Fal.ai",
     quality: "Very High Quality",
     speed: "Slow (30-60s)",
@@ -72,8 +72,8 @@ export const T2I_MODELS: ModelOption[] = [
 
 export const I2V_MODELS: ModelOption[] = [
   {
-    id: "fal-ai/kling-v1",
-    name: "Kling V1",
+    id: "fal-ai/kling-video/v1/standard/image-to-video",
+    name: "Kling V1 Standard",
     provider: "Fal.ai",
     quality: "High Quality",
     speed: "Medium (20-40s)",
@@ -88,9 +88,24 @@ export const I2V_MODELS: ModelOption[] = [
     }
   },
   {
-    id: "fal-ai/veo-3",
-    name: "Veo 3",
-    provider: "Google (via Fal.ai)",
+    id: "fal-ai/kling-video/v1.6/standard/image-to-video",
+    name: "Kling V1.6 Standard",
+    provider: "Fal.ai",
+    quality: "Very High Quality",
+    speed: "Medium (30-50s)",
+    credits: 1.0, // per second
+    description: "Latest Kling version with improved quality",
+    capabilities: {
+      inputType: 'image',
+      outputs: {
+        video: { format: 'mp4', hasAudio: false }
+      }
+    }
+  },
+  {
+    id: "fal-ai/minimax-video",
+    name: "MiniMax Video",
+    provider: "MiniMax (via Fal.ai)",
     quality: "Very High Quality",
     speed: "Slow (40-60s)",
     credits: 1.2, // per second
@@ -110,23 +125,20 @@ export const I2V_MODELS: ModelOption[] = [
     }
   },
   {
-    id: "fal-ai/sora-2",
-    name: "Sora 2",
-    provider: "OpenAI (via Fal.ai)",
+    id: "fal-ai/ltx-video",
+    name: "LTX Video",
+    provider: "Lightricks (via Fal.ai)",
     quality: "Premium Quality",
     speed: "Very Slow (60-90s)",
     credits: 1.5, // per second
-    description: "Cinematic quality with automatic audio",
+    description: "Cinematic quality with fast generation",
     capabilities: {
       inputType: 'both',  // Supports both T2V and I2V
       audioGeneration: {
-        enabled: true,
-        types: ['sound-effects', 'voiceover'],  // Sora 2 supports voiceover
-        controllable: false,  // Auto-generated, not controllable
-        separateTrack: false
+        enabled: false
       },
       outputs: {
-        video: { format: 'mp4', hasAudio: true }
+        video: { format: 'mp4', hasAudio: false }
       }
     }
   },
@@ -136,23 +148,32 @@ export const I2V_MODELS: ModelOption[] = [
 
 export const TTS_MODELS: ModelOption[] = [
   {
-    id: "elevenlabs/turbo-v2",
-    name: "ElevenLabs Turbo V2",
-    provider: "ElevenLabs",
+    id: "fal-ai/elevenlabs/tts/turbo-v2.5",
+    name: "ElevenLabs Turbo V2.5",
+    provider: "ElevenLabs (via Fal.ai)",
     quality: "High Quality",
     speed: "Fast (5-10s)",
     credits: 0.5,
     recommended: true,
-    description: "Natural-sounding voiceover with fast generation",
+    description: "Natural-sounding voiceover with fast generation, 32 languages",
   },
   {
-    id: "openai/tts-1",
-    name: "OpenAI TTS-1",
-    provider: "OpenAI",
+    id: "fal-ai/elevenlabs/tts/eleven-v3",
+    name: "ElevenLabs V3",
+    provider: "ElevenLabs (via Fal.ai)",
+    quality: "Premium Quality",
+    speed: "Medium (10-15s)",
+    credits: 0.7,
+    description: "Latest generation with superior voice quality",
+  },
+  {
+    id: "fal-ai/elevenlabs/tts/multilingual-v2",
+    name: "ElevenLabs Multilingual V2",
+    provider: "ElevenLabs (via Fal.ai)",
     quality: "Good Quality",
     speed: "Fast (3-8s)",
-    credits: 0.15,
-    description: "Cost-effective text-to-speech",
+    credits: 0.4,
+    description: "Exceptional stability across 29 languages",
   },
 ];
 

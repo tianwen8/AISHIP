@@ -254,7 +254,7 @@ export class WorkflowBuilder {
       nodes.push({
         id: 'tts',
         type: 'tts',
-        model: selectedModels.tts || 'elevenlabs/turbo-v2',
+        model: selectedModels.tts || 'fal-ai/elevenlabs/tts/turbo-v2.5',
         inputs: {
           text: voiceoverPlan.script,
           voice: voiceoverPlan.voice
