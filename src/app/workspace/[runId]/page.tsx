@@ -321,6 +321,7 @@ export default function WorkspacePage() {
           credits: scene.t2iCredits || 0.25,
           sceneIndex: index + 1,
           onModelChange: handleModelChange,
+          onPromptChange: handlePromptChange,
         },
       });
 
@@ -480,6 +481,7 @@ export default function WorkspacePage() {
           credits: scene.t2iCredits || 0.25,
           sceneIndex: index + 1,
           onModelChange: handleModelChange,
+          onPromptChange: handlePromptChange,
         },
       });
 
@@ -598,8 +600,10 @@ export default function WorkspacePage() {
             label: "New T2I",
             prompt: "Enter your prompt...",
             model: "fal-ai/flux-dev",
-            credits: 0.5,
+            credits: 0.25,
             sceneIndex: nodes.length + 1,
+            onModelChange: handleModelChange,
+            onPromptChange: handlePromptChange,
           },
         };
         break;
@@ -703,6 +707,23 @@ export default function WorkspacePage() {
         estimated_credits: totalCredits,
       }));
     }
+  };
+
+  // Handle prompt change in nodes
+  const handlePromptChange = (nodeId: string, newPrompt: string) => {
+    setNodes((nds) =>
+      nds.map((node) =>
+        node.id === nodeId
+          ? {
+              ...node,
+              data: {
+                ...node.data,
+                prompt: newPrompt,
+              },
+            }
+          : node
+      )
+    );
   };
 
   const handleExecute = async () => {
