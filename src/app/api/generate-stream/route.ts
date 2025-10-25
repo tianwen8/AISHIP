@@ -7,7 +7,7 @@
 import { NextRequest } from "next/server"
 import { AIPlanner } from "@/services/ai-planner"
 import { createGraph } from "@/models/graph"
-import { createRun, RunStatus } from "@/models/run"
+import { createRun } from "@/models/run"
 import { getUuid } from "@/lib/hash"
 
 export async function POST(req: NextRequest) {
@@ -57,38 +57,130 @@ export async function POST(req: NextRequest) {
         // 4. Generate workflow with progress updates
         sendEvent("status", { message: "Planning scenes...", progress: 30 })
 
-        const planner = new AIPlanner()
-        const workflowPlan = await planner.generateWorkflow({
-          prompt: prompt.trim(),
-          duration: duration || 15,
-          aspectRatio: "9:16",
-          voice: voice || "none",
-          referenceImage: undefined,
-          style: undefined,
-        })
+        // TEMPORARY: Use mock workflow for testing Phase 2.5
+        const USE_MOCK = true  // Set to false to use real AI Planner
+
+        let workflowPlan: any;
+
+        if (USE_MOCK) {
+          // Mock workflow plan for testing WorkflowBuilder
+          const { createWorkflowBuilder } = await import("@/services/workflow-builder")
+
+          const mockScenes = [
+            {
+              id: "scene_1",
+              duration: 5,
+              description: "A golden retriever running on the beach, wide shot with sunset lighting, vibrant warm colors",
+              cameraAngle: "wide",
+              movement: "pan-right"
+            },
+            {
+              id: "scene_2",
+              duration: 5,
+              description: "Mid-shot of the golden retriever playing in ocean waves, dynamic movement, splash effects",
+              cameraAngle: "mid-shot",
+              movement: "following"
+            },
+            {
+              id: "scene_3",
+              duration: 5,
+              description: "Close-up of golden retriever's happy face, sunset bokeh background, shallow depth of field",
+              cameraAngle: "close-up",
+              movement: "static"
+            }
+          ]
+
+          const mockVoiceover = voice && voice !== "none" ? {
+            script: "Watch this beautiful golden retriever enjoy a perfect sunset at the beach. Pure joy and freedom in every moment.",
+            voice: voice,
+            language: "en",
+            estimatedDuration: duration || 15
+          } : undefined
+
+          workflowPlan = {
+            scenes: mockScenes,
+            voiceover: mockVoiceover,
+            aspectRatio: "9:16",
+            recommendedModels: {
+              llm: "deepseek/deepseek-chat",
+              t2i: "fal-ai/flux-dev",
+              t2v: "fal-ai/kling-v1",  // Default to Kling V1
+              tts: voice && voice !== "none" ? "elevenlabs/turbo-v2" : undefined
+            },
+            estimatedCredits: 14.5
+          }
+
+          // Generate workflow nodes using WorkflowBuilder
+          const workflowBuilder = createWorkflowBuilder()
+          workflowPlan.workflowNodes = workflowBuilder.buildWorkflow(
+            workflowPlan.scenes,
+            workflowPlan.voiceover,
+            {
+              t2i: workflowPlan.recommendedModels.t2i,
+              i2v: workflowPlan.recommendedModels.t2v,
+              tts: workflowPlan.recommendedModels.tts
+            }
+          )
+        } else {
+          // Use real AI Planner
+          const planner = new AIPlanner()
+          workflowPlan = await planner.generateWorkflow({
+            prompt: prompt.trim(),
+            duration: duration || 15,
+            aspectRatio: "9:16",
+            voice: voice || "none",
+            referenceImage: undefined,
+            style: undefined,
+          })
+        }
 
         // 5. Send workflow plan
         sendEvent("status", { message: "Creating workflow...", progress: 60 })
+
+        // Log workflow nodes for debugging (Phase 2.5)
+        if (workflowPlan.workflowNodes) {
+          console.log("=== Generated Workflow Nodes ===")
+          console.log(`Total nodes: ${workflowPlan.workflowNodes.length}`)
+          workflowPlan.workflowNodes.forEach((node: any) => {
+            console.log(`- ${node.id} (${node.type}): ${node.model}`)
+            if (node.dependencies.length > 0) {
+              console.log(`  Dependencies: ${node.dependencies.join(', ')}`)
+            }
+            if (node.metadata) {
+              console.log(`  Metadata:`, node.metadata)
+            }
+          })
+          console.log("================================")
+        }
+
         sendEvent("workflow", { workflowPlan })
 
         // 6. Create Graph
         sendEvent("status", { message: "Saving project...", progress: 80 })
 
-        await createGraph({
-          uuid: graphUuid,
-          user_uuid: userUuid,
-          name: `${prompt.substring(0, 50)}...`,
-          description: `Platform: ${platform || "TikTok"}, Duration: ${duration || 15}s, Voice: ${voice || "none"}`,
-          graph_definition: workflowPlan,
-        })
+        try {
+          await createGraph({
+            uuid: graphUuid,
+            user_uuid: userUuid,
+            name: `${prompt.substring(0, 50)}...`,
+            description: `Platform: ${platform || "TikTok"}, Duration: ${duration || 15}s, Voice: ${voice || "none"}`,
+            graph_definition: workflowPlan,
+          })
 
-        // 7. Create Run
-        await createRun({
-          uuid: runUuid,
-          user_uuid: userUuid,
-          graph_uuid: graphUuid,
-          graph_snapshot: workflowPlan,
-        })
+          // 7. Create Run
+          await createRun({
+            uuid: runUuid,
+            user_uuid: userUuid,
+            graph_uuid: graphUuid,
+            graph_snapshot: workflowPlan,
+          })
+        } catch (dbError: any) {
+          console.error("Database error (continuing without save):", dbError.message)
+          // Continue execution even if database save fails
+          sendEvent("warning", {
+            message: "Database temporarily unavailable, workflow will not be saved"
+          })
+        }
 
         // 8. Send completion
         sendEvent("status", { message: "Complete!", progress: 100 })
