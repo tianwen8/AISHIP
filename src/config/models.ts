@@ -13,6 +13,26 @@ export interface ModelOption {
   credits: number;
   recommended?: boolean;
   description?: string;
+
+  // Model capabilities (for dynamic workflow generation)
+  capabilities?: {
+    // Video model capabilities
+    audioGeneration?: {
+      enabled: boolean;
+      types: ('sound-effects' | 'voiceover' | 'music')[];
+      controllable: boolean;  // Can control via prompt
+      separateTrack: boolean; // Can export audio separately
+    };
+
+    // Input type support
+    inputType?: 'text' | 'image' | 'both';
+
+    // Output formats
+    outputs?: {
+      video?: { format: string; hasAudio: boolean };
+      audio?: { format: string; separate: boolean };
+    };
+  };
 }
 
 // ============ Text-to-Image Models ============
@@ -60,24 +80,55 @@ export const I2V_MODELS: ModelOption[] = [
     credits: 0.8, // per second
     recommended: true,
     description: "Reliable video generation with smooth motion",
+    capabilities: {
+      inputType: 'image',
+      outputs: {
+        video: { format: 'mp4', hasAudio: false }
+      }
+    }
   },
   {
     id: "fal-ai/veo-3",
     name: "Veo 3",
-    provider: "Fal.ai",
+    provider: "Google (via Fal.ai)",
     quality: "Very High Quality",
     speed: "Slow (40-60s)",
     credits: 1.2, // per second
-    description: "Advanced video quality with realistic details",
+    description: "Advanced video quality with audio generation",
+    capabilities: {
+      inputType: 'both',  // Supports both T2V and I2V
+      audioGeneration: {
+        enabled: true,
+        types: ['sound-effects', 'music'],
+        controllable: true,
+        separateTrack: true
+      },
+      outputs: {
+        video: { format: 'mp4', hasAudio: true },
+        audio: { format: 'mp3', separate: true }
+      }
+    }
   },
   {
     id: "fal-ai/sora-2",
     name: "Sora 2",
-    provider: "Fal.ai",
+    provider: "OpenAI (via Fal.ai)",
     quality: "Premium Quality",
     speed: "Very Slow (60-90s)",
     credits: 1.5, // per second
-    description: "OpenAI's Sora for cinematic quality videos",
+    description: "Cinematic quality with automatic audio",
+    capabilities: {
+      inputType: 'both',  // Supports both T2V and I2V
+      audioGeneration: {
+        enabled: true,
+        types: ['sound-effects', 'voiceover'],  // Sora 2 supports voiceover
+        controllable: false,  // Auto-generated, not controllable
+        separateTrack: false
+      },
+      outputs: {
+        video: { format: 'mp4', hasAudio: true }
+      }
+    }
   },
 ];
 
