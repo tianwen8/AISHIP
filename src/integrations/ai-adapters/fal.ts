@@ -41,10 +41,12 @@ export class FalLLMAdapter implements ILLMAdapter {
         logs: true,
       })
 
+      const data = result as any
+
       return {
-        output: result.data.output || result.data.text || result.data.content,
-        usage: result.data.usage,
-        metadata: result.data,
+        output: data.output || data.text || data.content,
+        usage: data.usage,
+        metadata: data,
       }
     } catch (error: any) {
       console.error("FalLLMAdapter error:", error)
@@ -71,8 +73,13 @@ export class FalT2IAdapter implements IT2IAdapter {
         },
       })
 
-      const image = result.data.images?.[0] || result.data.image
+      // Fal.ai returns data directly at top level, not in result.data
+      const data = result as any
+
+      // Extract image from response
+      const image = data.images?.[0] || data.image
       if (!image) {
+        console.error("[FalT2I] Unexpected response format:", data)
         throw new Error("No image returned from Fal.ai")
       }
 
@@ -80,8 +87,8 @@ export class FalT2IAdapter implements IT2IAdapter {
         imageUrl: image.url,
         width: image.width || request.width || 1024,
         height: image.height || request.height || 1024,
-        seed: result.data.seed,
-        metadata: result.data,
+        seed: data.seed,
+        metadata: data,
       }
     } catch (error: any) {
       console.error("FalT2IAdapter error:", error)
@@ -107,7 +114,8 @@ export class FalT2VAdapter implements IT2VAdapter {
         },
       })
 
-      const video = result.data.video
+      const data = result as any
+      const video = data.video
       if (!video) {
         throw new Error("No video returned from Fal.ai")
       }
@@ -115,10 +123,10 @@ export class FalT2VAdapter implements IT2VAdapter {
       return {
         videoUrl: video.url || video,
         duration: request.duration,
-        width: result.data.width || request.width || 1920,
-        height: result.data.height || request.height || 1080,
-        fps: result.data.fps || request.fps || 30,
-        metadata: result.data,
+        width: data.width || request.width || 1920,
+        height: data.height || request.height || 1080,
+        fps: data.fps || request.fps || 30,
+        metadata: data,
       }
     } catch (error: any) {
       console.error("FalT2VAdapter error:", error)
@@ -140,15 +148,16 @@ export class FalTTSAdapter implements ITTSAdapter {
         logs: true,
       })
 
-      const audio = result.data.audio_url || result.data.audio || result.data.url
+      const data = result as any
+      const audio = data.audio_url || data.audio || data.url
       if (!audio) {
         throw new Error("No audio returned from Fal.ai")
       }
 
       return {
         audioUrl: audio,
-        duration: result.data.duration || 0,
-        metadata: result.data,
+        duration: data.duration || 0,
+        metadata: data,
       }
     } catch (error: any) {
       console.error("FalTTSAdapter error:", error)
