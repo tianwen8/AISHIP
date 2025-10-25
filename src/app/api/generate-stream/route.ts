@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
         sendEvent("status", { message: "Planning scenes...", progress: 30 })
 
         // TEMPORARY: Use mock workflow for testing Phase 2.5
-        const USE_MOCK = true  // Set to false to use real AI Planner
+        const USE_MOCK = false  // Set to false to use real AI Planner
 
         let workflowPlan: any;
 

@@ -12,6 +12,8 @@ import ReactFlow, {
   useEdgesState,
   NodeTypes,
   useReactFlow,
+  addEdge,
+  Connection,
 } from "reactflow";
 import "reactflow/dist/style.css";
 
@@ -748,6 +750,15 @@ export default function WorkspacePage() {
     }
   };
 
+  // Handle connecting nodes
+  const onConnect = (connection: Connection) => {
+    setEdges((eds) => addEdge({
+      ...connection,
+      animated: true,
+      style: { stroke: "#3b82f6", strokeWidth: 2 },
+    }, eds));
+  };
+
   const handleExecute = async () => {
     if (!run) return;
 
@@ -925,9 +936,9 @@ export default function WorkspacePage() {
             nodeTypes={nodeTypes}
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
-            nodesDraggable={false}
-            nodesConnectable={false}
-            elementsSelectable={false}
+            panOnDrag={false}
+            zoomOnScroll={false}
+            preventScrolling={false}
           >
             <CanvasContent
               nodes={nodes}
@@ -1030,7 +1041,7 @@ export default function WorkspacePage() {
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           onNodesDelete={handleNodesDelete}
-          nodesDeletable={true}
+          onConnect={onConnect}
           fitView
         >
           <Background />
