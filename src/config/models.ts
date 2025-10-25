@@ -148,32 +148,23 @@ export const I2V_MODELS: ModelOption[] = [
 
 export const TTS_MODELS: ModelOption[] = [
   {
-    id: "fal-ai/elevenlabs/tts/turbo-v2.5",
-    name: "ElevenLabs Turbo V2.5",
-    provider: "ElevenLabs (via Fal.ai)",
+    id: "fal-ai/vibevoice",
+    name: "VibeVoice 1.5B",
+    provider: "Microsoft (via Fal.ai)",
     quality: "High Quality",
     speed: "Fast (5-10s)",
-    credits: 0.5,
+    credits: 0.3,
     recommended: true,
-    description: "Natural-sounding voiceover with fast generation, 32 languages",
+    description: "Open-source TTS with natural voices, supports EN/ZH",
   },
   {
-    id: "fal-ai/elevenlabs/tts/eleven-v3",
-    name: "ElevenLabs V3",
-    provider: "ElevenLabs (via Fal.ai)",
+    id: "fal-ai/vibevoice/7b",
+    name: "VibeVoice 7B",
+    provider: "Microsoft (via Fal.ai)",
     quality: "Premium Quality",
     speed: "Medium (10-15s)",
-    credits: 0.7,
-    description: "Latest generation with superior voice quality",
-  },
-  {
-    id: "fal-ai/elevenlabs/tts/multilingual-v2",
-    name: "ElevenLabs Multilingual V2",
-    provider: "ElevenLabs (via Fal.ai)",
-    quality: "Good Quality",
-    speed: "Fast (3-8s)",
-    credits: 0.4,
-    description: "Exceptional stability across 29 languages",
+    credits: 0.5,
+    description: "Higher quality 7B model with background music support",
   },
 ];
 

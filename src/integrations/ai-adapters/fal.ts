@@ -154,19 +154,38 @@ export class FalT2VAdapter implements IT2VAdapter {
 export class FalTTSAdapter implements ITTSAdapter {
   async call(request: TTSRequest): Promise<TTSResponse> {
     try {
+      // Map voice parameter to VibeVoice preset
+      const voicePresetMap: Record<string, string> = {
+        'female': 'Alice [EN]',
+        'male': 'Carter [EN]',
+        'default': 'Alice [EN]'
+      }
+
+      const preset = voicePresetMap[request.voice] || voicePresetMap['default']
+
+      // VibeVoice API format
+      const input: any = {
+        script: request.text,
+        speakers: [
+          {
+            preset: preset
+          }
+        ]
+      }
+
+      console.log("[FalTTS] Calling VibeVoice with:", JSON.stringify(input, null, 2))
+
       const result = await fal.subscribe(request.model, {
-        input: {
-          text: request.text,
-          voice: request.voice,
-          speed: request.speed || 1.0,
-          language: request.language || "en",
-        },
+        input,
         logs: true,
       })
 
       const data = result as any
+      console.log("[FalTTS] Response data:", JSON.stringify(data, null, 2))
+
       const audio = data.audio_url || data.audio || data.url
       if (!audio) {
+        console.error("[FalTTS] Unexpected response format:", data)
         throw new Error("No audio returned from Fal.ai")
       }
 
@@ -177,6 +196,9 @@ export class FalTTSAdapter implements ITTSAdapter {
       }
     } catch (error: any) {
       console.error("FalTTSAdapter error:", error)
+      if (error.body) {
+        console.error("Error body:", JSON.stringify(error.body, null, 2))
+      }
       throw new Error(`TTS call failed: ${error.message}`)
     }
   }

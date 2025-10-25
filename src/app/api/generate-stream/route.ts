@@ -105,7 +105,7 @@ export async function POST(req: NextRequest) {
               llm: "deepseek/deepseek-chat",
               t2i: "fal-ai/flux/dev",
               t2v: "fal-ai/kling-video/v1/standard/image-to-video",
-              tts: voice && voice !== "none" ? "fal-ai/elevenlabs/tts/turbo-v2.5" : undefined
+              tts: voice && voice !== "none" ? "fal-ai/vibevoice" : undefined
             },
             estimatedCredits: 14.5
           }

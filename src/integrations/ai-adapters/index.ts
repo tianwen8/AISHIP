@@ -76,19 +76,19 @@ export const AI_MODELS = {
 
   // TTS Models
   tts: {
-    "fal-ai/elevenlabs/tts/turbo-v2.5": {
-      displayName: "ElevenLabs Turbo V2.5",
+    "fal-ai/vibevoice": {
+      displayName: "VibeVoice 1.5B",
+      costTier: "budget",
+      costPer1000Chars: 0.3,
+      provider: "fal",
+      bestFor: "Fast, natural voice synthesis",
+    },
+    "fal-ai/vibevoice/7b": {
+      displayName: "VibeVoice 7B",
       costTier: "standard",
       costPer1000Chars: 0.5,
       provider: "fal",
-      bestFor: "Natural voice synthesis",
-    },
-    "fal-ai/elevenlabs/tts/eleven-v3": {
-      displayName: "ElevenLabs V3",
-      costTier: "premium",
-      costPer1000Chars: 0.7,
-      provider: "fal",
-      bestFor: "Premium voice quality",
+      bestFor: "Premium voice quality with music",
     },
   },
 }
@@ -98,5 +98,5 @@ export const DEFAULT_MODELS = {
   llm: "deepseek/deepseek-v3",
   t2i: "fal-ai/flux/dev",
   t2v: "fal-ai/kling-video/v1/standard/image-to-video",
-  tts: "fal-ai/elevenlabs/tts/turbo-v2.5",
+  tts: "fal-ai/vibevoice",
 }
