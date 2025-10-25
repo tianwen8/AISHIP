@@ -100,14 +100,30 @@ export class FalT2IAdapter implements IT2IAdapter {
 export class FalT2VAdapter implements IT2VAdapter {
   async call(request: T2VRequest): Promise<T2VResponse> {
     try {
+      // Build input parameters - handle model-specific differences
+      const input: any = {
+        prompt: request.prompt,
+      }
+
+      // Image-to-Video models require image_url
+      if (request.imageUrl) {
+        input.image_url = request.imageUrl
+      }
+
+      // Duration must be string for Kling models ("5" or "10")
+      if (request.model.includes('kling')) {
+        input.duration = String(request.duration || 5)
+      } else {
+        input.duration = request.duration || 5
+      }
+
+      // Some models support additional parameters
+      if (request.seed) {
+        input.seed = request.seed
+      }
+
       const result = await fal.subscribe(request.model, {
-        input: {
-          image_url: request.imageUrl,
-          prompt: request.prompt,
-          duration: request.duration,
-          fps: request.fps || 30,
-          seed: request.seed,
-        },
+        input,
         logs: true,
         onQueueUpdate: (update) => {
           console.log("T2V Queue:", update.status, "Position:", update.queue_position)
@@ -117,12 +133,13 @@ export class FalT2VAdapter implements IT2VAdapter {
       const data = result as any
       const video = data.video
       if (!video) {
+        console.error("[FalT2V] Unexpected response:", data)
         throw new Error("No video returned from Fal.ai")
       }
 
       return {
         videoUrl: video.url || video,
-        duration: request.duration,
+        duration: request.duration || 5,
         width: data.width || request.width || 1920,
         height: data.height || request.height || 1080,
         fps: data.fps || request.fps || 30,
