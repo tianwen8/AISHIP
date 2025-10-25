@@ -726,6 +726,28 @@ export default function WorkspacePage() {
     );
   };
 
+  // Handle nodes delete - recalculate credits
+  const handleNodesDelete = (deleted: Node[]) => {
+    if (run) {
+      // Calculate total credits after deletion
+      const remainingNodes = nodes.filter(
+        (node) => !deleted.find((d) => d.id === node.id)
+      );
+
+      const totalCredits = remainingNodes.reduce((sum, node) => {
+        if (node.data && typeof node.data.credits === 'number') {
+          return sum + node.data.credits;
+        }
+        return sum;
+      }, 0);
+
+      setRun((prevRun) => ({
+        ...prevRun!,
+        estimated_credits: totalCredits,
+      }));
+    }
+  };
+
   const handleExecute = async () => {
     if (!run) return;
 
@@ -1007,6 +1029,8 @@ export default function WorkspacePage() {
           nodeTypes={nodeTypes}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
+          onNodesDelete={handleNodesDelete}
+          nodesDeletable={true}
           fitView
         >
           <Background />
