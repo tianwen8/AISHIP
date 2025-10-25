@@ -346,9 +346,10 @@ export default function WorkspacePage() {
         data: {
           label: `Video ${index + 1}`,
           duration: scene.duration,
-          model: scene.t2vModel || "kling-v1",
-          credits: scene.t2vCredits || 1.5,
+          model: scene.t2vModel || "fal-ai/kling-v1",
+          credits: scene.t2vCredits || (scene.duration * 0.8),
           sceneIndex: index + 1,
+          onModelChange: handleModelChange,
         },
       });
 
@@ -499,9 +500,10 @@ export default function WorkspacePage() {
         data: {
           label: `Video ${index + 1}`,
           duration: scene.duration,
-          model: scene.t2vModel?.replace('fal-ai/', '').replace('elevenlabs/', '') || "kling-v1",
-          credits: scene.t2vCredits || 1.5,
+          model: scene.t2vModel || "fal-ai/kling-v1",
+          credits: scene.t2vCredits || (scene.duration * 0.8),
           sceneIndex: index + 1,
+          onModelChange: handleModelChange,
         },
       });
 
@@ -608,8 +610,9 @@ export default function WorkspacePage() {
             label: "New I2V",
             duration: 5,
             model: "fal-ai/kling-v1",
-            credits: 1.5,
+            credits: 4.0,
             sceneIndex: nodes.length + 1,
+            onModelChange: handleModelChange,
           },
         };
         break;
