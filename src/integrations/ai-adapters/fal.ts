@@ -100,7 +100,8 @@ export class FalT2IAdapter implements IT2IAdapter {
 export class FalT2VAdapter implements IT2VAdapter {
   async call(request: T2VRequest): Promise<T2VResponse> {
     try {
-      // Build input parameters - handle model-specific differences
+      // Build minimal input parameters per Fal.ai official docs
+      // Kling models only support: prompt, image_url
       const input: any = {
         prompt: request.prompt,
       }
@@ -110,17 +111,10 @@ export class FalT2VAdapter implements IT2VAdapter {
         input.image_url = request.imageUrl
       }
 
-      // Duration must be string for Kling models ("5" or "10")
-      if (request.model.includes('kling')) {
-        input.duration = String(request.duration || 5)
-      } else {
-        input.duration = request.duration || 5
-      }
+      // Note: Kling models do NOT support duration, fps, or seed parameters
+      // Only include these for other video models if needed in the future
 
-      // Some models support additional parameters
-      if (request.seed) {
-        input.seed = request.seed
-      }
+      console.log("[FalT2V] Calling with input:", JSON.stringify(input, null, 2))
 
       const result = await fal.subscribe(request.model, {
         input,
@@ -131,9 +125,11 @@ export class FalT2VAdapter implements IT2VAdapter {
       })
 
       const data = result as any
+      console.log("[FalT2V] Response data:", JSON.stringify(data, null, 2))
+
       const video = data.video
       if (!video) {
-        console.error("[FalT2V] Unexpected response:", data)
+        console.error("[FalT2V] Unexpected response format:", data)
         throw new Error("No video returned from Fal.ai")
       }
 
@@ -147,6 +143,9 @@ export class FalT2VAdapter implements IT2VAdapter {
       }
     } catch (error: any) {
       console.error("FalT2VAdapter error:", error)
+      if (error.body) {
+        console.error("Error body:", JSON.stringify(error.body, null, 2))
+      }
       throw new Error(`T2V call failed: ${error.message}`)
     }
   }
