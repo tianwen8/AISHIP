@@ -128,7 +128,7 @@ export default function T2INode({ data, selected, id }: NodeProps<T2INodeData>) 
           <select
             value={data.model}
             onChange={handleModelChange}
-            disabled={status === 'running' || status === 'completed'}
+            disabled={status === 'running'}
             className="w-full text-xs bg-white border border-gray-300 rounded px-2 py-1.5 focus:outline-none focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
           >
             {T2I_MODELS.map((model) => (

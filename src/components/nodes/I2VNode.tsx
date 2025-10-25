@@ -127,7 +127,7 @@ export default function I2VNode({ data, selected, id }: NodeProps<I2VNodeData>) 
           <select
             value={data.model}
             onChange={handleModelChange}
-            disabled={status === 'running' || status === 'completed'}
+            disabled={status === 'running'}
             className="w-full text-xs bg-white border border-gray-300 rounded px-2 py-1.5 focus:outline-none focus:border-green-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
           >
             {I2V_MODELS.map((model) => (
