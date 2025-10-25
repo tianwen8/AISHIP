@@ -2,9 +2,9 @@
 
 **Project Name**: AI Video Studio
 **Target Market**: Global English-speaking content creators (TikTok/YouTube Shorts/Instagram Reels)
-**Document Version**: 3.4
-**Last Updated**: 2025-10-23
-**Status**: Week 4 Phase 1 Complete - Starting Phase 2 (Node Editing)
+**Document Version**: 3.5
+**Last Updated**: 2025-10-25
+**Status**: Week 4 Phase 2 Complete - Phase 2.5 Multi-Model Architecture (In Progress)
 **Git Repo**: https://github.com/tianwen8/soravideos
 
 ---
@@ -1960,27 +1960,189 @@ Homepage → Click Generate → Canvas appears → Prompt node shows
 - ✅ Fixed run.run_uuid usage instead of params.runId
 - ✅ Fixed node vertical spacing (250px → 380px to prevent overlap)
 
-#### Phase 2: Node Editing (Priority 2)
-- [ ] **Task 4.4**: Prompt Editing
-  - Double-click node → Edit modal
-  - Click ✏️ icon → Inline editing
-  - Mark modified nodes
+#### Phase 2: Node Editing (Priority 2) ✅ COMPLETED
 
-- [ ] **Task 4.5**: Model Selection
-  - Dropdown menu for each node
-  - Real-time cost recalculation
-  - Model comparison (quality/speed/cost)
+- [x] **Task 4.4**: Prompt Editing ✅
+  - ✅ Inline editing (click prompt or ✏️ icon)
+  - ✅ Ctrl+Enter to save, Esc to cancel
+  - ✅ Real-time update to node data
+  - ✅ File: `src/components/nodes/T2INode.tsx`
 
-#### Phase 3: Smart Features (Priority 3)
-- [ ] **Task 4.6**: Single Node Regeneration
-  - Right-click menu: Regenerate
-  - Only re-execute modified nodes
-  - Reuse cached results for unmodified nodes
+- [x] **Task 4.5**: Model Selection ✅
+  - ✅ Dropdown menu for all node types (T2I, I2V, TTS)
+  - ✅ Real-time cost recalculation
+  - ✅ Model metadata (quality/speed/cost)
+  - ✅ Files: `src/components/nodes/*.tsx`, `src/config/models.ts`
 
-- [ ] **Task 4.7**: Intelligent Caching
-  - Detect unchanged nodes
-  - Display "Cached - 0 credits" badge
-  - Save user credits
+**Additional Features Completed**:
+- [x] Manual node connections (onConnect callback)
+- [x] Node deletion with credit recalculation
+- [x] Canvas toolbar (Add T2I, I2V, TTS, Merge nodes)
+
+---
+
+#### Phase 2.5: Multi-Model Dynamic Workflow (Priority 2) 🔄 IN PROGRESS
+
+**Background**:
+新一代视频生成模型（Veo 3, Sora 2, Kling 2.0）支持视频+音频同时生成，需要架构升级以支持：
+- 不同模型的能力差异（有/无音频生成）
+- 智能音频决策（保留视频音效 vs 添加配音）
+- 动态工作流生成（根据模型能力调整节点）
+
+**核心设计原则**:
+1. **卖点优先**：始终使用最新最好的模型（Veo 3, Sora 2）
+2. **灵活集成**：支持任意 provider（Fal.ai, OpenRouter, Official APIs）
+3. **智能决策**：根据模型能力自动调整工作流
+4. **用户透明**：清晰展示音频来源（模型生成 vs TTS）
+
+##### 阶段 1: 模型能力抽象层 (2天) 🔄 当前
+
+**目标**: 扩展模型配置，支持能力元数据
+
+- [ ] **Task 4.8**: 扩展模型配置接口
+  - [ ] 添加 `capabilities` 字段到 `ModelOption`
+  - [ ] 定义音频生成能力元数据
+    ```typescript
+    capabilities?: {
+      audioGeneration?: {
+        enabled: boolean
+        types: ('sound-effects' | 'voiceover' | 'music')[]
+        controllable: boolean
+        separateTrack: boolean
+      }
+      inputType?: 'text' | 'image' | 'both'
+      outputs?: {
+        video?: { format: string; hasAudio: boolean }
+        audio?: { format: string; separate: boolean }
+      }
+    }
+    ```
+  - [ ] 更新 Veo 3, Sora 2 配置
+  - [ ] 文件: `src/config/models.ts`
+
+- [ ] **Task 4.9**: WorkflowBuilder 实现
+  - [ ] 智能节点生成（根据模型能力决定 T2I→I2V 或直接 T2V）
+  - [ ] 音频策略决策
+    - 场景1: 模型自带音效 → 保留
+    - 场景2: 用户要配音 + 模型有音效 → 混音（30% 音效 + 70% 配音）
+    - 场景3: 用户要配音 + 模型无音频 → 仅 TTS
+    - 场景4: 用户要静音 → 移除所有音频
+  - [ ] 依赖关系计算
+  - [ ] 文件: `src/services/workflow-builder.ts` (新建)
+
+- [ ] **Task 4.10**: 简化版测试
+  - [ ] 测试 Kling v1（无音频）工作流
+  - [ ] 测试 Veo 3（带音频）工作流
+  - [ ] 验证音频决策逻辑
+  - [ ] 保持 Orchestrator 简化版（固定执行）
+
+**验收标准**:
+- ✅ 支持 2 个模型：Kling v1 + Veo 3
+- ✅ 智能判断是否需要 TTS
+- ✅ 音频决策逻辑正确
+- ⏸️ 音频混合使用简化版（阶段 2 完整实现）
+
+**时间**: 2 天（本周完成）
+
+##### 阶段 2: 动态执行引擎 (3天) ⏸️ 计划中
+
+**目标**: 完全动态化工作流执行
+
+- [ ] **Task 4.11**: 拓扑排序算法
+  - [ ] 根据节点依赖关系计算执行顺序
+  - [ ] 检测循环依赖
+  - [ ] 支持并行执行（无依赖的节点）
+
+- [ ] **Task 4.12**: 动态输入解析
+  - [ ] 支持节点引用语法：`{{nodeId.outputKey}}`
+  - [ ] 运行时解析输入参数
+  - [ ] 类型验证（确保参数匹配）
+
+- [ ] **Task 4.13**: 音频混合实现
+  - [ ] 实现 AudioMixer 节点
+  - [ ] 支持多轨混音（视频音效 + TTS + 背景音乐）
+  - [ ] 音量平衡控制（可配置比例）
+  - [ ] 集成到 Orchestrator
+
+- [ ] **Task 4.14**: Orchestrator 重构
+  - [ ] 从固定流程改为动态解析
+  - [ ] 支持任意工作流节点组合
+  - [ ] Adapter 路由（根据 provider 选择正确的 API）
+  - [ ] 文件: `src/services/orchestrator.ts`
+
+- [ ] **Task 4.15**: 集成测试
+  - [ ] 测试所有模型组合
+  - [ ] 测试音频混合场景
+  - [ ] 测试错误处理（节点失败、依赖缺失）
+
+**验收标准**:
+- ✅ 支持任意模型组合（Kling v1, Veo 3, Sora 2 等）
+- ✅ 音频混合质量达标
+- ✅ 动态工作流执行成功率 > 95%
+
+**时间**: 3 天（下周完成）
+
+##### 阶段 3: 数据库驱动模型注册表 (2天) ⏸️ 未来
+
+**目标**: 管理后台无代码添加新模型
+
+- [ ] `model_registry` 表设计
+- [ ] 管理后台 UI（添加/编辑/禁用模型）
+- [ ] 前端动态加载可用模型
+- [ ] 模型性能监控（成功率、平均耗时）
+
+**时间**: 2 天（Week 5）
+
+**Phase 2.5 设计决策记录**:
+
+**Q1: 如果 Veo 3 自动生成音效，还需要 TTS 吗？**
+- **答**: 根据用户需求智能决策
+  - 用户选择"无配音" → 保留视频音效
+  - 用户选择"女声/男声" → 混音（30% 音效 + 70% 配音）
+
+**Q2: 工作流是固定的还是可编辑的？**
+- **答**: MVP 阶段固定，Phase 3 可编辑
+  - MVP: AI 自动生成固定工作流（T2I→I2V→TTS→Merge）
+  - 用户只能微调节点参数（提示词、模型）
+  - Phase 3: 支持手动添加/删除节点、重新连线
+
+**Q3: 是否支持 ComfyUI 式热拔插？**
+- **答**: 不是核心定位，但架构支持
+  - 产品定位: "AI 智能导演"，不是"工作流编辑器"
+  - 架构设计: 基于 WorkflowNode 动态执行，技术上支持任意连线
+  - 优先级: Phase 3（用户反馈后决定）
+
+**Q4: 音频混合的默认策略？**
+- **答**: 配音优先，音效辅助
+  - 视频音效: 30% 音量（环境音）
+  - TTS 配音: 70% 音量（主音轨）
+  - 背景音乐: 可选，20% 音量（未来功能）
+
+---
+
+#### Phase 3: Advanced Editing & Optimization (Priority 3) ⏸️ 未来
+
+- [ ] **Task 4.16**: Manual Workflow Editing
+  - [ ] Delete nodes with dependency validation
+  - [ ] Add nodes from toolbar
+  - [ ] Manual reconnection (hot-swapping)
+  - [ ] Parameter flow validation (type checking)
+
+- [ ] **Task 4.17**: Single Node Regeneration
+  - [ ] Right-click menu: Regenerate
+  - [ ] Only re-execute modified nodes
+  - [ ] Reuse cached results for unmodified nodes
+
+- [ ] **Task 4.18**: Intelligent Caching
+  - [ ] Content-based cache keys
+  - [ ] Detect unchanged nodes
+  - [ ] Display "Cached - 0 credits" badge
+  - [ ] Save user credits
+
+**Phase 3 设计目标**:
+- 支持类似 ComfyUI 的灵活编辑（如果用户需要）
+- 但默认流程仍是"AI 自动生成 + 一键执行"
+- 高级用户可选择进入"专家模式"
 
 **Node Status Design Philosophy**:
 ```
