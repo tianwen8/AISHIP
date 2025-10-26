@@ -24,6 +24,7 @@ import { getUuid } from "@/lib/hash";
 import PromptNode from "@/components/nodes/PromptNode";
 import T2INode from "@/components/nodes/T2INode";
 import I2VNode from "@/components/nodes/I2VNode";
+import T2VNode from "@/components/nodes/T2VNode";
 import TTSNode from "@/components/nodes/TTSNode";
 import MergeNode from "@/components/nodes/MergeNode";
 import CanvasToolbar from "@/components/CanvasToolbar";
@@ -104,6 +105,7 @@ export default function WorkspacePage() {
       prompt: PromptNode,
       t2i: T2INode,
       i2v: I2VNode,
+      t2v: T2VNode,
       tts: TTSNode,
       merge: MergeNode,
     }),
@@ -279,8 +281,8 @@ export default function WorkspacePage() {
     // Column positions (横向布局)
     const colX = {
       prompt: 50,
-      scenes: 400,    // 分镜列
-      videos: 750,    // 视频列
+      scenes: 400,    // 分镜/视频列（T2I或T2V）
+      videos: 750,    // 视频列（仅I2V时使用）
       audio: 1100,    // 音频列
       merge: 1450,    // 合成列
     };
@@ -305,71 +307,189 @@ export default function WorkspacePage() {
     // Add animated edge from prompt
     await delay(300);
 
-    // Create scene nodes progressively
-    for (let index = 0; index < workflow.scenes.length; index++) {
-      const scene = workflow.scenes[index];
-      const sceneId = scene.id;
+    // Check if backend provided workflowNodes (Phase 2.5+ with T2V support)
+    const useBackendNodes = workflow.workflowNodes && workflow.workflowNodes.length > 0;
 
-      // T2I Node (scene node)
-      const t2iNodeId = `t2i-${sceneId}`;
-      newNodes.push({
-        id: t2iNodeId,
-        type: "t2i",
-        position: { x: colX.scenes, y: yPos },
-        data: {
-          label: `Scene ${index + 1}`,
-          prompt: scene.description,
-          model: scene.t2iModel || "fal-ai/flux-dev",
-          credits: scene.t2iCredits || 0.25,
-          sceneIndex: index + 1,
-          onModelChange: handleModelChange,
-          onPromptChange: handlePromptChange,
-        },
-      });
+    if (useBackendNodes) {
+      // ===== NEW: Use backend-generated workflow nodes =====
+      console.log('[Frontend] Using backend workflowNodes:', workflow.workflowNodes);
 
-      // Edge from prompt to scene
-      newEdges.push({
-        id: `prompt-${t2iNodeId}`,
-        source: "prompt-node",
-        target: t2iNodeId,
-        animated: true,
-        style: { stroke: "#3b82f6", strokeWidth: 2 },
-      });
+      // Create scene nodes based on backend's node types
+      for (let index = 0; index < workflow.scenes.length; index++) {
+        const scene = workflow.scenes[index];
+        const sceneId = scene.id;
 
-      setNodes([...newNodes]);
-      setEdges([...newEdges]);
-      await delay(300);
+        // Find corresponding backend node (t2v-0, t2i-0, or i2v-0)
+        const backendVideoNode = workflow.workflowNodes.find((n: any) =>
+          (n.type === 't2v' || n.type === 'i2v') && n.metadata?.sceneIndex === index
+        );
+        const backendImageNode = workflow.workflowNodes.find((n: any) =>
+          n.type === 't2i' && n.metadata?.sceneIndex === index
+        );
 
-      // I2V Node (video node)
-      const i2vNodeId = `i2v-${sceneId}`;
-      newNodes.push({
-        id: i2vNodeId,
-        type: "i2v",
-        position: { x: colX.videos, y: yPos },
-        data: {
-          label: `Video ${index + 1}`,
-          duration: scene.duration,
-          model: scene.t2vModel || "fal-ai/kling-v1",
-          credits: scene.t2vCredits || (scene.duration * 0.8),
-          sceneIndex: index + 1,
-          onModelChange: handleModelChange,
-        },
-      });
+        if (backendVideoNode?.type === 't2v') {
+          // Direct T2V workflow (e.g., Sora 2)
+          const t2vNodeId = `t2v-${sceneId}`;
+          newNodes.push({
+            id: t2vNodeId,
+            type: "t2v",
+            position: { x: colX.scenes, y: yPos },
+            data: {
+              label: `Scene ${index + 1}`,
+              prompt: scene.description,
+              duration: scene.duration,
+              model: backendVideoNode.model || "fal-ai/sora-2/text-to-video",
+              credits: scene.t2vCredits || (scene.duration * 3.0), // Sora 2 pricing
+              sceneIndex: index + 1,
+              onModelChange: handleModelChange,
+            },
+          });
 
-      // Edge from T2I to I2V
-      newEdges.push({
-        id: `${t2iNodeId}-${i2vNodeId}`,
-        source: t2iNodeId,
-        target: i2vNodeId,
-        animated: true,
-        style: { stroke: "#10b981", strokeWidth: 2 },
-      });
+          // Edge from prompt to T2V
+          newEdges.push({
+            id: `prompt-${t2vNodeId}`,
+            source: "prompt-node",
+            target: t2vNodeId,
+            animated: true,
+            style: { stroke: "#a855f7", strokeWidth: 2 }, // Purple for T2V
+          });
 
-      setNodes([...newNodes]);
-      setEdges([...newEdges]);
-      await delay(300);
+          setNodes([...newNodes]);
+          setEdges([...newEdges]);
+          await delay(300);
 
-      yPos += sceneSpacing;
+        } else {
+          // Traditional T2I → I2V workflow (e.g., Kling V1)
+          const t2iNodeId = `t2i-${sceneId}`;
+          newNodes.push({
+            id: t2iNodeId,
+            type: "t2i",
+            position: { x: colX.scenes, y: yPos },
+            data: {
+              label: `Scene ${index + 1}`,
+              prompt: scene.description,
+              model: backendImageNode?.model || "fal-ai/flux-dev",
+              credits: scene.t2iCredits || 0.25,
+              sceneIndex: index + 1,
+              onModelChange: handleModelChange,
+              onPromptChange: handlePromptChange,
+            },
+          });
+
+          // Edge from prompt to scene
+          newEdges.push({
+            id: `prompt-${t2iNodeId}`,
+            source: "prompt-node",
+            target: t2iNodeId,
+            animated: true,
+            style: { stroke: "#3b82f6", strokeWidth: 2 },
+          });
+
+          setNodes([...newNodes]);
+          setEdges([...newEdges]);
+          await delay(300);
+
+          // I2V Node (video node)
+          const i2vNodeId = `i2v-${sceneId}`;
+          newNodes.push({
+            id: i2vNodeId,
+            type: "i2v",
+            position: { x: colX.videos, y: yPos },
+            data: {
+              label: `Video ${index + 1}`,
+              duration: scene.duration,
+              model: backendVideoNode?.model || "fal-ai/kling-v1",
+              credits: scene.t2vCredits || (scene.duration * 0.8),
+              sceneIndex: index + 1,
+              onModelChange: handleModelChange,
+            },
+          });
+
+          // Edge from T2I to I2V
+          newEdges.push({
+            id: `${t2iNodeId}-${i2vNodeId}`,
+            source: t2iNodeId,
+            target: i2vNodeId,
+            animated: true,
+            style: { stroke: "#10b981", strokeWidth: 2 },
+          });
+
+          setNodes([...newNodes]);
+          setEdges([...newEdges]);
+          await delay(300);
+        }
+
+        yPos += sceneSpacing;
+      }
+    } else {
+      // ===== FALLBACK: Old hardcoded logic (for backward compatibility) =====
+      console.log('[Frontend] Using fallback hardcoded T2I→I2V workflow');
+
+      for (let index = 0; index < workflow.scenes.length; index++) {
+        const scene = workflow.scenes[index];
+        const sceneId = scene.id;
+
+        // T2I Node (scene node)
+        const t2iNodeId = `t2i-${sceneId}`;
+        newNodes.push({
+          id: t2iNodeId,
+          type: "t2i",
+          position: { x: colX.scenes, y: yPos },
+          data: {
+            label: `Scene ${index + 1}`,
+            prompt: scene.description,
+            model: scene.t2iModel || "fal-ai/flux-dev",
+            credits: scene.t2iCredits || 0.25,
+            sceneIndex: index + 1,
+            onModelChange: handleModelChange,
+            onPromptChange: handlePromptChange,
+          },
+        });
+
+        // Edge from prompt to scene
+        newEdges.push({
+          id: `prompt-${t2iNodeId}`,
+          source: "prompt-node",
+          target: t2iNodeId,
+          animated: true,
+          style: { stroke: "#3b82f6", strokeWidth: 2 },
+        });
+
+        setNodes([...newNodes]);
+        setEdges([...newEdges]);
+        await delay(300);
+
+        // I2V Node (video node)
+        const i2vNodeId = `i2v-${sceneId}`;
+        newNodes.push({
+          id: i2vNodeId,
+          type: "i2v",
+          position: { x: colX.videos, y: yPos },
+          data: {
+            label: `Video ${index + 1}`,
+            duration: scene.duration,
+            model: scene.t2vModel || "fal-ai/kling-v1",
+            credits: scene.t2vCredits || (scene.duration * 0.8),
+            sceneIndex: index + 1,
+            onModelChange: handleModelChange,
+          },
+        });
+
+        // Edge from T2I to I2V
+        newEdges.push({
+          id: `${t2iNodeId}-${i2vNodeId}`,
+          source: t2iNodeId,
+          target: i2vNodeId,
+          animated: true,
+          style: { stroke: "#10b981", strokeWidth: 2 },
+        });
+
+        setNodes([...newNodes]);
+        setEdges([...newEdges]);
+        await delay(300);
+
+        yPos += sceneSpacing;
+      }
     }
 
     // TTS Node (if voiceover exists)
@@ -412,12 +532,18 @@ export default function WorkspacePage() {
     setNodes([...newNodes]);
     await delay(300);
 
-    // Connect all I2V nodes to Merge (多条线汇聚)
-    workflow.scenes.forEach((scene) => {
-      const i2vNodeId = `i2v-${scene.id}`;
+    // Connect all video nodes (T2V or I2V) to Merge (多条线汇聚)
+    workflow.scenes.forEach((scene, index) => {
+      // Determine node type from backend workflowNodes
+      const backendVideoNode = workflow.workflowNodes?.find((n: any) =>
+        (n.type === 't2v' || n.type === 'i2v') && n.metadata?.sceneIndex === index
+      );
+      const nodeType = backendVideoNode?.type || 'i2v';
+      const videoNodeId = `${nodeType}-${scene.id}`;
+
       newEdges.push({
-        id: `${i2vNodeId}-merge`,
-        source: i2vNodeId,
+        id: `${videoNodeId}-merge`,
+        source: videoNodeId,
         target: mergeNodeId,
         animated: true,
         style: { stroke: "#8b5cf6", strokeWidth: 2 },
@@ -443,8 +569,8 @@ export default function WorkspacePage() {
     // Column positions (横向布局)
     const colX = {
       prompt: 50,
-      scenes: 400,    // 分镜列
-      videos: 750,    // 视频列
+      scenes: 400,    // 分镜/视频列（T2I或T2V）
+      videos: 750,    // 视频列（仅I2V时使用）
       audio: 1100,    // 音频列
       merge: 1450,    // 合成列
     };
@@ -466,60 +592,142 @@ export default function WorkspacePage() {
       },
     });
 
+    // Check if backend provided workflowNodes
+    const useBackendNodes = workflow.workflowNodes && workflow.workflowNodes.length > 0;
+
     // Create scene nodes
     workflow.scenes.forEach((scene, index) => {
       const sceneId = scene.id;
 
-      // T2I Node (scene node)
-      const t2iNodeId = `t2i-${sceneId}`;
-      generatedNodes.push({
-        id: t2iNodeId,
-        type: "t2i",
-        position: { x: colX.scenes, y: yPos },
-        data: {
-          label: `Scene ${index + 1}`,
-          prompt: scene.description,
-          model: scene.t2iModel || "fal-ai/flux-dev",
-          credits: scene.t2iCredits || 0.25,
-          sceneIndex: index + 1,
-          onModelChange: handleModelChange,
-          onPromptChange: handlePromptChange,
-        },
-      });
+      if (useBackendNodes) {
+        // Use backend workflowNodes to determine node type
+        const backendVideoNode = workflow.workflowNodes.find((n: any) =>
+          (n.type === 't2v' || n.type === 'i2v') && n.metadata?.sceneIndex === index
+        );
 
-      // Edge from prompt to scene
-      generatedEdges.push({
-        id: `prompt-${t2iNodeId}`,
-        source: "prompt-node",
-        target: t2iNodeId,
-        animated: true,
-        style: { stroke: "#3b82f6", strokeWidth: 2 },
-      });
+        if (backendVideoNode?.type === 't2v') {
+          // Direct T2V workflow
+          const t2vNodeId = `t2v-${sceneId}`;
+          generatedNodes.push({
+            id: t2vNodeId,
+            type: "t2v",
+            position: { x: colX.scenes, y: yPos },
+            data: {
+              label: `Scene ${index + 1}`,
+              prompt: scene.description,
+              duration: scene.duration,
+              model: backendVideoNode.model || "fal-ai/sora-2/text-to-video",
+              credits: scene.t2vCredits || (scene.duration * 3.0),
+              sceneIndex: index + 1,
+              onModelChange: handleModelChange,
+            },
+          });
 
-      // I2V Node (video node)
-      const i2vNodeId = `i2v-${sceneId}`;
-      generatedNodes.push({
-        id: i2vNodeId,
-        type: "i2v",
-        position: { x: colX.videos, y: yPos },
-        data: {
-          label: `Video ${index + 1}`,
-          duration: scene.duration,
-          model: scene.t2vModel || "fal-ai/kling-v1",
-          credits: scene.t2vCredits || (scene.duration * 0.8),
-          sceneIndex: index + 1,
-          onModelChange: handleModelChange,
-        },
-      });
+          generatedEdges.push({
+            id: `prompt-${t2vNodeId}`,
+            source: "prompt-node",
+            target: t2vNodeId,
+            animated: true,
+            style: { stroke: "#a855f7", strokeWidth: 2 },
+          });
+        } else {
+          // Traditional T2I → I2V workflow
+          const t2iNodeId = `t2i-${sceneId}`;
+          generatedNodes.push({
+            id: t2iNodeId,
+            type: "t2i",
+            position: { x: colX.scenes, y: yPos },
+            data: {
+              label: `Scene ${index + 1}`,
+              prompt: scene.description,
+              model: scene.t2iModel || "fal-ai/flux-dev",
+              credits: scene.t2iCredits || 0.25,
+              sceneIndex: index + 1,
+              onModelChange: handleModelChange,
+              onPromptChange: handlePromptChange,
+            },
+          });
 
-      // Edge from T2I to I2V
-      generatedEdges.push({
-        id: `${t2iNodeId}-${i2vNodeId}`,
-        source: t2iNodeId,
-        target: i2vNodeId,
-        animated: true,
-        style: { stroke: "#10b981", strokeWidth: 2 },
-      });
+          generatedEdges.push({
+            id: `prompt-${t2iNodeId}`,
+            source: "prompt-node",
+            target: t2iNodeId,
+            animated: true,
+            style: { stroke: "#3b82f6", strokeWidth: 2 },
+          });
+
+          const i2vNodeId = `i2v-${sceneId}`;
+          generatedNodes.push({
+            id: i2vNodeId,
+            type: "i2v",
+            position: { x: colX.videos, y: yPos },
+            data: {
+              label: `Video ${index + 1}`,
+              duration: scene.duration,
+              model: backendVideoNode?.model || "fal-ai/kling-v1",
+              credits: scene.t2vCredits || (scene.duration * 0.8),
+              sceneIndex: index + 1,
+              onModelChange: handleModelChange,
+            },
+          });
+
+          generatedEdges.push({
+            id: `${t2iNodeId}-${i2vNodeId}`,
+            source: t2iNodeId,
+            target: i2vNodeId,
+            animated: true,
+            style: { stroke: "#10b981", strokeWidth: 2 },
+          });
+        }
+      } else {
+        // Fallback: hardcoded T2I → I2V
+        const t2iNodeId = `t2i-${sceneId}`;
+        generatedNodes.push({
+          id: t2iNodeId,
+          type: "t2i",
+          position: { x: colX.scenes, y: yPos },
+          data: {
+            label: `Scene ${index + 1}`,
+            prompt: scene.description,
+            model: scene.t2iModel || "fal-ai/flux-dev",
+            credits: scene.t2iCredits || 0.25,
+            sceneIndex: index + 1,
+            onModelChange: handleModelChange,
+            onPromptChange: handlePromptChange,
+          },
+        });
+
+        generatedEdges.push({
+          id: `prompt-${t2iNodeId}`,
+          source: "prompt-node",
+          target: t2iNodeId,
+          animated: true,
+          style: { stroke: "#3b82f6", strokeWidth: 2 },
+        });
+
+        const i2vNodeId = `i2v-${sceneId}`;
+        generatedNodes.push({
+          id: i2vNodeId,
+          type: "i2v",
+          position: { x: colX.videos, y: yPos },
+          data: {
+            label: `Video ${index + 1}`,
+            duration: scene.duration,
+            model: scene.t2vModel || "fal-ai/kling-v1",
+            credits: scene.t2vCredits || (scene.duration * 0.8),
+            sceneIndex: index + 1,
+            onModelChange: handleModelChange,
+          },
+        });
+
+        generatedEdges.push({
+          id: `${t2iNodeId}-${i2vNodeId}`,
+          source: t2iNodeId,
+          target: i2vNodeId,
+          animated: true,
+          style: { stroke: "#10b981", strokeWidth: 2 },
+        });
+      }
 
       yPos += sceneSpacing;
     });
@@ -558,12 +766,17 @@ export default function WorkspacePage() {
       },
     });
 
-    // Connect all I2V nodes to Merge (多条线汇聚)
-    workflow.scenes.forEach((scene) => {
-      const i2vNodeId = `i2v-${scene.id}`;
+    // Connect all video nodes (T2V or I2V) to Merge (多条线汇聚)
+    workflow.scenes.forEach((scene, index) => {
+      const backendVideoNode = workflow.workflowNodes?.find((n: any) =>
+        (n.type === 't2v' || n.type === 'i2v') && n.metadata?.sceneIndex === index
+      );
+      const nodeType = backendVideoNode?.type || 'i2v';
+      const videoNodeId = `${nodeType}-${scene.id}`;
+
       generatedEdges.push({
-        id: `${i2vNodeId}-merge`,
-        source: i2vNodeId,
+        id: `${videoNodeId}-merge`,
+        source: videoNodeId,
         target: mergeNodeId,
         animated: true,
         style: { stroke: "#8b5cf6", strokeWidth: 2 },

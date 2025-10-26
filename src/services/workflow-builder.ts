@@ -87,7 +87,7 @@ export class WorkflowBuilder {
     }
 
     // Build merge node
-    const mergeNode = this.buildMergeNode(scenes.length, audioStrategy);
+    const mergeNode = this.buildMergeNode(scenes.length, audioStrategy, i2vModel);
     nodes.push(mergeNode);
 
     return nodes;
@@ -144,6 +144,10 @@ export class WorkflowBuilder {
       });
     } else {
       // New workflow: Direct T2V
+      // Check if model generates audio as separate track or embedded in video
+      const hasSeparateAudio = capabilities?.audioGeneration?.enabled &&
+                               capabilities?.audioGeneration?.separateTrack;
+
       nodes.push({
         id: `t2v-${index}`,
         type: 't2v',
@@ -152,7 +156,7 @@ export class WorkflowBuilder {
           prompt: scene.description,
           duration: scene.duration
         },
-        outputs: capabilities?.audioGeneration?.enabled
+        outputs: hasSeparateAudio
           ? ['videoUrl', 'audioUrl']
           : ['videoUrl'],
         dependencies: [],
@@ -280,12 +284,17 @@ export class WorkflowBuilder {
    */
   private buildMergeNode(
     sceneCount: number,
-    audioStrategy: AudioStrategy
+    audioStrategy: AudioStrategy,
+    i2vModel: ModelOption
   ): WorkflowNode {
+    // Determine if model uses direct T2V or T2I→I2V workflow
+    const capabilities = i2vModel.capabilities;
+    const usesT2V = capabilities?.inputType === 'both' || capabilities?.inputType === 'text';
+    const nodePrefix = usesT2V ? 't2v' : 'i2v';
+
     // Collect video inputs
     const videoInputs = Array.from({ length: sceneCount }, (_, i) => {
-      // Try both i2v and t2v node IDs (one will exist)
-      return `{{i2v-${i}.videoUrl || t2v-${i}.videoUrl}}`;
+      return `{{${nodePrefix}-${i}.videoUrl}}`;
     });
 
     // Determine audio input
@@ -296,8 +305,16 @@ export class WorkflowBuilder {
       // TODO: Use mixed audio in Phase 2.5 阶段 2
       audioInput = '{{tts.audioUrl}}';  // Simplified for now
     } else if (audioStrategy.source === 'model-generated') {
-      // Use audio from first video (simplified)
-      audioInput = '{{i2v-0.audioUrl || t2v-0.audioUrl}}';
+      // Check if model provides audio as separate track
+      const hasSeparateAudio = i2vModel.capabilities?.audioGeneration?.separateTrack;
+
+      if (hasSeparateAudio) {
+        // Use separate audio track from first video
+        audioInput = `{{${nodePrefix}-0.audioUrl}}`;
+      } else {
+        // Audio is embedded in video, no separate audio input needed
+        audioInput = undefined;
+      }
     }
 
     return {
@@ -309,7 +326,7 @@ export class WorkflowBuilder {
         audio: audioInput
       },
       outputs: ['finalVideoUrl'],
-      dependencies: Array.from({ length: sceneCount }, (_, i) => `i2v-${i}`)
+      dependencies: Array.from({ length: sceneCount }, (_, i) => `${nodePrefix}-${i}`)
     };
   }
 }

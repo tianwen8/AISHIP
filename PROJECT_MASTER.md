@@ -2317,31 +2317,42 @@ export const T2V_MODELS: ModelOption[] = [
 
 **Phase 2.6 (重新规划): T2V-First MVP** (预计3天)
 
-**Day 1: Sora 2 集成**
-- [ ] Task 4.25: 实现 FalSora2Adapter
-  - [ ] 支持 duration (4/8/12s)
-  - [ ] 支持 aspect_ratio (16:9, 9:16)
-  - [ ] 处理内置音频输出
-  - [ ] 预计时间：0.5天
+**Day 1: Sora 2 集成** ✅ 已完成
+- [x] Task 4.25: 实现 FalSora2Adapter
+  - [x] 支持 duration (4/8/12s)
+  - [x] 支持 aspect_ratio (16:9, 9:16)
+  - [x] 处理内置音频输出（separateTrack: false）
+  - [x] 实际时间：0.5天
 
-- [ ] Task 4.26: 更新 models.ts 配置
-  - [ ] 添加 Sora 2 到 T2V_MODELS
-  - [ ] 定义 capabilities (maxDuration, hasAudio)
-  - [ ] 预计时间：0.5天
+- [x] Task 4.26: 更新 models.ts 配置
+  - [x] 添加 Sora 2 到 I2V_MODELS（支持 T2V）
+  - [x] 定义 capabilities (inputType: 'text', audioGeneration)
+  - [x] 实际时间：0.5天
 
-**Day 2: AI Planner 优化**
-- [ ] Task 4.27: 导演级提示词工程
-  - [ ] 更新 AI Planner 提示词模板
-  - [ ] 生成包含运镜、音效描述的场景提示词
-  - [ ] 示例: "Medium shot, slow dolly-in. Woman says: '...'"
-  - [ ] 智能场景分配逻辑（根据总时长）：
+**Day 2: AI Planner 优化** ✅ 已完成
+- [x] Task 4.27: 导演级提示词工程
+  - [x] 更新 AI Planner 提示词模板
+  - [x] 生成包含运镜、音效描述的场景提示词
+  - [x] 示例: "Dynamic tracking shot, dolly-in..."
+  - [x] 智能场景分配逻辑（根据总时长）：
     - 8秒: 1个场景（8秒）
-    - 15秒: 2个场景（8s + 7s 或 2×7-8s）
-    - 30秒: 3个场景（3×10s 或 12s+10s+8s）
+    - 15秒: 2个场景（7-8s 各）
+    - 30秒: 3个场景（~10s 各）
     - 60秒: 5-6个场景（利用 Sora 2 最长12秒能力）
-  - [ ] 预计时间：1天
+  - [x] 实际时间：1天
 
-**Day 3: Shotstack 集成**
+**Day 2.5: 前端集成 + 缓存系统** ✅ 已完成（额外工作）
+- [x] 创建 T2VNode 组件
+- [x] 修复前端节点渲染逻辑（使用后端 workflowNodes）
+- [x] 修复 WorkflowBuilder merge 节点依赖问题
+- [x] 实现 AI API 缓存系统（Record-Replay）
+  - [x] cachedAPICall 包装函数
+  - [x] 自动检测生产环境并禁用
+  - [x] npm scripts 管理缓存
+  - [x] 完整文档（AI_CACHE_README.md）
+- [x] 实际时间：0.5天
+
+**Day 3: Shotstack 集成** ⏳ 待开始
 - [ ] Task 4.28: Shotstack 视频拼接
   - [ ] 实现视频拼接 API 调用（已有 API Key）
   - [ ] 支持音频混音（视频音轨 + TTS 旁白）

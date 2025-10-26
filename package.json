@@ -11,7 +11,11 @@
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "cache:clear": "rm -rf .ai-cache",
+    "cache:clear:sora2": "rm -rf .ai-cache/v1-sora-2*",
+    "cache:clear:kling": "rm -rf .ai-cache/v1-kling*",
+    "cache:list": "ls -lh .ai-cache 2>/dev/null || echo 'No cache directory found'"
   },
   "dependencies": {
     "@auth/drizzle-adapter": "^1.0.0",

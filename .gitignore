@@ -51,3 +51,6 @@ Thumbs.db
 .env.local
 node_modules/
 .next/
+
+# AI API Cache (development only, do not commit)
+.ai-cache/

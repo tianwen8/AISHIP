@@ -12,7 +12,7 @@ import { createWorkflowBuilder } from "./workflow-builder"
 
 export interface UserInput {
   prompt: string // User's video description
-  duration: number // Video length in seconds (8, 15, or 30)
+  duration: number // Video length in seconds (8, 15, 30, or 60)
   aspectRatio: string // "9:16", "16:9", or "1:1"
   voice?: string // "none", "male", "female", "clone"
   referenceImage?: string // URL or null
@@ -22,9 +22,11 @@ export interface UserInput {
 export interface Scene {
   id: string
   duration: number
-  description: string // Detailed prompt for T2I
-  cameraAngle?: string // "close-up", "mid-shot", "wide", etc.
-  movement?: string // "static", "pan-left", "zoom-in", etc.
+  description: string // Detailed cinematic prompt for video generation
+  cameraAngle?: string // "close-up", "mid-shot", "wide", "aerial", etc.
+  movement?: string // "static", "dolly-in", "pan-left", "tracking", etc.
+  audio?: string // Sound effects, ambience, music cues
+  dialogue?: string | null // Character dialogue if applicable
   stylePreset?: string
 }
 
@@ -87,7 +89,9 @@ export class AIPlanner {
           duration: scene.duration,
           description: scene.description,
           cameraAngle: scene.cameraAngle || "mid-shot",
-          movement: scene.movement || "static",
+          movement: scene.movement || "dolly-in", // Default to dolly-in for more dynamic videos
+          audio: scene.audio || undefined,
+          dialogue: scene.dialogue || null,
           stylePreset: input.style || "photorealistic",
         })),
         aspectRatio: input.aspectRatio,
@@ -138,55 +142,116 @@ export class AIPlanner {
   }
 
   /**
+   * Calculate recommended scene count based on total duration
+   * 8s → 1 scene, 15s → 2 scenes, 30s → 3 scenes, 60s → 5-6 scenes
+   */
+  private getRecommendedSceneCount(duration: number): { min: number; max: number } {
+    if (duration <= 8) return { min: 1, max: 1 }
+    if (duration <= 15) return { min: 2, max: 2 }
+    if (duration <= 30) return { min: 3, max: 3 }
+    // For 60s, use 5-6 scenes to leverage Sora 2's 12s max capability
+    return { min: 5, max: 6 }
+  }
+
+  /**
    * Build the prompt for the LLM planner
    */
   private buildPlannerPrompt(input: UserInput) {
-    const systemPrompt = `You are an expert video director and storyboard artist. Your task is to analyze a user's video description and create a detailed storyboard with 3-5 scenes.
+    const sceneCount = this.getRecommendedSceneCount(input.duration)
+    const sceneGuidance = sceneCount.min === sceneCount.max
+      ? `exactly ${sceneCount.min} scene${sceneCount.min > 1 ? 's' : ''}`
+      : `${sceneCount.min}-${sceneCount.max} scenes`
 
-For each scene, provide:
-1. Duration (in seconds) - must sum to exactly ${input.duration} seconds
-2. Detailed visual description suitable for AI image generation (be specific about composition, lighting, subject details)
-3. Camera angle (close-up, mid-shot, wide, aerial, etc.)
-4. Camera movement (static, pan-left, pan-right, zoom-in, zoom-out, following, etc.)
+    const systemPrompt = `You are an expert film director and cinematographer. Create a detailed, director-level storyboard with ${sceneGuidance} for a ${input.duration}-second video.
 
-${input.voice && input.voice !== "none" ? `Also create a compelling voiceover script that matches the ${input.duration}-second duration and enhances the visual story.` : ""}
+**Scene Requirements** (create ${sceneGuidance}):
 
-Output must be valid JSON with this exact structure:
+1. **Duration**: Each scene duration must be specified. Total must sum to EXACTLY ${input.duration} seconds.
+   - For ${input.duration}s video: Use ${sceneGuidance}, with each scene 8-12 seconds (optimal for Sora 2 model)
+
+2. **Visual Description**: Write cinematic, detailed descriptions suitable for AI video generation. Include:
+   - Subject and action (what's happening)
+   - Composition and framing (rule of thirds, symmetry, depth)
+   - Lighting (golden hour, dramatic shadows, soft key light, etc.)
+   - Color palette and mood
+   - Environmental details (background, atmosphere, weather)
+
+3. **Camera Movement** (use professional terminology):
+   - Static: Fixed camera, no movement
+   - Dolly-in / Dolly-out: Smooth forward/backward movement
+   - Pan (left/right): Horizontal camera rotation
+   - Tilt (up/down): Vertical camera rotation
+   - Zoom-in / Zoom-out: Lens focal length change
+   - Tracking/Following: Camera follows subject
+   - Crane/Jib: Vertical movement with sweeping motion
+   - Handheld: Natural shake for documentary feel
+
+4. **Audio Description** (sound effects, ambience, music cues):
+   - Describe background sounds (city ambience, nature sounds, etc.)
+   - Sound effects (footsteps, door closing, glass clinking, etc.)
+   - Music mood/style if applicable
+
+5. **Dialogue** (if characters are speaking):
+   - Include exact dialogue in quotes
+   - Describe delivery style (whispered, shouted, emotional, etc.)
+
+${input.voice && input.voice !== "none" ? `
+**Voiceover Script**: Create a compelling ${input.voice} voiceover that:
+- Matches the ${input.duration}-second duration (approximately ${Math.floor(input.duration * 2.5)} words)
+- Enhances the visual narrative
+- Has natural pacing with pauses for impact
+` : ""}
+
+**Output Format** (valid JSON only):
 {
   "scenes": [
     {
-      "duration": 5,
-      "description": "Detailed visual description for image generation",
+      "duration": 12,
+      "description": "Wide shot. A sleek Tesla Model 3 drives along Pacific Coast Highway at golden hour. The car's metallic blue paint gleams in warm sunlight. Ocean waves crash against rocky cliffs in the background. Cinematic color grading with teal shadows and orange highlights.",
+      "cameraAngle": "wide",
+      "movement": "dolly-in",
+      "audio": "Ocean waves, wind rushing, electric motor hum",
+      "dialogue": null
+    },
+    {
+      "duration": 10,
+      "description": "Medium close-up of driver's hands on steering wheel. Modern minimalist interior with wood grain accents. Touchscreen dashboard displaying navigation. Soft natural light from sunroof creates gentle shadows.",
       "cameraAngle": "close-up",
-      "movement": "static"
+      "movement": "static",
+      "audio": "Soft electronic beep from dashboard, leather seats creaking",
+      "dialogue": null
     }
   ],
-  "voiceoverScript": "Script text here (if voice requested)",
+  "voiceoverScript": "Experience the future of driving. Where cutting-edge technology meets timeless design.",
   "music": {
-    "mood": "upbeat/dramatic/calm/etc",
-    "genre": "electronic/orchestral/acoustic/etc"
+    "mood": "inspiring and modern",
+    "genre": "electronic ambient"
   }
 }`
 
-    const userPrompt = `Create a ${input.duration}-second video storyboard for:
+    const userPrompt = `Create a cinematic ${input.duration}-second video storyboard for:
 
-"${input.prompt}"
+**User Brief**: "${input.prompt}"
 
-Video Specifications:
-- Duration: ${input.duration} seconds
+**Production Specs**:
+- Total Duration: ${input.duration} seconds (MUST be exact)
+- Scene Count: ${sceneGuidance}
 - Aspect Ratio: ${input.aspectRatio}
-- Style: ${input.style || "photorealistic"}
-${input.voice && input.voice !== "none" ? `- Voiceover: ${input.voice} voice` : "- No voiceover"}
-${input.referenceImage ? `- Reference image provided (use for visual style inspiration)` : ""}
+- Visual Style: ${input.style || "photorealistic"}
+${input.voice && input.voice !== "none" ? `- Voiceover: ${input.voice} voice (${Math.floor(input.duration * 2.5)} words approx.)` : "- No voiceover (rely on visuals and ambient audio)"}
+${input.referenceImage ? `- Reference Image: Provided (match visual style, color palette, and mood)` : ""}
 
-Important:
-- Scene durations MUST sum to exactly ${input.duration} seconds
-- Each scene description should be detailed enough for AI image generation
-- Consider visual variety (different angles, compositions)
-- Ensure smooth narrative flow between scenes
-${input.voice && input.voice !== "none" ? `- Voiceover script should be engaging and match the pacing` : ""}
+**Director's Notes**:
+✓ Scene durations MUST sum to EXACTLY ${input.duration} seconds
+✓ Use professional camera movements (dolly, pan, tracking, etc.) - avoid only "static" shots
+✓ Each scene needs cinematic visual descriptions (lighting, composition, color grading)
+✓ Include audio descriptions (ambience, sound effects, music cues)
+✓ Add dialogue if characters are speaking in the scene
+✓ Ensure narrative flow and visual variety between scenes
+✓ Leverage the 8-12 second "sweet spot" for Sora 2 video generation
+${input.voice && input.voice !== "none" ? `✓ Voiceover script should complement visuals, not just describe them` : ""}
 
-Output as valid JSON only, no additional text.`
+Output ONLY valid JSON (no markdown, no additional text).`
 
     return { systemPrompt, userPrompt }
   }
@@ -208,13 +273,20 @@ Output as valid JSON only, no additional text.`
    * Select the best T2V model based on input characteristics
    */
   private selectBestT2VModel(input: UserInput): string {
-    // For longer videos, use more cost-effective model
-    if (input.duration >= 30) {
-      return "fal-ai/kling-v1"
+    // For short videos (≤12s per scene), prefer Sora 2 for built-in audio and premium quality
+    // Sora 2 supports direct T2V with dialogue and lip sync
+    if (input.duration <= 12) {
+      return "fal-ai/sora-2/text-to-video"
     }
 
-    // Default to Kling-v1 for good quality/cost balance
-    return DEFAULT_MODELS.t2v
+    // For longer videos with multiple scenes, use Sora 2 (each scene ≤12s)
+    // This leverages Sora 2's sweet spot while supporting 60s total via multiple scenes
+    if (input.duration <= 60) {
+      return "fal-ai/sora-2/text-to-video"
+    }
+
+    // Fallback to Kling V1 for very long videos or when Sora 2 quota is exceeded
+    return "fal-ai/kling-video/v1/standard/image-to-video"
   }
 
   /**

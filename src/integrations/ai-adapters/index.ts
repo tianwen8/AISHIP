@@ -51,6 +51,13 @@ export const AI_MODELS = {
 
   // T2V / I2V Models
   t2v: {
+    "fal-ai/sora-2/text-to-video": {
+      displayName: "Sora 2",
+      costTier: "premium",
+      costPerSecond: 0.30, // $0.30 per second
+      provider: "fal",
+      bestFor: "Direct T2V with built-in dialogue and lip sync (4-12s)",
+    },
     "fal-ai/minimax-video": {
       displayName: "MiniMax Video",
       costTier: "premium",
@@ -70,7 +77,7 @@ export const AI_MODELS = {
       costTier: "standard",
       costPerSecond: 0.08,
       provider: "fal",
-      bestFor: "Cost-effective video generation",
+      bestFor: "Cost-effective I2V fallback (requires T2I first)",
     },
   },
 
@@ -93,10 +100,10 @@ export const AI_MODELS = {
   },
 }
 
-// Default model selections
+// Default model selections (T2V-First strategy)
 export const DEFAULT_MODELS = {
   llm: "deepseek/deepseek-v3",
   t2i: "fal-ai/flux/dev",
-  t2v: "fal-ai/kling-video/v1/standard/image-to-video",
+  t2v: "fal-ai/sora-2/text-to-video", // MVP: Sora 2 for direct T2V with audio
   tts: "fal-ai/vibevoice",
 }
