@@ -2,9 +2,9 @@
 
 **Project Name**: AI Video Studio
 **Target Market**: Global English-speaking content creators (TikTok/YouTube Shorts/Instagram Reels)
-**Document Version**: 3.6
+**Document Version**: 3.7
 **Last Updated**: 2025-10-26
-**Status**: Week 4 Phase 2.5 核心功能完成 - 真实 API 集成成功
+**Status**: Week 4 Phase 2.5 完成，转向 T2V-First 战略（Phase 2.6 规划中）
 **Git Repo**: https://github.com/tianwen8/soravideos
 
 ---
@@ -52,9 +52,12 @@
 ### 0.1 产品定位与核心价值
 
 #### 产品定位
-> **AI 驱动的一键生成生产级短视频 SaaS 工具站**
+> **快速生产生产力视频的 AI 导演系统**
 >
-> 用户只需输入需求，AI 自动生成可直接发布到 TikTok/Reels/Shorts 的专业视频
+> 用户只需输入需求，AI 自动生成可直接发布的专业视频
+>
+> **短期目标**: 30秒短视频、广告、解说
+> **长期目标**: 3-5分钟长视频、数字人、用户声音克隆
 
 #### 与竞品的核心区别
 
@@ -87,12 +90,14 @@
    - **区别于 Runway 黑盒 + ComfyUI 手工拖拽**
 
 3. **🎬 生产级质量（Trust & Differentiation）**
-   - AI 智能分析平台算法（TikTok 前3秒 hook）
-   - 专业分镜设计（运镜、构图、节奏）
-   - 符合平台特性的视频风格
+   - **T2V-First**: 使用最新模型（Sora 2/Veo 3）直接生成视频
+   - **导演级 AI**: 自动生成运镜、音效、分镜设计
+   - **灵活扩展**: 快速集成新模型，支持数字人、声音克隆
+   - **从短到长**: MVP 30秒 → 长期 3-5分钟视频
    - **可直接用于商业变现**
 
 4. **💰 成本优化（Retention）**
+   - 智能模型选择（根据需求自动选最佳模型）
    - 智能缓存机制（相同内容不重复生成）
    - 工作流模板复用（相似视频快速生成）
    - 灵活的模型选择（质量 vs 成本平衡）
@@ -2166,6 +2171,195 @@ Homepage → Click Generate → Canvas appears → Prompt node shows
   - [ ] 预计时间：0.5天
 
 **预计总时间**: 4-5 天
+
+---
+
+### ⭐ T2V-First 战略转向 (2025-10-26)
+
+#### 背景与动机
+
+**现状问题**:
+- 当前工作流：T2I (图片) → I2V (5秒视频) → TTS → Merge
+- 问题：这只是"把图片动起来"，不是真正的视频生成
+- 竞争劣势：用户可以直接用 Kling/Runway 做 I2V，不需要我们的平台
+
+**市场变化**:
+新一代 T2V 模型（Sora 2、Veo 3、Vidu Q2）具备颠覆性能力：
+- ✅ **直接文生视频** (8-12秒，不需要先生图)
+- ✅ **内置音频生成** (Sora 2 真人对白 + 唇音同步，Veo 3 环境音)
+- ✅ **多图参考一致性** (Vidu Reference-to-Video 支持7张参考图)
+- ✅ **导演级运镜控制** (通过提示词控制摄像机运动)
+
+**战略决策**:
+> **立即转向 T2V-First 架构，但保持现有 T2I→I2V 作为 Fallback**
+
+**核心定位调整**:
+```
+从 "AI 视频片段生成器"
+  ↓
+到 "快速生产生产力视频的 AI 导演系统"
+```
+
+**目标**:
+- **短期** (MVP): 30秒广告、解说视频、短视频
+- **长期**: 支持数字人、声音克隆、长视频（3-5分钟）
+
+---
+
+#### 新模型能力对比分析
+
+| 模型 | 类型 | 时长 | 音频能力 | 参考图 | 价格/秒 | 推荐场景 |
+|------|------|------|----------|--------|---------|----------|
+| **Sora 2** | T2V | 4/8/12s | ✅ 真人对白+唇音同步 | ❌ | $0.30 | **对话、剧情** |
+| **Sora 2 Pro** | T2V | 4/8/12s | ✅ 真人对白+唇音同步 | ❌ | $0.50 | 高清版本 |
+| **Veo 3 Fast** | T2V | 4/6/8s | ✅ 环境音（可选） | ❌ | $0.15/$0.10 | **通用场景** |
+| **Veo 3.1** | 首尾帧 | 8s | ✅ 环境音（可选） | ✅ 首尾帧 | $0.15 | 精确运镜 |
+| **Vidu Q2 T2V** | T2V | 2-8s | ⚠️ 仅 BGM (4s) | ❌ | ~$0.80 | 短片段 |
+| **Vidu Ref2V** | Ref2V | 未明确 | ⚠️ 仅 BGM (4s) | ✅ **7张参考图** | 未明确 | **品牌一致性** |
+| **Wan 2.5** | I2V | 5/10s | ⚠️ 需上传音频 | ✅ 单张 | 未明确 | 图片动画 |
+| **Seedance** | T2V | 3-12s | ❌ 无 | ❌ | 较低 | **成本优化** |
+| **Kling V1** | I2V | 5s | ❌ 无 | ✅ 单张 | $0.80 | Fallback |
+
+**关键发现**:
+1. **Sora 2 音频能力**: "lips syncing to dialogue, realistic natural sound" - 真人对白，不只是环境音
+2. **Vidu Reference**: 支持最多7张参考图，适合角色/品牌一致性（电商、品牌宣传）
+3. **时长能力**: Sora 2/Seedance 最长12秒，Veo 3 最长8秒
+4. **成本**: Veo 3 Fast ($0.10-0.15/s) 性价比最高，Sora 2 Pro ($0.50/s) 最贵
+
+---
+
+#### 核心架构设计原则 ⭐⭐⭐
+
+**关键要求**: **灵活扩展，避免重构**
+
+我们的优势不是某个特定模型，而是：
+1. ✅ **智能模型选择** - AI Planner 根据需求自动选最佳模型
+2. ✅ **快速集成新模型** - 配置化适配器，不重构核心代码
+3. ✅ **数字人 + 声音克隆** - 后期加入用户声音（核心差异化）
+4. ✅ **从短到长** - MVP 支持30秒，后期扩展到3-5分钟
+
+**设计目标**:
+```typescript
+// ❌ 错误：为每个模型创建不同工作流
+if (model === 'sora2') buildSora2Workflow()
+if (model === 'vidu') buildViduWorkflow()
+
+// ✅ 正确：统一工作流框架 + 可插拔适配器
+const adapter = ModelRegistry.getAdapter(selectedModelId)
+workflow.executeNode(adapter, params)
+```
+
+**架构层次**:
+```
+Layer 1: AI Planner (统一场景描述)
+   - 输出: 场景列表 + 导演级提示词
+   - 模型无关
+
+Layer 2: WorkflowBuilder (智能模型选择)
+   - 根据可用模型能力选择最佳适配器
+   - 配置化决策逻辑
+
+Layer 3: Model Adapters (可插拔)
+   - 每个模型一个 Adapter
+   - 实现统一接口 (T2VAdapter / TTSAdapter)
+   - 新增模型只需添加新 Adapter
+
+Layer 4: Execution Engine (已有)
+   - 拓扑排序 + 并行执行
+   - 无需修改
+```
+
+**扩展示例**:
+```typescript
+// src/config/models.ts
+export const T2V_MODELS: ModelOption[] = [
+  {
+    id: 'fal-ai/sora-2/text-to-video',
+    name: 'Sora 2',
+    capabilities: {
+      maxDuration: 12,
+      hasAudio: 'dialogue',  // 对白
+      supportsReferenceImages: false
+    },
+    adapter: FalSora2Adapter
+  },
+  {
+    id: 'fal-ai/vidu/reference-to-video',
+    name: 'Vidu Reference',
+    capabilities: {
+      maxDuration: 8,
+      hasAudio: 'bgm',
+      supportsReferenceImages: true,
+      maxReferenceImages: 7
+    },
+    adapter: FalViduReferenceAdapter
+  }
+  // 未来添加数字人模型：
+  // {
+  //   id: 'heygen/digital-human',
+  //   capabilities: { hasDigitalHuman: true, voiceClone: true }
+  // }
+]
+```
+
+---
+
+#### 更新后的 MVP 开发计划
+
+**MVP 范围调整**:
+- ✅ 支持 Sora 2 T2V（对话场景）
+- ✅ Shotstack 视频拼接（从"片段"到"成品"）
+- ✅ AI Planner 导演级提示词（运镜+音效描述）
+- ✅ 保留 T2I→I2V 作为 Fallback
+- ⏸️ Vidu Reference 暂缓（后期加入参考图功能时实现）
+- ⏸️ 数字人、声音克隆（Phase 3）
+
+**Phase 2.6 (重新规划): T2V-First MVP** (预计3天)
+
+**Day 1: Sora 2 集成**
+- [ ] Task 4.25: 实现 FalSora2Adapter
+  - [ ] 支持 duration (4/8/12s)
+  - [ ] 支持 aspect_ratio (16:9, 9:16)
+  - [ ] 处理内置音频输出
+  - [ ] 预计时间：0.5天
+
+- [ ] Task 4.26: 更新 models.ts 配置
+  - [ ] 添加 Sora 2 到 T2V_MODELS
+  - [ ] 定义 capabilities (maxDuration, hasAudio)
+  - [ ] 预计时间：0.5天
+
+**Day 2: AI Planner 优化**
+- [ ] Task 4.27: 导演级提示词工程
+  - [ ] 更新 AI Planner 提示词模板
+  - [ ] 生成包含运镜、音效描述的场景提示词
+  - [ ] 示例: "Medium shot, slow dolly-in. Woman says: '...'"
+  - [ ] 预计时间：1天
+
+**Day 3: Shotstack 集成**
+- [ ] Task 4.28: Shotstack 视频拼接
+  - [ ] 实现视频拼接 API 调用（已有 API Key）
+  - [ ] 支持音频混音（视频音轨 + TTS 旁白）
+  - [ ] 支持基础转场（fade）
+  - [ ] 预计时间：1天
+
+**Day 4: 测试和完善**
+- [ ] Task 4.29: 完整流程测试
+  - [ ] 测试 Sora 2 T2V 生成
+  - [ ] 测试配音质量（评估是否需要 TTS 覆盖）
+  - [ ] 测试 Shotstack 拼接
+  - [ ] 修复问题并推送
+  - [ ] 预计时间：0.5天
+
+**预计总时间**: 3-3.5 天
+
+---
+
+**Phase 2.7+: 后续扩展** (按需优化)
+- [ ] Vidu Reference 集成（需要参考图上传 UI）
+- [ ] 节点结果预览（已有计划）
+- [ ] 文件持久化到 Supabase Storage
+- [ ] 数字人模型集成（Phase 3）
+- [ ] 用户声音克隆（Phase 3）
 
 ---
 
