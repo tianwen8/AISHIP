@@ -100,6 +100,12 @@ export class FalT2IAdapter implements IT2IAdapter {
 export class FalT2VAdapter implements IT2VAdapter {
   async call(request: T2VRequest): Promise<T2VResponse> {
     try {
+      // Detect if this is a Sora 2 model and delegate to Sora 2 adapter
+      if (request.model.includes('sora-2')) {
+        const sora2Adapter = new FalSora2Adapter()
+        return await sora2Adapter.call(request)
+      }
+
       // Build minimal input parameters per Fal.ai official docs
       // Kling models only support: prompt, image_url
       const input: any = {
@@ -205,6 +211,88 @@ export class FalTTSAdapter implements ITTSAdapter {
 }
 
 /**
+ * Sora 2 Adapter - Direct Text-to-Video with Audio
+ * Supports: 4/8/12s duration, 16:9/9:16 aspect ratio, built-in audio
+ */
+export class FalSora2Adapter implements IT2VAdapter {
+  async call(request: T2VRequest): Promise<T2VResponse> {
+    try {
+      // Sora 2 API parameters
+      // Reference: https://fal.ai/models/fal-ai/sora-2/text-to-video/api
+      const input: any = {
+        prompt: request.prompt,
+      }
+
+      // Duration: only 4, 8, or 12 seconds supported
+      if (request.duration) {
+        // Map to nearest supported duration
+        if (request.duration <= 4) {
+          input.duration = 4
+        } else if (request.duration <= 8) {
+          input.duration = 8
+        } else {
+          input.duration = 12
+        }
+      } else {
+        input.duration = 4 // Default
+      }
+
+      // Aspect ratio: 16:9 or 9:16
+      // Determine from width/height or default to 16:9
+      if (request.width && request.height) {
+        const ratio = request.width / request.height
+        input.aspect_ratio = ratio > 1 ? '16:9' : '9:16'
+      } else {
+        input.aspect_ratio = '16:9' // Default
+      }
+
+      // Resolution: 720p (standard) or 1080p (pro)
+      // Default to 720p for MVP
+      input.resolution = '720p'
+
+      console.log("[FalSora2] Calling with input:", JSON.stringify(input, null, 2))
+
+      const result = await fal.subscribe(request.model, {
+        input,
+        logs: true,
+        onQueueUpdate: (update) => {
+          console.log("Sora 2 Queue:", update.status, "Position:", update.queue_position)
+        },
+      })
+
+      const data = result as any
+      console.log("[FalSora2] Response data:", JSON.stringify(data, null, 2))
+
+      const video = data.video
+      if (!video) {
+        console.error("[FalSora2] Unexpected response format:", data)
+        throw new Error("No video returned from Sora 2")
+      }
+
+      return {
+        videoUrl: video.url || video,
+        duration: data.video?.duration || input.duration,
+        width: data.video?.width || (input.aspect_ratio === '16:9' ? 1280 : 720),
+        height: data.video?.height || (input.aspect_ratio === '16:9' ? 720 : 1280),
+        fps: data.video?.fps || 30,
+        metadata: {
+          ...data,
+          hasAudio: true, // Sora 2 always generates audio
+          audioType: 'dialogue', // Built-in dialogue with lip sync
+          model: 'sora-2',
+        },
+      }
+    } catch (error: any) {
+      console.error("FalSora2Adapter error:", error)
+      if (error.body) {
+        console.error("Error body:", JSON.stringify(error.body, null, 2))
+      }
+      throw new Error(`Sora 2 call failed: ${error.message}`)
+    }
+  }
+}
+
+/**
  * Factory function to get adapters
  */
 export function getFalAdapters() {
@@ -212,6 +300,7 @@ export function getFalAdapters() {
     llm: new FalLLMAdapter(),
     t2i: new FalT2IAdapter(),
     t2v: new FalT2VAdapter(),
+    sora2: new FalSora2Adapter(), // New Sora 2 adapter
     tts: new FalTTSAdapter(),
   }
 }

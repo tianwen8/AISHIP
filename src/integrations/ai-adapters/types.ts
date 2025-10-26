@@ -58,13 +58,14 @@ export interface IT2IAdapter {
 
 export interface T2VRequest {
   model: string
-  imageUrl: string // For I2V (image-to-video)
+  imageUrl?: string // For I2V (image-to-video), optional for direct T2V
   prompt: string
   duration: number // in seconds
   width?: number
   height?: number
   fps?: number
   seed?: number
+  aspectRatio?: string // For models like Sora 2 that use aspect ratio instead of width/height
 }
 
 export interface T2VResponse {

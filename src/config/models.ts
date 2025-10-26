@@ -103,6 +103,28 @@ export const I2V_MODELS: ModelOption[] = [
     }
   },
   {
+    id: "fal-ai/sora-2/text-to-video",
+    name: "Sora 2",
+    provider: "OpenAI (via Fal.ai)",
+    quality: "Premium Quality",
+    speed: "Medium (30-50s)",
+    credits: 3.0, // $0.30/second * 10 = 3.0 credits/second (assuming 10s average)
+    recommended: true,
+    description: "Direct T2V with built-in dialogue and lip sync, 4-12 seconds",
+    capabilities: {
+      inputType: 'text',  // Only supports T2V (not I2V)
+      audioGeneration: {
+        enabled: true,
+        types: ['voiceover', 'sound-effects'],
+        controllable: true,  // Controllable via prompt
+        separateTrack: false // Audio embedded in video
+      },
+      outputs: {
+        video: { format: 'mp4', hasAudio: true }
+      }
+    }
+  },
+  {
     id: "fal-ai/minimax-video",
     name: "MiniMax Video",
     provider: "MiniMax (via Fal.ai)",
