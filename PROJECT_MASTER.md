@@ -136,7 +136,7 @@
      * 分镜提示词（可编辑）
      * 使用的模型（可切换）
      * 积分消耗（实时计算）
-   - 节点自动连线（T2I → I2V → TTS → Merge）
+   - 节点自动连线（AI 智能选择：T2V → TTS → Merge 或 T2I → I2V → TTS → Merge）
 
 3. 用户在画布上有2个选择：
    - 直接点"生成"（不改任何东西）→ 70秒后完成
@@ -477,7 +477,8 @@ CREATE TABLE workflow_templates (
    - 模型推荐（质量 vs 成本平衡）
 
 3. **Orchestrator 自动执行**（⭐ 核心）
-   - T2I → I2V → TTS → Merge 流水线
+   - 动态工作流执行（T2V-First 主路径，T2I→I2V Fallback）
+   - 智能模型选择（Sora 2/Veo 3/Vidu 等）
    - 错误处理和重试
    - 成本精确扣费
 
@@ -594,13 +595,13 @@ CREATE TABLE workflow_templates (
 **Canvas 实现策略（MVP 简化版）**：
 - ✅ 使用 React Flow 11（已验证可行）
 - ✅ 只显示线性流程（不支持分支/循环）
-- ✅ 节点类型：T2I → I2V → TTS → Merge（固定4类）
+- ✅ 节点类型：AI 智能生成（T2V/T2I/I2V/TTS/Merge，根据模型能力动态选择）
 - ✅ 实时进度动画（loading → success → error）
 - ✅ 节点预览（缩略图点击放大）
 - ✅ 脚本编辑（Textarea + 保存按钮）
 - ✅ 模型切换（Dropdown + 成本实时更新）
 - ❌ 不支持拖拽节点（布局自动计算）
-- ❌ 不支持自定义连线（固定流程）
+- ❌ 不支持自定义连线（AI 自动决策流程）
 
 **总时间**：
 - Phase 1（MVP 核心）：**3周可交付**
@@ -688,10 +689,10 @@ CREATE TABLE workflow_templates (
   - 运镜设计（static/pan/zoom）
   - 模型推荐
   - 成本估算（使用 pricing 模块）
-- ✅ **Orchestrator**（`src/services/orchestrator.ts`）
-  - 执行 WorkflowPlan
+- ✅ **Orchestrator**（`src/app/api/runs/[runId]/execute/route.ts`）
+  - 执行动态 WorkflowPlan（拓扑排序）
   - RunStatus 生命周期（Pending → Running → Completed/Failed）
-  - 分步执行：T2I → I2V → TTS → Merge
+  - 分步执行：AI 智能选择路径（T2V-First 或 T2I→I2V Fallback）
   - 精确扣费（每步完成后立即扣除）
   - 错误处理和状态更新
 
@@ -801,7 +802,7 @@ CREATE TABLE workflow_templates (
 
 - ✅ **画布页面基础版**（`src/app/workspace/[runId]/page.tsx`）
   - ✅ React Flow 集成（显示工作流图）
-  - ✅ 自动布局 AI 生成的工作流（T2I → I2V → Merge）
+  - ✅ 自动布局 AI 生成的动态工作流
   - ✅ 节点显示：场景描述、时长、模型
   - ✅ 成本估算显示
   - ✅ "生成视频"按钮
@@ -818,7 +819,7 @@ CREATE TABLE workflow_templates (
     - [ ] 节点可拖拽连接（Handle）
 
   - [ ] **顶部工具栏**
-    - [ ] 快捷添加节点按钮（T2I、I2V、TTS）
+    - [ ] 快捷添加节点按钮（T2V、T2I、I2V、TTS、Merge）
     - [ ] 画布操作按钮（放大、缩小、适应屏幕）
     - [ ] 保存/分享按钮
 
@@ -2098,9 +2099,9 @@ Homepage → Click Generate → Canvas appears → Prompt node shows
   - 用户选择"女声/男声" → 混音（30% 音效 + 70% 配音）
 
 **Q2: 工作流是固定的还是可编辑的？**
-- **答**: MVP 阶段固定，Phase 3 可编辑
-  - MVP: AI 自动生成固定工作流（T2I→I2V→TTS→Merge）
-  - 用户只能微调节点参数（提示词、模型）
+- **答**: MVP 阶段 AI 智能生成，Phase 3 可手动编辑
+  - MVP: AI 自动选择最佳工作流（T2V-First 主路径，T2I→I2V Fallback）
+  - 用户可以微调节点参数（提示词、模型）
   - Phase 3: 支持手动添加/删除节点、重新连线
 
 **Q3: 是否支持 ComfyUI 式热拔插？**
