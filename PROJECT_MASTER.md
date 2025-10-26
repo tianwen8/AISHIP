@@ -56,7 +56,7 @@
 >
 > 用户只需输入需求，AI 自动生成可直接发布的专业视频
 >
-> **短期目标**: 30秒短视频、广告、解说
+> **短期目标**: 8-60秒短视频、广告、解说
 > **长期目标**: 3-5分钟长视频、数字人、用户声音克隆
 
 #### 与竞品的核心区别
@@ -93,7 +93,7 @@
    - **T2V-First**: 使用最新模型（Sora 2/Veo 3）直接生成视频
    - **导演级 AI**: 自动生成运镜、音效、分镜设计
    - **灵活扩展**: 快速集成新模型，支持数字人、声音克隆
-   - **从短到长**: MVP 30秒 → 长期 3-5分钟视频
+   - **从短到长**: MVP 8-60秒 → 长期 3-5分钟视频
    - **可直接用于商业变现**
 
 4. **💰 成本优化（Retention）**
@@ -128,7 +128,7 @@
 1. 首页输入框：
    - 输入提示词："A sunset over ocean waves"
    - 或上传参考图片
-   - 选择时长（8/15/30秒）、平台（TikTok/Reels）、配音（无/男声/女声）
+   - 选择时长（8/15/30/60秒）、平台（TikTok/Reels）、配音（无/男声/女声）
 
 2. 自动跳转到画布页面（类似 Kling AI）：
    - AI 已自动生成完整工作流（3-5个分镜节点）
@@ -191,7 +191,7 @@
 │  └─────────────────────────────────────┘│
 │                                          │
 │  ⏱️ 视频时长：                           │
-│  ○ 8秒  ● 15秒  ○ 30秒                  │
+│  ○ 8秒  ● 15秒  ○ 30秒  ○ 60秒         │
 │                                          │
 │  📱 发布平台：                           │
 │  ● TikTok  ○ Instagram Reels  ○ Shorts │
@@ -464,7 +464,7 @@ CREATE TABLE workflow_templates (
 
 1. **简单输入表单**（⭐ 核心）
    - Prompt 输入框
-   - 时长选择（8/15/30秒）
+   - 时长选择（8/15/30/60秒）
    - 平台选择（TikTok/Reels/Shorts）
    - 配音选择（无/男声/女声）
    - 实时成本估算
@@ -776,7 +776,7 @@ CREATE TABLE workflow_templates (
 
 - ✅ **首页输入表单**（`src/app/page.tsx`）
   - ✅ 提示词输入框（textarea）
-  - ✅ 时长选择（8/15/30秒）
+  - ✅ 时长选择（8/15/30/60秒）
   - ✅ 平台选择（TikTok/Reels/Shorts）
   - ✅ 配音选择（无/男声/女声）
   - ✅ 实时成本估算显示
@@ -2202,7 +2202,7 @@ Homepage → Click Generate → Canvas appears → Prompt node shows
 ```
 
 **目标**:
-- **短期** (MVP): 30秒广告、解说视频、短视频
+- **短期** (MVP): 8-60秒广告、解说视频、短视频
 - **长期**: 支持数字人、声音克隆、长视频（3-5分钟）
 
 ---
@@ -2237,7 +2237,7 @@ Homepage → Click Generate → Canvas appears → Prompt node shows
 1. ✅ **智能模型选择** - AI Planner 根据需求自动选最佳模型
 2. ✅ **快速集成新模型** - 配置化适配器，不重构核心代码
 3. ✅ **数字人 + 声音克隆** - 后期加入用户声音（核心差异化）
-4. ✅ **从短到长** - MVP 支持30秒，后期扩展到3-5分钟
+4. ✅ **从短到长** - MVP 支持8-60秒，后期扩展到3-5分钟
 
 **设计目标**:
 ```typescript
@@ -2334,6 +2334,11 @@ export const T2V_MODELS: ModelOption[] = [
   - [ ] 更新 AI Planner 提示词模板
   - [ ] 生成包含运镜、音效描述的场景提示词
   - [ ] 示例: "Medium shot, slow dolly-in. Woman says: '...'"
+  - [ ] 智能场景分配逻辑（根据总时长）：
+    - 8秒: 1个场景（8秒）
+    - 15秒: 2个场景（8s + 7s 或 2×7-8s）
+    - 30秒: 3个场景（3×10s 或 12s+10s+8s）
+    - 60秒: 5-6个场景（利用 Sora 2 最长12秒能力）
   - [ ] 预计时间：1天
 
 **Day 3: Shotstack 集成**
@@ -2873,7 +2878,7 @@ Recommendations
   - Parse `llmResponse.output` via schema to eliminate `any` and malformed JSON risks.
   - File: src/services/ai-planner.ts: ll. 31–73, 87–121.
 - API input validation with Zod:
-  - `/api/workflows/generate`: validate body `{ prompt, duration ∈ {8,15,30}, aspectRatio ∈ {"9:16","16:9","1:1"}, voice ∈ {"none","male","female","clone"}, style? }`.
+  - `/api/workflows/generate`: validate body `{ prompt, duration ∈ {8,15,30,60}, aspectRatio ∈ {"9:16","16:9","1:1"}, voice ∈ {"none","male","female","clone"}, style? }`.
   - Map Zod errors to consistent `respErr`.
   - File: src/app/api/workflows/generate/route.ts: 21–41.
 - Enum usage end-to-end:
