@@ -10,6 +10,7 @@ import { findRunByUuid, updateRunStatus, RunStatus } from "@/models/run"
 import type { WorkflowPlan } from "@/services/ai-planner"
 import type { WorkflowNode } from "@/services/workflow-builder"
 import { FalT2IAdapter, FalT2VAdapter, FalTTSAdapter } from "@/integrations/ai-adapters/fal"
+import { ShotstackAdapter } from "@/integrations/shotstack"
 
 export async function POST(
   req: NextRequest,
@@ -75,6 +76,7 @@ export async function POST(
         const t2iAdapter = new FalT2IAdapter()
         const t2vAdapter = new FalT2VAdapter()
         const ttsAdapter = new FalTTSAdapter()
+        const shotstackAdapter = new ShotstackAdapter()
 
         // 5. Topologically sort nodes
         const executionOrder = topologicalSort(workflowPlan.workflowNodes)
@@ -167,12 +169,59 @@ export async function POST(
                 break
 
               case 'merge':
-                // MVP: Return first video as final output
                 const videos = resolvedInputs.videos as string[]
-                const finalVideoUrl = videos[0]
+                const audioUrl = resolvedInputs.audio as string | undefined
 
-                console.log(`[Merge] MVP: Using first video as final output`)
                 console.log(`[Merge] Videos to merge: ${videos.length}`)
+                console.log(`[Merge] Has audio overlay: ${!!audioUrl}`)
+
+                let finalVideoUrl: string
+
+                if (videos.length === 1 && !audioUrl) {
+                  // Single video, no audio overlay - no merging needed
+                  finalVideoUrl = videos[0]
+                  console.log(`[Merge] Single video, no merging needed`)
+                } else {
+                  // Multiple videos OR single video with audio overlay - use Shotstack
+                  console.log(`[Merge] Using Shotstack for video merging...`)
+
+                  // Get video metadata from previous nodes
+                  const videoClips = videos.map((url, index) => {
+                    // Find corresponding video node (t2v-X or i2v-X)
+                    const videoNodeId = workflowPlan.workflowNodes?.find(
+                      (n: WorkflowNode) =>
+                        (n.type === 't2v' || n.type === 'i2v') &&
+                        n.metadata?.sceneIndex === index
+                    )?.id
+
+                    const videoNode = videoNodeId ? nodeResults.get(videoNodeId) : null
+                    const duration = workflowPlan.scenes[index]?.duration || 5
+
+                    return {
+                      url,
+                      duration,
+                      hasAudio: !!videoNode?.audioUrl || false
+                    }
+                  })
+
+                  const mergeResult = await shotstackAdapter.mergeVideos({
+                    videos: videoClips,
+                    audioUrl,
+                    transitions: {
+                      type: 'fade',
+                      duration: 0.5
+                    },
+                    output: {
+                      format: 'mp4',
+                      resolution: 'hd',
+                      fps: 30,
+                      quality: 'high'
+                    }
+                  })
+
+                  finalVideoUrl = mergeResult.finalVideoUrl
+                  console.log(`[Merge] Shotstack render completed: ${finalVideoUrl}`)
+                }
 
                 nodeResults.set(nodeId, { finalVideoUrl })
 

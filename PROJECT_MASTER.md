@@ -4,7 +4,7 @@
 **Target Market**: Global English-speaking content creators (TikTok/YouTube Shorts/Instagram Reels)
 **Document Version**: 3.7
 **Last Updated**: 2025-10-26
-**Status**: Week 4 Phase 2.5 完成，转向 T2V-First 战略（Phase 2.6 规划中）
+**Status**: Phase 2.6 Day 1-3 完成（Sora 2 + AI Planner + Shotstack），等待测试
 **Git Repo**: https://github.com/tianwen8/soravideos
 
 ---
@@ -2352,12 +2352,16 @@ export const T2V_MODELS: ModelOption[] = [
   - [x] 完整文档（AI_CACHE_README.md）
 - [x] 实际时间：0.5天
 
-**Day 3: Shotstack 集成** ⏳ 待开始
-- [ ] Task 4.28: Shotstack 视频拼接
-  - [ ] 实现视频拼接 API 调用（已有 API Key）
-  - [ ] 支持音频混音（视频音轨 + TTS 旁白）
-  - [ ] 支持基础转场（fade）
-  - [ ] 预计时间：1天
+**Day 3: Shotstack 集成** ✅ 已完成
+- [x] Task 4.28: Shotstack 视频拼接
+  - [x] 创建 Shotstack Adapter（types, adapter, index）
+  - [x] 实现 mergeVideos() 方法（timeline 构建、提交渲染、轮询状态）
+  - [x] 集成到 Merge 节点执行逻辑
+  - [x] 支持音频混音（视频音轨 + TTS 旁白）
+  - [x] 支持转场效果（fade、wipe、slide）
+  - [x] 智能优化（单视频无需拼接）
+  - [x] 完整文档（SHOTSTACK_README.md）
+  - [x] 实际时间：0.5天
 
 **Day 4: 测试和完善**
 - [ ] Task 4.29: 完整流程测试
