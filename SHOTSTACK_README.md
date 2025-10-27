@@ -19,15 +19,15 @@
 ```bash
 # Shotstack API (Video Merging)
 SHOTSTACK_API_KEY=0BMK31ipGPPcKYrS5JcqhGvF8XbWBBIoK02lNNZx
-SHOTSTACK_ENV=sandbox  # sandbox (free) or v1 (production)
+SHOTSTACK_ENV=stage  # stage (free/sandbox) or v1 (production)
 ```
 
 ### 2. 环境说明
 
-- **Sandbox**：免费测试环境，渲染速度较慢，视频带水印
+- **Stage**：免费测试环境，渲染速度较慢，视频带水印
 - **Production (v1)**：付费生产环境，渲染速度快，无水印
 
-开发阶段使用 `sandbox`，部署后切换到 `v1`。
+开发阶段使用 `stage`，部署后切换到 `v1`。
 
 ### 3. 测试视频拼接
 
@@ -214,7 +214,7 @@ case 'merge':
 
 ## 💰 成本
 
-### Sandbox 环境（免费）
+### Stage 环境（免费）
 - ✅ 无限次渲染
 - ❌ 渲染速度较慢
 - ❌ 视频带水印
@@ -240,7 +240,7 @@ case 'merge':
 
 ### 渲染时间
 
-- **Sandbox**：1-5 分钟（取决于队列）
+- **Stage**：1-5 分钟（取决于队列）
 - **Production**：10-30 秒
 
 ### 超时设置
@@ -294,7 +294,7 @@ Error: Shotstack render timeout after 300s
 ```
 
 **可能原因**：
-1. Sandbox 环境队列过长
+1. Stage 环境队列过长
 2. 视频片段过多（>10 个）
 3. 视频分辨率过高
 
@@ -331,7 +331,7 @@ Shotstack 集成会输出详细日志：
 
 ## 🎓 最佳实践
 
-1. **开发时使用 Sandbox**：免费但有水印
+1. **开发时使用 Stage**：免费但有水印
 2. **生产环境用 Production**：快速无水印
 3. **合理控制场景数量**：2-6 个场景最佳
 4. **优化视频时长**：每个场景 5-12 秒

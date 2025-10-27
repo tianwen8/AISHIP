@@ -16,7 +16,7 @@ import type {
 } from './types'
 
 const SHOTSTACK_API_KEY = process.env.SHOTSTACK_API_KEY
-const SHOTSTACK_ENV = process.env.SHOTSTACK_ENV || 'sandbox' // 'sandbox' or 'v1'
+const SHOTSTACK_ENV = process.env.SHOTSTACK_ENV || 'stage' // 'stage' (free/sandbox) or 'v1' (production)
 const SHOTSTACK_BASE_URL = `https://api.shotstack.io/${SHOTSTACK_ENV}`
 
 const MAX_POLL_ATTEMPTS = 60 // 60 attempts * 5s = 5 minutes max
