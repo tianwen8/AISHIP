@@ -16,15 +16,23 @@ export async function POST(req: NextRequest) {
 
   const stream = new ReadableStream({
     async start(controller) {
+      // Track if controller is closed to prevent errors
+      let isClosed = false
+
       try {
         // Helper function to send SSE events
         const sendEvent = (event: string, data: any) => {
+          if (isClosed) {
+            // Silently skip if already closed
+            return
+          }
           try {
             const message = `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`
             controller.enqueue(encoder.encode(message))
           } catch (err) {
-            // Controller already closed, ignore
-            console.warn("Failed to send SSE event:", err)
+            // Controller already closed by client disconnect
+            isClosed = true
+            console.warn(`[SSE] Client disconnected, skipping event: ${event}`)
           }
         }
 
@@ -192,12 +200,28 @@ export async function POST(req: NextRequest) {
           workflowPlan, // Include full workflow plan
         })
 
-        controller.close()
+        // Close controller safely
+        if (!isClosed) {
+          isClosed = true
+          controller.close()
+        }
       } catch (error: any) {
-        console.error("Generate stream error:", error)
-        const message = `event: error\ndata: ${JSON.stringify({ message: error.message })}\n\n`
-        controller.enqueue(encoder.encode(message))
-        controller.close()
+        console.error("[SSE] Generate stream error:", error)
+
+        // Try to send error event if connection still open
+        if (!isClosed) {
+          sendEvent("error", { message: error.message })
+        }
+
+        // Close controller safely
+        if (!isClosed) {
+          isClosed = true
+          try {
+            controller.close()
+          } catch (err) {
+            console.warn("[SSE] Failed to close controller:", err)
+          }
+        }
       }
     },
   })
