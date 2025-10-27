@@ -65,7 +65,14 @@ export interface T2VRequest {
   height?: number
   fps?: number
   seed?: number
-  aspectRatio?: string // For models like Sora 2 that use aspect ratio instead of width/height
+  aspectRatio?: string // For models like Sora 2 and Vidu that use aspect ratio instead of width/height
+
+  // Vidu-specific parameters
+  movementAmplitude?: 'auto' | 'small' | 'medium' | 'large' // Vidu motion control
+  resolution?: '360p' | '520p' | '720p' | '1080p' // Vidu Q2 I2V resolution
+  bgm?: boolean // Vidu Q2 I2V background music (4s videos only)
+  style?: 'general' | 'anime' // Vidu Q1 T2V style
+  referenceImageUrls?: string[] // Vidu Reference multi-image input
 }
 
 export interface T2VResponse {

@@ -2363,6 +2363,16 @@ export const T2V_MODELS: ModelOption[] = [
   - [x] 完整文档（SHOTSTACK_README.md）
   - [x] 实际时间：0.5天
 
+**Day 3.5: Vidu 模型集成** ✅ 已完成（额外扩展）
+- [x] Task 4.30: Vidu 多模型支持
+  - [x] 创建 FalViduQ1T2VAdapter（纯 T2V，1080p）
+  - [x] 创建 FalViduQ2I2VAdapter（I2V Pro，2-8秒时长控制）
+  - [x] 创建 FalViduReferenceAdapter（多图参考，角色一致性）
+  - [x] 更新 types.ts 添加 Vidu 特有参数（movementAmplitude, resolution, bgm, style, referenceImageUrls）
+  - [x] 更新 FalT2VAdapter 委托逻辑
+  - [x] 更新 models.ts 配置（3个Vidu模型）
+  - [x] 实际时间：0.5天
+
 **Day 4: 测试和完善**
 - [ ] Task 4.29: 完整流程测试
   - [ ] 测试 Sora 2 T2V 生成

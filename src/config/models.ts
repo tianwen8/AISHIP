@@ -125,6 +125,61 @@ export const I2V_MODELS: ModelOption[] = [
     }
   },
   {
+    id: "fal-ai/vidu/q1/text-to-video",
+    name: "Vidu Q1 T2V",
+    provider: "ShengShu (via Fal.ai)",
+    quality: "High Quality",
+    speed: "Very Fast (10-20s)",
+    credits: 1.0, // Fixed duration, estimate based on typical usage
+    description: "Pure T2V, 1080p quality, fixed duration",
+    capabilities: {
+      inputType: 'text',
+      audioGeneration: {
+        enabled: false
+      },
+      outputs: {
+        video: { format: 'mp4', hasAudio: false }
+      }
+    }
+  },
+  {
+    id: "fal-ai/vidu/q2/image-to-video/pro",
+    name: "Vidu Q2 I2V Pro",
+    provider: "ShengShu (via Fal.ai)",
+    quality: "Premium Quality",
+    speed: "Fast (20-30s)",
+    credits: 0.5, // $0.10 base + $0.05/sec for 720p, average ~4s = ~$0.30 = 0.5 credits/sec
+    recommended: true,
+    description: "I2V with duration control (2-8s), 720p/1080p, motion amplitude control",
+    capabilities: {
+      inputType: 'image',
+      audioGeneration: {
+        enabled: false
+      },
+      outputs: {
+        video: { format: 'mp4', hasAudio: false }
+      }
+    }
+  },
+  {
+    id: "fal-ai/vidu/reference-to-video",
+    name: "Vidu Reference",
+    provider: "ShengShu (via Fal.ai)",
+    quality: "Premium Quality",
+    speed: "Fast (20-30s)",
+    credits: 1.2, // Higher cost due to multi-image processing
+    description: "Multi-image reference for consistent character generation (up to 7 images)",
+    capabilities: {
+      inputType: 'image',  // Requires reference images
+      audioGeneration: {
+        enabled: false
+      },
+      outputs: {
+        video: { format: 'mp4', hasAudio: false }
+      }
+    }
+  },
+  {
     id: "fal-ai/minimax-video",
     name: "MiniMax Video",
     provider: "MiniMax (via Fal.ai)",

@@ -116,10 +116,25 @@ export class FalT2IAdapter implements IT2IAdapter {
 export class FalT2VAdapter implements IT2VAdapter {
   async call(request: T2VRequest): Promise<T2VResponse> {
     try {
-      // Detect if this is a Sora 2 model and delegate to Sora 2 adapter
+      // Delegate to specialized adapters based on model
       if (request.model.includes('sora-2')) {
         const sora2Adapter = new FalSora2Adapter()
         return await sora2Adapter.call(request)
+      }
+
+      if (request.model.includes('vidu/q1/text-to-video')) {
+        const viduQ1Adapter = new FalViduQ1T2VAdapter()
+        return await viduQ1Adapter.call(request)
+      }
+
+      if (request.model.includes('vidu/q2/image-to-video')) {
+        const viduQ2Adapter = new FalViduQ2I2VAdapter()
+        return await viduQ2Adapter.call(request)
+      }
+
+      if (request.model.includes('vidu/reference-to-video')) {
+        const viduReferenceAdapter = new FalViduReferenceAdapter()
+        return await viduReferenceAdapter.call(request)
       }
 
       // Build minimal input parameters per Fal.ai official docs
@@ -335,6 +350,314 @@ export class FalSora2Adapter implements IT2VAdapter {
 }
 
 /**
+ * Vidu Q1 Text-to-Video Adapter
+ * Pure T2V, fixed duration, 1080p quality
+ */
+export class FalViduQ1T2VAdapter implements IT2VAdapter {
+  async call(request: T2VRequest): Promise<T2VResponse> {
+    const input: any = {
+      prompt: request.prompt,
+    }
+
+    // Aspect ratio
+    if (request.aspectRatio) {
+      input.aspect_ratio = request.aspectRatio
+    } else if (request.width && request.height) {
+      const ratio = request.width / request.height
+      if (ratio > 1.5) input.aspect_ratio = '16:9'
+      else if (ratio < 0.7) input.aspect_ratio = '9:16'
+      else input.aspect_ratio = '1:1'
+    } else {
+      input.aspect_ratio = '16:9'
+    }
+
+    // Movement amplitude
+    input.movement_amplitude = request.movementAmplitude || 'auto'
+
+    // Style (general or anime)
+    input.style = request.style || 'general'
+
+    // Seed for reproducibility
+    if (request.seed) {
+      input.seed = request.seed
+    }
+
+    const cacheKey = generateCacheKey({
+      model: request.model,
+      prompt: request.prompt,
+      aspectRatio: input.aspect_ratio,
+      movementAmplitude: input.movement_amplitude,
+      style: input.style,
+      seed: input.seed,
+    })
+
+    return cachedAPICall(
+      cacheKey,
+      async () => {
+        try {
+          console.log("[FalViduQ1T2V] Calling with input:", JSON.stringify(input, null, 2))
+
+          const result = await fal.subscribe(request.model, {
+            input,
+            logs: true,
+            onQueueUpdate: (update) => {
+              console.log("Vidu Q1 T2V Queue:", update.status, "Position:", update.queue_position)
+            },
+          })
+
+          const data = result as any
+          console.log("[FalViduQ1T2V] Response data:", JSON.stringify(data, null, 2))
+
+          const video = data.video
+          if (!video) {
+            console.error("[FalViduQ1T2V] Unexpected response format:", data)
+            throw new Error("No video returned from Vidu Q1 T2V")
+          }
+
+          return {
+            videoUrl: video.url || video,
+            duration: request.duration || 4, // Q1 T2V has fixed duration, default to 4s
+            width: 1920,
+            height: input.aspect_ratio === '16:9' ? 1080 : input.aspect_ratio === '9:16' ? 1920 : 1080,
+            fps: 30,
+            metadata: {
+              ...data,
+              model: 'vidu-q1-t2v',
+            },
+          }
+        } catch (error: any) {
+          console.error("FalViduQ1T2VAdapter error:", error)
+          if (error.body) {
+            console.error("Error body:", JSON.stringify(error.body, null, 2))
+          }
+          throw new Error(`Vidu Q1 T2V call failed: ${error.message}`)
+        }
+      },
+      {
+        description: `Vidu Q1 T2V: ${input.aspect_ratio} - ${request.prompt.substring(0, 50)}...`
+      }
+    )
+  }
+}
+
+/**
+ * Vidu Q2 Image-to-Video Pro Adapter
+ * I2V with duration control (2-8s), 720p/1080p quality
+ */
+export class FalViduQ2I2VAdapter implements IT2VAdapter {
+  async call(request: T2VRequest): Promise<T2VResponse> {
+    if (!request.imageUrl) {
+      throw new Error("Vidu Q2 I2V requires an image_url")
+    }
+
+    const input: any = {
+      prompt: request.prompt,
+      image_url: request.imageUrl,
+    }
+
+    // Duration: 2-8 seconds
+    if (request.duration) {
+      input.duration = Math.max(2, Math.min(8, Math.round(request.duration)))
+    } else {
+      input.duration = 4
+    }
+
+    // Resolution
+    if (request.resolution) {
+      input.resolution = request.resolution
+    } else {
+      input.resolution = '720p'
+    }
+
+    // Aspect ratio
+    if (request.aspectRatio) {
+      input.aspect_ratio = request.aspectRatio
+    } else if (request.width && request.height) {
+      const ratio = request.width / request.height
+      if (ratio > 1.5) input.aspect_ratio = '16:9'
+      else if (ratio < 0.7) input.aspect_ratio = '9:16'
+      else input.aspect_ratio = '1:1'
+    } else {
+      input.aspect_ratio = '16:9'
+    }
+
+    // Movement amplitude
+    input.movement_amplitude = request.movementAmplitude || 'auto'
+
+    // BGM (only for 4-second videos)
+    input.bgm = request.bgm || false
+
+    // Seed
+    if (request.seed) {
+      input.seed = request.seed
+    }
+
+    const cacheKey = generateCacheKey({
+      model: request.model,
+      prompt: request.prompt,
+      imageUrl: request.imageUrl,
+      duration: input.duration,
+      resolution: input.resolution,
+      aspectRatio: input.aspect_ratio,
+      movementAmplitude: input.movement_amplitude,
+      seed: input.seed,
+    })
+
+    return cachedAPICall(
+      cacheKey,
+      async () => {
+        try {
+          console.log("[FalViduQ2I2V] Calling with input:", JSON.stringify(input, null, 2))
+
+          const result = await fal.subscribe(request.model, {
+            input,
+            logs: true,
+            onQueueUpdate: (update) => {
+              console.log("Vidu Q2 I2V Queue:", update.status, "Position:", update.queue_position)
+            },
+          })
+
+          const data = result as any
+          console.log("[FalViduQ2I2V] Response data:", JSON.stringify(data, null, 2))
+
+          const video = data.video
+          if (!video) {
+            console.error("[FalViduQ2I2V] Unexpected response format:", data)
+            throw new Error("No video returned from Vidu Q2 I2V")
+          }
+
+          // Resolution to dimensions
+          const resolutionMap: Record<string, { width: number; height: number }> = {
+            '360p': { width: 640, height: 360 },
+            '520p': { width: 924, height: 520 },
+            '720p': { width: 1280, height: 720 },
+            '1080p': { width: 1920, height: 1080 },
+          }
+
+          const dimensions = resolutionMap[input.resolution] || resolutionMap['720p']
+          const width = input.aspect_ratio === '9:16' ? dimensions.height : dimensions.width
+          const height = input.aspect_ratio === '9:16' ? dimensions.width : dimensions.height
+
+          return {
+            videoUrl: video.url || video,
+            duration: input.duration,
+            width,
+            height,
+            fps: 30,
+            metadata: {
+              ...data,
+              model: 'vidu-q2-i2v',
+            },
+          }
+        } catch (error: any) {
+          console.error("FalViduQ2I2VAdapter error:", error)
+          if (error.body) {
+            console.error("Error body:", JSON.stringify(error.body, null, 2))
+          }
+          throw new Error(`Vidu Q2 I2V call failed: ${error.message}`)
+        }
+      },
+      {
+        description: `Vidu Q2 I2V: ${input.duration}s ${input.resolution} - ${request.prompt.substring(0, 50)}...`
+      }
+    )
+  }
+}
+
+/**
+ * Vidu Reference-to-Video Adapter
+ * Multi-image reference for consistent character generation
+ */
+export class FalViduReferenceAdapter implements IT2VAdapter {
+  async call(request: T2VRequest): Promise<T2VResponse> {
+    if (!request.referenceImageUrls || request.referenceImageUrls.length === 0) {
+      throw new Error("Vidu Reference requires at least one reference_image_url")
+    }
+
+    const input: any = {
+      prompt: request.prompt,
+      reference_image_urls: request.referenceImageUrls,
+    }
+
+    // Aspect ratio
+    if (request.aspectRatio) {
+      input.aspect_ratio = request.aspectRatio
+    } else if (request.width && request.height) {
+      const ratio = request.width / request.height
+      if (ratio > 1.5) input.aspect_ratio = '16:9'
+      else if (ratio < 0.7) input.aspect_ratio = '9:16'
+      else input.aspect_ratio = '1:1'
+    } else {
+      input.aspect_ratio = '16:9'
+    }
+
+    // Movement amplitude
+    input.movement_amplitude = request.movementAmplitude || 'auto'
+
+    // Seed
+    if (request.seed) {
+      input.seed = request.seed
+    }
+
+    const cacheKey = generateCacheKey({
+      model: request.model,
+      prompt: request.prompt,
+      referenceImages: request.referenceImageUrls.join(','),
+      aspectRatio: input.aspect_ratio,
+      movementAmplitude: input.movement_amplitude,
+      seed: input.seed,
+    })
+
+    return cachedAPICall(
+      cacheKey,
+      async () => {
+        try {
+          console.log("[FalViduReference] Calling with input:", JSON.stringify(input, null, 2))
+
+          const result = await fal.subscribe(request.model, {
+            input,
+            logs: true,
+            onQueueUpdate: (update) => {
+              console.log("Vidu Reference Queue:", update.status, "Position:", update.queue_position)
+            },
+          })
+
+          const data = result as any
+          console.log("[FalViduReference] Response data:", JSON.stringify(data, null, 2))
+
+          const video = data.video
+          if (!video) {
+            console.error("[FalViduReference] Unexpected response format:", data)
+            throw new Error("No video returned from Vidu Reference")
+          }
+
+          return {
+            videoUrl: video.url || video,
+            duration: request.duration || 4,
+            width: input.aspect_ratio === '16:9' ? 1920 : input.aspect_ratio === '9:16' ? 1080 : 1920,
+            height: input.aspect_ratio === '16:9' ? 1080 : input.aspect_ratio === '9:16' ? 1920 : 1080,
+            fps: 30,
+            metadata: {
+              ...data,
+              model: 'vidu-reference',
+            },
+          }
+        } catch (error: any) {
+          console.error("FalViduReferenceAdapter error:", error)
+          if (error.body) {
+            console.error("Error body:", JSON.stringify(error.body, null, 2))
+          }
+          throw new Error(`Vidu Reference call failed: ${error.message}`)
+        }
+      },
+      {
+        description: `Vidu Reference: ${request.referenceImageUrls.length} images - ${request.prompt.substring(0, 50)}...`
+      }
+    )
+  }
+}
+
+/**
  * Factory function to get adapters
  */
 export function getFalAdapters() {
@@ -342,7 +665,10 @@ export function getFalAdapters() {
     llm: new FalLLMAdapter(),
     t2i: new FalT2IAdapter(),
     t2v: new FalT2VAdapter(),
-    sora2: new FalSora2Adapter(), // New Sora 2 adapter
+    sora2: new FalSora2Adapter(),
+    viduQ1T2V: new FalViduQ1T2VAdapter(),
+    viduQ2I2V: new FalViduQ2I2VAdapter(),
+    viduReference: new FalViduReferenceAdapter(),
     tts: new FalTTSAdapter(),
   }
 }
