@@ -2,9 +2,9 @@
 
 **Project Name**: AI Video Studio
 **Target Market**: Global English-speaking content creators (TikTok/YouTube Shorts/Instagram Reels)
-**Document Version**: 3.7
-**Last Updated**: 2025-10-26
-**Status**: Phase 2.6 Day 1-3 完成（Sora 2 + AI Planner + Shotstack），等待测试
+**Document Version**: 3.8
+**Last Updated**: 2025-10-27
+**Status**: Phase 2.6 完成（Sora 2 + AI Planner + Shotstack + Vidu + Bug修复），准备测试与部署
 **Git Repo**: https://github.com/tianwen8/soravideos
 
 ---
@@ -2373,7 +2373,17 @@ export const T2V_MODELS: ModelOption[] = [
   - [x] 更新 models.ts 配置（3个Vidu模型）
   - [x] 实际时间：0.5天
 
-**Day 4: 测试和完善**
+**Day 3.6: Bug 修复** ✅ 已完成
+- [x] 修复 SSE 流管理问题（Controller is already closed）
+  - [x] 添加 isClosed 状态追踪
+  - [x] 优化 sendEvent 错误处理
+  - [x] 安全关闭 controller
+- [x] 修复 Shotstack API 端点错误（404 Not found）
+  - [x] 更新环境名称：sandbox → stage
+  - [x] 更新文档和默认配置
+- [x] 实际时间：0.5天
+
+**Day 4: 测试和完善** ⏳ 待开始
 - [ ] Task 4.29: 完整流程测试
   - [ ] 测试 Sora 2 T2V 生成
   - [ ] 测试配音质量（评估是否需要 TTS 覆盖）
