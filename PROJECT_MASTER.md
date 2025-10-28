@@ -2,9 +2,9 @@
 
 **Project Name**: AI Video Studio
 **Target Market**: Global English-speaking content creators (TikTok/YouTube Shorts/Instagram Reels)
-**Document Version**: 3.8
-**Last Updated**: 2025-10-27
-**Status**: Phase 2.6 完成（Sora 2 + AI Planner + Shotstack + Vidu + Bug修复），准备测试与部署
+**Document Version**: 3.9
+**Last Updated**: 2025-10-28
+**Status**: Phase 2.6 完成（Shotstack 验证通过），Phase 2.7 进行中（登录 + 支付配置）
 **Git Repo**: https://github.com/tianwen8/soravideos
 
 ---
@@ -2383,22 +2383,76 @@ export const T2V_MODELS: ModelOption[] = [
   - [x] 更新文档和默认配置
 - [x] 实际时间：0.5天
 
-**Day 4: 测试和完善** ⏳ 待开始
-- [ ] Task 4.29: 完整流程测试
-  - [ ] 测试 Sora 2 T2V 生成
-  - [ ] 测试配音质量（评估是否需要 TTS 覆盖）
-  - [ ] 测试 Shotstack 拼接
-  - [ ] 修复问题并推送
-  - [ ] 预计时间：0.5天
+**Day 4: Shotstack 视频合成验证** ✅ 已完成（2025-10-28）
+- [x] Task 4.29: Shotstack 集成测试
+  - [x] 创建视频合成测试页面（`/test-shotstack`）
+  - [x] 创建测试 API 端点（`/api/test/merge-videos`）
+  - [x] 修复 Shotstack API Key 配置问题（403 → 200）
+  - [x] 修复示例视频 URL 失效问题（404 → 使用官方示例）
+  - [x] **验证通过**：✅ Shotstack 视频合成功能正常工作
+  - [x] 测试结果：成功合成 2 个视频片段，支持转场效果
+  - [x] 实际时间：0.5天
 
-**预计总时间**: 3-3.5 天
+**Phase 2.6 总结**：
+- ✅ Sora 2 T2V 集成（支持 4/8/12s 时长）
+- ✅ AI Planner 导演级提示词优化
+- ✅ Shotstack 视频拼接集成并验证通过
+- ✅ Vidu 多模型支持（Q1/Q2/Reference）
+- ✅ AI Cache 系统（开发环境成本节约）
+- ✅ Bug 修复（SSE + Shotstack API）
+- **实际总时间**: 4 天
 
 ---
 
-**Phase 2.7+: 后续扩展** (按需优化)
+**Phase 2.7: MVP 全站跑通** ⏳ 进行中（优先级 ⭐⭐⭐）
+
+**目标**: 跑通完整 SaaS 商业闭环（登录 → 生成视频 → 扣费 → 充值）
+
+**Day 1: 用户登录系统** ⏳ 待开始
+- [ ] Task 4.30: Google OAuth 配置
+  - [ ] 申请 Google OAuth 客户端凭证
+  - [ ] 配置 `.env.local` 认证参数
+  - [ ] 测试 Google One Tap 登录
+  - [ ] 验证新用户自动获得 50 credits
+  - [ ] 预计时间：0.3天
+
+**Day 2: 支付系统集成** ⏳ 待开始
+- [ ] Task 4.31: Creem 支付配置
+  - [ ] 申请 Creem 测试环境账号
+  - [ ] 创建测试产品和定价（100/500/1000 credits）
+  - [ ] 配置 `.env.local` 支付参数
+  - [ ] 创建购买页面 UI
+  - [ ] 测试支付流程（测试环境）
+  - [ ] 验证 Webhook 回调和 credits 到账
+  - [ ] 预计时间：0.5天
+
+**Day 3: 端到端测试** ⏳ 待开始
+- [ ] Task 4.32: 完整用户旅程测试
+  - [ ] 测试：注册登录 → 获得 50 credits
+  - [ ] 测试：生成 8 秒视频 → 扣除 credits
+  - [ ] 测试：credits 不足 → 跳转支付页面
+  - [ ] 测试：完成支付 → credits 到账
+  - [ ] 测试：下载历史视频
+  - [ ] 修复发现的问题
+  - [ ] 预计时间：0.5天
+
+**Day 4: 生产环境部署准备** ⏳ 待开始
+- [ ] Task 4.33: 生产环境配置
+  - [ ] 配置生产环境变量（Vercel/Railway）
+  - [ ] 测试 Shotstack 生产环境 API
+  - [ ] 配置 Creem 生产环境
+  - [ ] 设置域名和 SSL
+  - [ ] 预计时间：0.5天
+
+**Phase 2.7 预计总时间**: 2 天
+
+---
+
+**Phase 2.8+: 后续优化** (按优先级)
+- [ ] 节点结果预览（UX 优化，优先级 ⭐⭐⭐）
+- [ ] 文件持久化到 Supabase Storage（优先级 ⭐⭐）
 - [ ] Vidu Reference 集成（需要参考图上传 UI）
-- [ ] 节点结果预览（已有计划）
-- [ ] 文件持久化到 Supabase Storage
+- [ ] 视频时长控制测试（MiniMax/LTX）
 - [ ] 数字人模型集成（Phase 3）
 - [ ] 用户声音克隆（Phase 3）
 
