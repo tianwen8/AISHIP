@@ -2,9 +2,9 @@
 
 **Project Name**: AI Video Studio
 **Target Market**: Global English-speaking content creators (TikTok/YouTube Shorts/Instagram Reels)
-**Document Version**: 3.9
+**Document Version**: 4.0
 **Last Updated**: 2025-10-28
-**Status**: Phase 2.6 完成（Shotstack 验证通过），Phase 2.7 进行中（登录 + 支付配置）
+**Status**: Phase 2.7 智能导演系统开发中，目标 MVP 上线
 **Git Repo**: https://github.com/tianwen8/soravideos
 
 ---
@@ -52,26 +52,39 @@
 ### 0.1 产品定位与核心价值
 
 #### 产品定位
-> **快速生产生产力视频的 AI 导演系统**
+> **AI 智能导演系统 - 从需求到成品视频的一键解决方案**
 >
-> 用户只需输入需求，AI 自动生成可直接发布的专业视频
+> 用户只需输入需求 + 可选参考图，AI 自动完成：
+> - ✅ 智能选择最佳模型组合（Veo 3.1, Sora 2, Vidu, Wan, Seedance）
+> - ✅ 生成精确到每一秒的导演级分镜脚本
+> - ✅ 自动处理多段视频连贯性（主角一致性 + 景别切换）
+> - ✅ 自动配音/旁白同步
+> - ✅ 自动拼接 + 转场 → 成品视频
 >
-> **短期目标**: 8-60秒短视频、广告、解说
+> **MVP 目标**: 10-30秒专业视频（2-3段拼接，画面/声音主导双场景）
+> **应用场景**: 产品广告、新闻口播、解说视频、社媒短视频
 > **长期目标**: 3-5分钟长视频、数字人、用户声音克隆
 
 #### 与竞品的核心区别
 
-| 竞品 | 定位 | 我们的不同 |
-|------|------|------------|
-| **Runway, Pika** | 单模型视频生成工具 | ✅ 我们是完整视频制作解决方案（分镜+配音+剪辑） |
-| **ComfyUI, Dify** | 工作流编排平台 | ✅ 我们的工作流是**智能自动生成**，不是让用户手动拖拽 |
-| **Synthesia** | AI 虚拟人视频工具 | ✅ 我们支持真实场景视频，更适合内容创作 |
-| **剪映, CapCut** | 视频编辑工具 | ✅ 我们是 AI 自动生成，不需要用户懂剪辑 |
+| 竞品 | 用户工作流 | 我们的差异化 |
+|------|-----------|-------------|
+| **Runway, Pika, Sora官网** | 用户写提示词 → 生成8秒视频 → **用户自己用剪映拼接** | ✅ 我们**一键生成22秒成品**（自动分镜+拼接+转场） |
+| **ComfyUI, Dify** | 用户手动拖拽节点 → 配置参数 → 执行 | ✅ 我们**AI 自动生成工作流**（用户只需输入需求） |
+| **Synthesia, HeyGen** | 数字人模板 → 输入文本 → 生成 | ✅ 我们支持**真实场景视频**（产品/风景/人物） |
+| **剪映, CapCut** | 用户手动剪辑 → 添加转场 → 配音 | ✅ 我们**AI 全自动**（不需要剪辑技能） |
+
+**核心价值主张**：
+> **用户要22秒产品广告视频：**
+> - ❌ **竞品**: 去 Sora 官网生成2段 → 下载 → 打开剪映 → 拼接 → 加转场 → 导出（15分钟）
+> - ✅ **我们**: 输入"Product showcase" + 上传产品图 → 点击生成 → 2分钟后下载成品（2分钟）
+>
+> **差异化**: 不是工具，是**智能导演系统** - 自动决策、自动执行、自动优化
 
 **关键认知**：
-- ❌ 我们**不是** ComfyUI 式的工作流编辑器
-- ✅ 我们**是** Runway + 智能导演 + 自动剪辑的结合体
-- 🎯 **用户期望**：10秒输入 → 1分钟等待 → 得到可直接发布的专业视频
+- ❌ 我们**不是** 8秒视频生成工具（用户可以直接去官网）
+- ✅ 我们**是** 10-30秒成品视频生成系统（自动多段拼接 + 连贯性处理）
+- 🎯 **用户期望**：30秒输入需求 → 2分钟等待 → 得到可直接发布的专业成品视频
 
 ---
 
@@ -2404,47 +2417,210 @@ export const T2V_MODELS: ModelOption[] = [
 
 ---
 
-**Phase 2.7: MVP 全站跑通** ⏳ 进行中（优先级 ⭐⭐⭐）
+**Phase 2.7: 智能导演系统（核心差异化功能）** ⏳ 进行中（优先级 ⭐⭐⭐）
 
-**目标**: 跑通完整 SaaS 商业闭环（登录 → 生成视频 → 扣费 → 充值）
+**目标**: 实现 10-30秒 成品视频生成（2-3段拼接 + 自动连贯性处理）
 
-**Day 1: 用户登录系统** ⏳ 待开始
-- [ ] Task 4.30: Google OAuth 配置
-  - [ ] 申请 Google OAuth 客户端凭证
-  - [ ] 配置 `.env.local` 认证参数
-  - [ ] 测试 Google One Tap 登录
-  - [ ] 验证新用户自动获得 50 credits
+**设计原则**：
+1. ✅ **用户参考图 + 景别切换** = 连贯性（不需要帧提取）
+2. ✅ **精确到每一秒的分镜脚本** = 质量保证
+3. ✅ **智能模型选择** = 成本优化 + 效果最佳
+4. ✅ **添加新模型超简单**（3步：扩展接口 → 创建Adapter → 注册配置）
+
+---
+
+### Day 1: 模型生态完整集成（0.5-1天）⏳ 进行中
+
+**目标**: 集成所有主流模型，验证添加模型的简易性
+
+- [ ] **Task 4.30: 扩展 T2VRequest 接口**
+  - [ ] 添加 Veo 3.1 参数（firstFrameUrl, lastFrameUrl）
+  - [ ] 添加 Wan 2.5 参数（audioUrl）
+  - [ ] 添加 Seedance 参数（cameraFixed）
+  - [ ] 统一 resolution/aspectRatio 参数
+  - [ ] 预计时间：0.1天
+
+- [ ] **Task 4.31: Veo 3.1 全系列集成**（7个模型）
+  - [ ] `FalVeo31T2VAdapter` - Text-to-Video
+  - [ ] `FalVeo31I2VAdapter` - Image-to-Video
+  - [ ] `FalVeo31ReferenceAdapter` - Reference-to-Video
+  - [ ] `FalVeo31FirstLastFrameAdapter` ⭐ - 首尾帧控制
+  - [ ] `FalVeo31FastT2VAdapter` - Fast T2V
+  - [ ] `FalVeo31FastI2VAdapter` - Fast I2V
+  - [ ] `FalVeo31FastFirstLastFrameAdapter` ⭐ - Fast 首尾帧
   - [ ] 预计时间：0.3天
 
-**Day 2: 支付系统集成** ⏳ 待开始
-- [ ] Task 4.31: Creem 支付配置
-  - [ ] 申请 Creem 测试环境账号
-  - [ ] 创建测试产品和定价（100/500/1000 credits）
-  - [ ] 配置 `.env.local` 支付参数
-  - [ ] 创建购买页面 UI
-  - [ ] 测试支付流程（测试环境）
-  - [ ] 验证 Webhook 回调和 credits 到账
-  - [ ] 预计时间：0.5天
+- [ ] **Task 4.32: Sora 2 完整集成**（5个模型）
+  - [ ] `FalSora2I2VAdapter` - Image-to-Video (支持首帧)
+  - [ ] `FalSora2I2VProAdapter` - Image-to-Video Pro
+  - [ ] `FalSora2RemixAdapter` - Video-to-Video Remix
+  - [ ] 已有：Sora 2 T2V, Sora 2 T2V Pro
+  - [ ] 预计时间：0.2天
 
-**Day 3: 端到端测试** ⏳ 待开始
-- [ ] Task 4.32: 完整用户旅程测试
-  - [ ] 测试：注册登录 → 获得 50 credits
-  - [ ] 测试：生成 8 秒视频 → 扣除 credits
-  - [ ] 测试：credits 不足 → 跳转支付页面
-  - [ ] 测试：完成支付 → credits 到账
-  - [ ] 测试：下载历史视频
-  - [ ] 修复发现的问题
-  - [ ] 预计时间：0.5天
+- [ ] **Task 4.33: Wan + Seedance 集成**（3个模型）
+  - [ ] `FalWan25Adapter` - I2V with Audio (5/10s)
+  - [ ] `FalSeedanceT2VAdapter` - T2V (2-12s 精确时长)
+  - [ ] `FalSeedanceI2VAdapter` - I2V (2-12s 精确时长)
+  - [ ] 预计时间：0.2天
 
-**Day 4: 生产环境部署准备** ⏳ 待开始
-- [ ] Task 4.33: 生产环境配置
-  - [ ] 配置生产环境变量（Vercel/Railway）
-  - [ ] 测试 Shotstack 生产环境 API
-  - [ ] 配置 Creem 生产环境
-  - [ ] 设置域名和 SSL
-  - [ ] 预计时间：0.5天
+- [ ] **Task 4.34: 更新 models.ts 配置**
+  - [ ] 添加所有新模型（15+）到配置
+  - [ ] 定义 capabilities（inputType, audioGeneration, 首尾帧支持）
+  - [ ] 设置合理的 credits 定价
+  - [ ] 预计时间：0.1天
 
-**Phase 2.7 预计总时间**: 2 天
+**验收标准**：
+- ✅ 支持 20+ 视频生成模型
+- ✅ 添加新模型只需 3 步（<30 分钟）
+- ✅ 所有 Adapter 通过单元测试
+
+---
+
+### Day 2: AI Planner 导演级升级（1天）
+
+**目标**: 生成精确到每一秒的分镜脚本 + 智能模型选择
+
+- [ ] **Task 4.35: 提示词模板重大升级**
+  - [ ] 添加"精确到每一秒"的时间轴描述要求
+  - [ ] 添加"主角一致性"逻辑（第2+段使用 "SAME [主角]"）
+  - [ ] 添加"景别切换"策略（medium → close-up → wide）
+  - [ ] 添加"运镜控制"描述（zoom-in, pan, tracking, static）
+  - [ ] 预计时间：0.3天
+
+- [ ] **Task 4.36: 智能模型选择决策树**
+  ```typescript
+  // 决策逻辑示例
+  if (userReferenceImage && multipleSegments) {
+    // 有参考图 + 多段 → 优先 Vidu Reference 或使用参考图作首帧
+    return 'fal-ai/vidu/reference-to-video'
+  } else if (hasDialogue) {
+    // 对话场景 → Sora 2（唇音同步最佳）
+    return 'fal-ai/sora-2/text-to-video/pro'
+  } else if (segmentIndex > 0 && needsPerfectContinuity) {
+    // 第2+段且需要完美连贯 → Veo 3.1 首尾帧
+    return 'fal-ai/veo3.1/fast/first-last-frame-to-video'
+  } else {
+    // 默认：性价比优先
+    return 'fal-ai/seedance/v1/pro/fast/text-to-video'
+  }
+  ```
+  - [ ] 实现完整决策树
+  - [ ] 添加成本优化逻辑
+  - [ ] 预计时间：0.3天
+
+- [ ] **Task 4.37: 输出格式增强**
+  ```typescript
+  interface EnhancedWorkflowPlan {
+    segments: Array<{
+      id: string
+      duration: number
+      shotType: 'close-up' | 'medium' | 'wide'
+      cameraMovement: 'static' | 'zoom-in' | 'pan' | 'tracking'
+      timeline: Array<{
+        startTime: number
+        endTime: number
+        description: string  // 该秒的详细描述
+      }>
+      selectedModel: string
+      modelReason: string  // 为什么选这个模型
+      prompt: string  // 整合了时间轴的超详细提示词
+    }>
+  }
+  ```
+  - [ ] 实现新的输出格式
+  - [ ] 预计时间：0.2天
+
+- [ ] **Task 4.38: 测试 AI Planner 输出质量**
+  - [ ] 测试用例1：产品广告（22秒，2段）
+  - [ ] 测试用例2：人物口播（20秒，2段，有参考图）
+  - [ ] 测试用例3：风景视频（30秒，3段）
+  - [ ] 预计时间：0.2天
+
+---
+
+### Day 3: WorkflowBuilder 智能编排（0.5天）
+
+**目标**: 根据 AI Planner 决策自动构建工作流
+
+- [ ] **Task 4.39: 支持用户参考图传递**
+  - [ ] 第1段：使用 userReferenceImage 作为 imageUrl
+  - [ ] 第2+段：
+    - 如果模型支持首帧 → imageUrl = userReferenceImage
+    - 如果模型是 Vidu Reference → referenceImageUrls = [userReferenceImage]
+  - [ ] 预计时间：0.2天
+
+- [ ] **Task 4.40: 景别切换逻辑**
+  - [ ] 根据 shotType 生成不同提示词前缀
+  - [ ] medium → close-up 切换时自动添加连贯性描述
+  - [ ] 预计时间：0.1天
+
+- [ ] **Task 4.41: 前端时长选项调整**
+  - [ ] 移除 15s/30s/60s（暂时）
+  - [ ] 改为：10s / 20s / 30s（对应 1段/2段/3段）
+  - [ ] 预计时间：0.1天
+
+- [ ] **Task 4.42: 更新 WorkflowBuilder**
+  - [ ] 支持动态段数（1-3段）
+  - [ ] 自动分配时长（10s → 1段10s, 20s → 2段10s, 30s → 3段10s）
+  - [ ] 预计时间：0.1天
+
+---
+
+### Day 4: 端到端测试（0.5天）
+
+**目标**: 验证 10-30秒 视频生成完整流程
+
+- [ ] **Task 4.43: 核心场景测试**
+  - [ ] **场景1**: 产品广告（20秒，无参考图）
+    - 输入："A luxury watch showcase"
+    - 预期：2段视频（10s medium + 10s close-up），自动景别切换
+  - [ ] **场景2**: 人物介绍（20秒，有参考图）
+    - 输入：上传人物照片 + "Introduce our new product"
+    - 预期：2段视频，主角外观一致
+  - [ ] **场景3**: 风景视频（30秒，无参考图）
+    - 输入："Beautiful mountain landscape at sunrise"
+    - 预期：3段视频，自然过渡
+  - [ ] 预计时间：0.3天
+
+- [ ] **Task 4.44: 连贯性验证**
+  - [ ] 主角外观一致性检查
+  - [ ] 景别切换自然度评估
+  - [ ] Shotstack 转场效果验证
+  - [ ] 预计时间：0.1天
+
+- [ ] **Task 4.45: 修复发现的问题**
+  - [ ] Bug 修复
+  - [ ] 提示词优化
+  - [ ] 预计时间：0.1天
+
+**Phase 2.7 预计总时间**: 2.5-3 天
+
+---
+
+**Phase 2.8: 登录 + 支付 + MVP 上线**（1-1.5天）
+
+**目标**: 快速配置登录和支付，准备上线
+
+- [ ] **Task 4.46: Google OAuth 配置**（0.3天）
+  - [ ] 申请凭证 → 配置 `.env.local` → 测试登录 → 验证 50 credits
+
+- [ ] **Task 4.47: Creem 支付集成**（0.5天）
+  - [ ] 申请账号 → 创建产品 → 配置 Webhook → 测试支付
+
+- [ ] **Task 4.48: 端到端测试**（0.3天）
+  - [ ] 登录 → 生成20秒视频 → 扣费 → 充值 → 下载
+
+- [ ] **Task 4.49: 生产环境部署**（0.5天）
+  - [ ] Vercel 部署 → 域名配置 → SSL 证书 → 上线
+
+**Phase 2.8 预计总时间**: 1.5 天
+
+---
+
+**MVP 上线时间表**：
+- Phase 2.7（智能导演）：3 天
+- Phase 2.8（登录+支付）：1.5 天
+- **总计**: 4.5 天
 
 ---
 
