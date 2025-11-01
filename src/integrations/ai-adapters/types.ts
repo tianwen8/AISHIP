@@ -58,21 +58,44 @@ export interface IT2IAdapter {
 
 export interface T2VRequest {
   model: string
+
+  // Input sources
   imageUrl?: string // For I2V (image-to-video), optional for direct T2V
+  videoUrl?: string // For V2V (video-to-video), Sora 2 Remix
+  referenceImageUrls?: string[] // Vidu Reference multi-image input (up to 7 images)
+
+  // Prompts
   prompt: string
-  duration: number // in seconds
+  negativePrompt?: string // Wan 2.5, Seedance
+
+  // Video parameters
+  duration: number // in seconds (2-12s depending on model)
   width?: number
   height?: number
   fps?: number
   seed?: number
-  aspectRatio?: string // For models like Sora 2 and Vidu that use aspect ratio instead of width/height
+  aspectRatio?: string // "16:9", "9:16", "1:1", "4:3", "21:9", "auto"
+  resolution?: '360p' | '480p' | '520p' | '720p' | '1080p' | 'auto' // Unified resolution
+
+  // Veo 3.1 First/Last Frame parameters
+  firstFrameUrl?: string // Veo 3.1 first frame control
+  lastFrameUrl?: string // Veo 3.1 last frame control
+  generateAudio?: boolean // Veo 3.1 audio generation toggle (default: true)
 
   // Vidu-specific parameters
   movementAmplitude?: 'auto' | 'small' | 'medium' | 'large' // Vidu motion control
-  resolution?: '360p' | '520p' | '720p' | '1080p' // Vidu Q2 I2V resolution
   bgm?: boolean // Vidu Q2 I2V background music (4s videos only)
   style?: 'general' | 'anime' // Vidu Q1 T2V style
-  referenceImageUrls?: string[] // Vidu Reference multi-image input
+
+  // Wan 2.5 parameters
+  audioUrl?: string // Wan 2.5 background music support (WAV/MP3, 3-30s, up to 15MB)
+  enablePromptExpansion?: boolean // Wan 2.5 LLM-based prompt rewriting (default: true)
+
+  // Seedance parameters
+  cameraFixed?: boolean // Seedance camera position fixed (default: false)
+
+  // Safety
+  enableSafetyChecker?: boolean // Content filtering (default: true for most models)
 }
 
 export interface T2VResponse {

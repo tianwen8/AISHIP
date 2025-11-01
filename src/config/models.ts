@@ -102,22 +102,107 @@ export const I2V_MODELS: ModelOption[] = [
       }
     }
   },
+  // ============ Sora 2 Models (5 variants) ============
   {
     id: "fal-ai/sora-2/text-to-video",
-    name: "Sora 2",
+    name: "Sora 2 T2V",
     provider: "OpenAI (via Fal.ai)",
     quality: "Premium Quality",
     speed: "Medium (30-50s)",
-    credits: 3.0, // $0.30/second * 10 = 3.0 credits/second (assuming 10s average)
+    credits: 3.0, // $0.30/second * 10 = 3.0 credits/second
     recommended: true,
     description: "Direct T2V with built-in dialogue and lip sync, 4-12 seconds",
     capabilities: {
-      inputType: 'text',  // Only supports T2V (not I2V)
+      inputType: 'text',
       audioGeneration: {
         enabled: true,
         types: ['voiceover', 'sound-effects'],
-        controllable: true,  // Controllable via prompt
-        separateTrack: false // Audio embedded in video
+        controllable: true,
+        separateTrack: false
+      },
+      outputs: {
+        video: { format: 'mp4', hasAudio: true }
+      }
+    }
+  },
+  {
+    id: "fal-ai/sora-2/text-to-video/pro",
+    name: "Sora 2 T2V Pro",
+    provider: "OpenAI (via Fal.ai)",
+    quality: "Premium Quality",
+    speed: "Medium (30-50s)",
+    credits: 4.0, // Higher quality, higher cost
+    description: "Premium T2V with enhanced quality, 4-12 seconds",
+    capabilities: {
+      inputType: 'text',
+      audioGeneration: {
+        enabled: true,
+        types: ['voiceover', 'sound-effects'],
+        controllable: true,
+        separateTrack: false
+      },
+      outputs: {
+        video: { format: 'mp4', hasAudio: true }
+      }
+    }
+  },
+  {
+    id: "fal-ai/sora-2/image-to-video",
+    name: "Sora 2 I2V",
+    provider: "OpenAI (via Fal.ai)",
+    quality: "Premium Quality",
+    speed: "Medium (30-50s)",
+    credits: 3.5, // I2V typically costs more
+    description: "Image-to-video with first frame control, 4-12 seconds",
+    capabilities: {
+      inputType: 'image',
+      audioGeneration: {
+        enabled: true,
+        types: ['voiceover', 'sound-effects'],
+        controllable: true,
+        separateTrack: false
+      },
+      outputs: {
+        video: { format: 'mp4', hasAudio: true }
+      }
+    }
+  },
+  {
+    id: "fal-ai/sora-2/image-to-video/pro",
+    name: "Sora 2 I2V Pro",
+    provider: "OpenAI (via Fal.ai)",
+    quality: "Premium Quality",
+    speed: "Medium (30-50s)",
+    credits: 4.5,
+    description: "Premium I2V with enhanced quality, 4-12 seconds",
+    capabilities: {
+      inputType: 'image',
+      audioGeneration: {
+        enabled: true,
+        types: ['voiceover', 'sound-effects'],
+        controllable: true,
+        separateTrack: false
+      },
+      outputs: {
+        video: { format: 'mp4', hasAudio: true }
+      }
+    }
+  },
+  {
+    id: "fal-ai/sora-2/video-to-video/remix",
+    name: "Sora 2 Remix",
+    provider: "OpenAI (via Fal.ai)",
+    quality: "Premium Quality",
+    speed: "Medium (30-50s)",
+    credits: 3.5,
+    description: "Video-to-video transformation, 4-12 seconds",
+    capabilities: {
+      inputType: 'both', // Takes video input
+      audioGeneration: {
+        enabled: true,
+        types: ['voiceover', 'sound-effects'],
+        controllable: true,
+        separateTrack: false
       },
       outputs: {
         video: { format: 'mp4', hasAudio: true }
@@ -179,6 +264,219 @@ export const I2V_MODELS: ModelOption[] = [
       }
     }
   },
+
+  // ============ Veo 3.1 Models (7 variants) ============
+  {
+    id: "fal-ai/veo-3-1",
+    name: "Veo 3.1 T2V",
+    provider: "Google (via Fal.ai)",
+    quality: "Premium Quality",
+    speed: "Medium (30-50s)",
+    credits: 3.2, // $0.40/second * 8s = $3.20
+    recommended: true,
+    description: "Google's premium T2V model, 8s fixed duration, 720p/1080p, with audio",
+    capabilities: {
+      inputType: 'text',
+      audioGeneration: {
+        enabled: true,
+        types: ['sound-effects', 'music'],
+        controllable: true,
+        separateTrack: false
+      },
+      outputs: {
+        video: { format: 'mp4', hasAudio: true }
+      }
+    }
+  },
+  {
+    id: "fal-ai/veo-3-1/image-to-video",
+    name: "Veo 3.1 I2V",
+    provider: "Google (via Fal.ai)",
+    quality: "Premium Quality",
+    speed: "Medium (30-50s)",
+    credits: 3.2,
+    description: "Veo 3.1 I2V with first frame control, 8s duration",
+    capabilities: {
+      inputType: 'image',
+      audioGeneration: {
+        enabled: true,
+        types: ['sound-effects', 'music'],
+        controllable: true,
+        separateTrack: false
+      },
+      outputs: {
+        video: { format: 'mp4', hasAudio: true }
+      }
+    }
+  },
+  {
+    id: "fal-ai/veo-3-1/reference-to-video",
+    name: "Veo 3.1 Reference",
+    provider: "Google (via Fal.ai)",
+    quality: "Premium Quality",
+    speed: "Medium (30-50s)",
+    credits: 3.2,
+    description: "Multi-image reference for character consistency",
+    capabilities: {
+      inputType: 'image',
+      audioGeneration: {
+        enabled: true,
+        types: ['sound-effects', 'music'],
+        controllable: true,
+        separateTrack: false
+      },
+      outputs: {
+        video: { format: 'mp4', hasAudio: true }
+      }
+    }
+  },
+  {
+    id: "fal-ai/veo-3-1/first-last-frame-to-video",
+    name: "Veo 3.1 First/Last Frame",
+    provider: "Google (via Fal.ai)",
+    quality: "Premium Quality",
+    speed: "Medium (30-50s)",
+    credits: 3.2,
+    recommended: true,
+    description: "THE SOLUTION for perfect video continuity - control both first AND last frame",
+    capabilities: {
+      inputType: 'image',
+      audioGeneration: {
+        enabled: true,
+        types: ['sound-effects', 'music'],
+        controllable: true,
+        separateTrack: false
+      },
+      outputs: {
+        video: { format: 'mp4', hasAudio: true }
+      }
+    }
+  },
+  {
+    id: "fal-ai/veo-3-1/fast",
+    name: "Veo 3.1 Fast T2V",
+    provider: "Google (via Fal.ai)",
+    quality: "High Quality",
+    speed: "Fast (15-30s)",
+    credits: 1.2, // $0.15/second * 8s = $1.20 (62.5% cheaper!)
+    description: "Fast version, 62.5% cheaper than standard",
+    capabilities: {
+      inputType: 'text',
+      audioGeneration: {
+        enabled: true,
+        types: ['sound-effects', 'music'],
+        controllable: true,
+        separateTrack: false
+      },
+      outputs: {
+        video: { format: 'mp4', hasAudio: true }
+      }
+    }
+  },
+  {
+    id: "fal-ai/veo-3-1/fast/image-to-video",
+    name: "Veo 3.1 Fast I2V",
+    provider: "Google (via Fal.ai)",
+    quality: "High Quality",
+    speed: "Fast (15-30s)",
+    credits: 1.2,
+    description: "Fast I2V, 62.5% cheaper than standard",
+    capabilities: {
+      inputType: 'image',
+      audioGeneration: {
+        enabled: true,
+        types: ['sound-effects', 'music'],
+        controllable: true,
+        separateTrack: false
+      },
+      outputs: {
+        video: { format: 'mp4', hasAudio: true }
+      }
+    }
+  },
+  {
+    id: "fal-ai/veo-3-1/fast/first-last-frame-to-video",
+    name: "Veo 3.1 Fast First/Last Frame",
+    provider: "Google (via Fal.ai)",
+    quality: "High Quality",
+    speed: "Fast (15-30s)",
+    credits: 1.2,
+    description: "Fast first/last frame control, 62.5% cheaper",
+    capabilities: {
+      inputType: 'image',
+      audioGeneration: {
+        enabled: true,
+        types: ['sound-effects', 'music'],
+        controllable: true,
+        separateTrack: false
+      },
+      outputs: {
+        video: { format: 'mp4', hasAudio: true }
+      }
+    }
+  },
+
+  // ============ Wan 2.5 Model ============
+  {
+    id: "fal-ai/wan-25-preview/image-to-video",
+    name: "Wan 2.5",
+    provider: "Alibaba (via Fal.ai)",
+    quality: "High Quality",
+    speed: "Fast (20-30s)",
+    credits: 0.75, // $0.15/second * 5s average
+    description: "Best open-source I2V with audio support, 5-10s duration",
+    capabilities: {
+      inputType: 'image',
+      audioGeneration: {
+        enabled: true, // Optional background music
+        types: ['music'],
+        controllable: false,
+        separateTrack: false
+      },
+      outputs: {
+        video: { format: 'mp4', hasAudio: true }
+      }
+    }
+  },
+
+  // ============ Seedance Models (2 variants) ============
+  {
+    id: "fal-ai/seedance/text-to-video",
+    name: "Seedance T2V",
+    provider: "ByteDance (via Fal.ai)",
+    quality: "Good Quality",
+    speed: "Very Fast (10-20s)",
+    credits: 0.25, // Ultra-cheap! ~$0.05/second * 5s
+    description: "Ultra-cheap T2V with 2-12s precise duration control",
+    capabilities: {
+      inputType: 'text',
+      audioGeneration: {
+        enabled: false
+      },
+      outputs: {
+        video: { format: 'mp4', hasAudio: false }
+      }
+    }
+  },
+  {
+    id: "fal-ai/seedance/image-to-video",
+    name: "Seedance I2V",
+    provider: "ByteDance (via Fal.ai)",
+    quality: "Good Quality",
+    speed: "Very Fast (10-20s)",
+    credits: 0.25,
+    description: "Ultra-cheap I2V with 2-12s precise duration control",
+    capabilities: {
+      inputType: 'image',
+      audioGeneration: {
+        enabled: false
+      },
+      outputs: {
+        video: { format: 'mp4', hasAudio: false }
+      }
+    }
+  },
+
   {
     id: "fal-ai/minimax-video",
     name: "MiniMax Video",
