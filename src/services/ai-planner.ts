@@ -19,12 +19,20 @@ export interface UserInput {
   style?: string // "photorealistic", "anime", "cartoon", etc.
 }
 
+export interface Shot {
+  second: number // Which second this shot represents (0-based)
+  shotType: string // "ECU" (extreme close-up), "CU" (close-up), "MS" (medium shot), "WS" (wide shot), "EWS" (extreme wide shot)
+  action: string // What's happening in this specific second
+  cameraMove?: string // "push in", "pull out", "pan left/right", "tilt up/down", "static"
+}
+
 export interface Scene {
   id: string
   duration: number
-  description: string // Detailed cinematic prompt for video generation
-  cameraAngle?: string // "close-up", "mid-shot", "wide", "aerial", etc.
-  movement?: string // "static", "dolly-in", "pan-left", "tracking", etc.
+  description: string // Overall scene description for video generation
+  shots?: Shot[] // Second-by-second shot breakdown (optional, for advanced planning)
+  cameraAngle?: string // Overall camera angle for the scene
+  movement?: string // Overall camera movement for the scene
   audio?: string // Sound effects, ambience, music cues
   dialogue?: string | null // Character dialogue if applicable
   stylePreset?: string
@@ -67,8 +75,15 @@ export class AIPlanner {
    */
   async generateWorkflow(input: UserInput): Promise<WorkflowPlan> {
     try {
+      // Step 0: Auto-detect aspect ratio if needed
+      const detectedAspectRatio = this.detectAspectRatio(input)
+      const finalInput = {
+        ...input,
+        aspectRatio: detectedAspectRatio
+      }
+
       // Step 1: Use LLM to analyze and create structured plan
-      const plannerPrompt = this.buildPlannerPrompt(input)
+      const plannerPrompt = this.buildPlannerPrompt(finalInput)
 
       // Use DeepSeek for LLM (not Fal.ai)
       const llmResponse = await this.deepseekLLM.call({
@@ -88,13 +103,14 @@ export class AIPlanner {
           id: `scene_${index + 1}`,
           duration: scene.duration,
           description: scene.description,
+          shots: scene.shots || undefined, // Second-by-second shot breakdown (optional)
           cameraAngle: scene.cameraAngle || "mid-shot",
-          movement: scene.movement || "dolly-in", // Default to dolly-in for more dynamic videos
+          movement: scene.movement || "push in", // Default to "push in" for more dynamic videos
           audio: scene.audio || undefined,
           dialogue: scene.dialogue || null,
           stylePreset: input.style || "photorealistic",
         })),
-        aspectRatio: input.aspectRatio,
+        aspectRatio: detectedAspectRatio,
         recommendedModels: {
           llm: DEFAULT_MODELS.llm,
           t2i: this.selectBestT2IModel(input),
@@ -131,6 +147,10 @@ export class AIPlanner {
           t2i: workflow.recommendedModels.t2i,
           i2v: workflow.recommendedModels.t2v,
           tts: workflow.recommendedModels.tts
+        },
+        {
+          aspectRatio: detectedAspectRatio,
+          referenceImage: finalInput.referenceImage
         }
       )
 
@@ -139,6 +159,73 @@ export class AIPlanner {
       console.error("AI Planner error:", error)
       throw new Error(`Failed to generate workflow: ${error.message}`)
     }
+  }
+
+  /**
+   * Auto-detect aspect ratio based on user prompt keywords
+   * TikTok/抖音/Reels/Stories → 9:16 (vertical)
+   * YouTube/横屏/landscape → 16:9 (horizontal)
+   * Instagram/正方形 → 1:1 (square)
+   */
+  private detectAspectRatio(input: UserInput): string {
+    const prompt = input.prompt.toLowerCase()
+
+    // Vertical video keywords (9:16)
+    const verticalKeywords = [
+      'tiktok', 'tik tok', '抖音', '快手', 'kuaishou',
+      'reels', 'instagram reels', 'ig reels',
+      'stories', 'instagram stories', 'ig stories',
+      'shorts', 'youtube shorts',
+      '竖屏', '竖版', 'vertical', 'portrait'
+    ]
+
+    // Horizontal video keywords (16:9)
+    const horizontalKeywords = [
+      'youtube', 'bilibili', 'b站',
+      '横屏', '横版', 'landscape', 'horizontal',
+      'vlog', '教程', 'tutorial', 'review', '评测'
+    ]
+
+    // Square video keywords (1:1)
+    const squareKeywords = [
+      'instagram post', 'ig post',
+      '正方形', 'square',
+      'facebook post'
+    ]
+
+    // Check vertical keywords first (highest priority for mobile-first content)
+    for (const keyword of verticalKeywords) {
+      if (prompt.includes(keyword)) {
+        console.log(`[AI Planner] Detected vertical video from keyword: "${keyword}"`)
+        return '9:16'
+      }
+    }
+
+    // Check square keywords
+    for (const keyword of squareKeywords) {
+      if (prompt.includes(keyword)) {
+        console.log(`[AI Planner] Detected square video from keyword: "${keyword}"`)
+        return '1:1'
+      }
+    }
+
+    // Check horizontal keywords
+    for (const keyword of horizontalKeywords) {
+      if (prompt.includes(keyword)) {
+        console.log(`[AI Planner] Detected horizontal video from keyword: "${keyword}"`)
+        return '16:9'
+      }
+    }
+
+    // If user provided aspect ratio, use it
+    if (input.aspectRatio && ['9:16', '16:9', '1:1'].includes(input.aspectRatio)) {
+      console.log(`[AI Planner] Using user-provided aspect ratio: ${input.aspectRatio}`)
+      return input.aspectRatio
+    }
+
+    // Default to vertical (9:16) for social media era
+    console.log('[AI Planner] No keywords detected, defaulting to vertical 9:16')
+    return '9:16'
   }
 
   /**
@@ -176,22 +263,34 @@ export class AIPlanner {
    - Color palette and mood
    - Environmental details (background, atmosphere, weather)
 
-3. **Camera Movement** (use professional terminology):
-   - Static: Fixed camera, no movement
-   - Dolly-in / Dolly-out: Smooth forward/backward movement
-   - Pan (left/right): Horizontal camera rotation
-   - Tilt (up/down): Vertical camera rotation
-   - Zoom-in / Zoom-out: Lens focal length change
-   - Tracking/Following: Camera follows subject
-   - Crane/Jib: Vertical movement with sweeping motion
-   - Handheld: Natural shake for documentary feel
+3. **Shot Type Progression** (景别切换 - CRITICAL for visual flow):
+   - Use professional shot types: ECU (extreme close-up), CU (close-up), MS (medium shot), WS (wide shot), EWS (extreme wide shot)
+   - **Scene 1**: Start with WS or MS to establish context
+   - **Scene 2**: Transition to CU or MS for emotional connection
+   - **Scene 3+**: Alternate between shot types for visual variety
+   - **AVOID**: Using the same shot type consecutively across scenes
 
-4. **Audio Description** (sound effects, ambience, music cues):
+4. **Second-by-Second Breakdown** (OPTIONAL but RECOMMENDED for precise control):
+   - Break each scene into second-by-second shots
+   - Specify shot type and action for each second
+   - This enables precise camera movements and visual transitions
+   - Example: [{"second": 0, "shotType": "WS", "action": "Car enters frame from left", "cameraMove": "static"}]
+
+5. **Camera Movement** (use professional terminology):
+   - Static: Fixed camera, no movement
+   - Push in / Pull out: Smooth forward/backward movement (preferred over dolly for AI)
+   - Pan left/right: Horizontal camera rotation
+   - Tilt up/down: Vertical camera rotation
+   - Zoom-in / Zoom-out: Lens focal length change
+   - Tracking: Camera follows subject
+   - Crane: Vertical movement with sweeping motion
+
+6. **Audio Description** (sound effects, ambience, music cues):
    - Describe background sounds (city ambience, nature sounds, etc.)
    - Sound effects (footsteps, door closing, glass clinking, etc.)
    - Music mood/style if applicable
 
-5. **Dialogue** (if characters are speaking):
+7. **Dialogue** (if characters are speaking):
    - Include exact dialogue in quotes
    - Describe delivery style (whispered, shouted, emotional, etc.)
 
@@ -206,20 +305,32 @@ ${input.voice && input.voice !== "none" ? `
 {
   "scenes": [
     {
-      "duration": 12,
-      "description": "Wide shot. A sleek Tesla Model 3 drives along Pacific Coast Highway at golden hour. The car's metallic blue paint gleams in warm sunlight. Ocean waves crash against rocky cliffs in the background. Cinematic color grading with teal shadows and orange highlights.",
+      "duration": 8,
+      "description": "Wide shot. A sleek Tesla Model 3 drives along Pacific Coast Highway at golden hour. The car's metallic blue paint gleams in warm sunlight. Ocean waves crash against rocky cliffs in the background. Cinematic color grading with teal shadows and orange highlights. Camera slowly pushes in from wide to medium shot, creating dynamic movement.",
       "cameraAngle": "wide",
-      "movement": "dolly-in",
+      "movement": "push in",
       "audio": "Ocean waves, wind rushing, electric motor hum",
-      "dialogue": null
+      "dialogue": null,
+      "shots": [
+        {"second": 0, "shotType": "WS", "action": "Car enters frame from left on coastal highway", "cameraMove": "static"},
+        {"second": 2, "shotType": "WS", "action": "Car driving center frame, ocean visible", "cameraMove": "push in"},
+        {"second": 4, "shotType": "MS", "action": "Car closer now, details visible", "cameraMove": "push in"},
+        {"second": 6, "shotType": "MS", "action": "Car fills frame, sunlight reflects off hood", "cameraMove": "static"}
+      ]
     },
     {
-      "duration": 10,
-      "description": "Medium close-up of driver's hands on steering wheel. Modern minimalist interior with wood grain accents. Touchscreen dashboard displaying navigation. Soft natural light from sunroof creates gentle shadows.",
+      "duration": 7,
+      "description": "Close-up of driver's hands on steering wheel. Modern minimalist interior with wood grain accents. Touchscreen dashboard displaying navigation. Soft natural light from sunroof creates gentle shadows. Static shot focusing on tactile details and premium materials.",
       "cameraAngle": "close-up",
       "movement": "static",
       "audio": "Soft electronic beep from dashboard, leather seats creaking",
-      "dialogue": null
+      "dialogue": null,
+      "shots": [
+        {"second": 0, "shotType": "CU", "action": "Hands grip steering wheel", "cameraMove": "static"},
+        {"second": 2, "shotType": "CU", "action": "Finger taps touchscreen", "cameraMove": "static"},
+        {"second": 4, "shotType": "CU", "action": "Dashboard lights glow", "cameraMove": "pan right"},
+        {"second": 6, "shotType": "CU", "action": "Hands adjust gear selector", "cameraMove": "static"}
+      ]
     }
   ],
   "voiceoverScript": "Experience the future of driving. Where cutting-edge technology meets timeless design.",
@@ -243,13 +354,23 @@ ${input.referenceImage ? `- Reference Image: Provided (match visual style, color
 
 **Director's Notes**:
 ✓ Scene durations MUST sum to EXACTLY ${input.duration} seconds
-✓ Use professional camera movements (dolly, pan, tracking, etc.) - avoid only "static" shots
+✓ Use professional camera movements (push in, pull out, pan, tracking, etc.) - avoid only "static" shots
 ✓ Each scene needs cinematic visual descriptions (lighting, composition, color grading)
+✓ Include second-by-second shot breakdowns in the "shots" array (recommended for precise control)
+✓ Use shot type progression (WS → MS → CU) to create visual flow between scenes
 ✓ Include audio descriptions (ambience, sound effects, music cues)
 ✓ Add dialogue if characters are speaking in the scene
 ✓ Ensure narrative flow and visual variety between scenes
 ✓ Leverage the 8-12 second "sweet spot" for Sora 2 video generation
 ${input.voice && input.voice !== "none" ? `✓ Voiceover script should complement visuals, not just describe them` : ""}
+${input.referenceImage ? `
+✓ **CHARACTER CONSISTENCY** (CRITICAL):
+  - When describing characters/subjects across scenes, use "SAME [character]" format
+  - Example: "SAME woman from previous scene now sitting at desk"
+  - Example: "SAME blue Tesla car from opening shot"
+  - This ensures the AI maintains visual consistency across all scenes
+  - Apply same lighting, clothing, and visual style as the reference image
+` : ""}
 
 Output ONLY valid JSON (no markdown, no additional text).`
 
@@ -271,22 +392,55 @@ Output ONLY valid JSON (no markdown, no additional text).`
 
   /**
    * Select the best T2V model based on input characteristics
+   * Considers: reference image, audio needs, scene count, budget
    */
   private selectBestT2VModel(input: UserInput): string {
-    // For short videos (≤12s per scene), prefer Sora 2 for built-in audio and premium quality
-    // Sora 2 supports direct T2V with dialogue and lip sync
-    if (input.duration <= 12) {
+    const sceneCount = this.getRecommendedSceneCount(input.duration)
+    const needsMultipleScenes = sceneCount.min > 1
+    const hasReferenceImage = !!input.referenceImage
+    const needsAudio = input.voice && input.voice !== "none"
+
+    // Decision Tree:
+
+    // 1. Multi-scene videos (15s+) with reference image → Veo 3.1 First/Last Frame (perfect continuity)
+    if (needsMultipleScenes && hasReferenceImage) {
+      console.log('[AI Planner] Multi-scene + reference image → Veo 3.1 First/Last Frame (perfect continuity)')
+      return "fal-ai/veo-3-1/first-last-frame-to-video"
+    }
+
+    // 2. Multi-scene videos WITHOUT reference image → Sora 2 T2V (built-in audio, good quality)
+    if (needsMultipleScenes && !hasReferenceImage) {
+      console.log('[AI Planner] Multi-scene T2V → Sora 2 T2V (built-in audio)')
       return "fal-ai/sora-2/text-to-video"
     }
 
-    // For longer videos with multiple scenes, use Sora 2 (each scene ≤12s)
-    // This leverages Sora 2's sweet spot while supporting 60s total via multiple scenes
-    if (input.duration <= 60) {
-      return "fal-ai/sora-2/text-to-video"
+    // 3. Single scene with reference image → Veo 3.1 I2V or Sora 2 I2V
+    if (!needsMultipleScenes && hasReferenceImage) {
+      // If needs audio, prefer Veo 3.1 I2V (has audio generation)
+      if (needsAudio) {
+        console.log('[AI Planner] Single scene I2V + audio → Veo 3.1 I2V')
+        return "fal-ai/veo-3-1/image-to-video"
+      }
+      // Budget-friendly option: Seedance I2V (ultra-cheap)
+      console.log('[AI Planner] Single scene I2V budget → Seedance I2V')
+      return "fal-ai/seedance/image-to-video"
     }
 
-    // Fallback to Kling V1 for very long videos or when Sora 2 quota is exceeded
-    return "fal-ai/kling-video/v1/standard/image-to-video"
+    // 4. Single scene WITHOUT reference image (pure T2V)
+    if (!needsMultipleScenes && !hasReferenceImage) {
+      // Premium quality with audio: Sora 2 T2V
+      if (needsAudio) {
+        console.log('[AI Planner] Single scene T2V + audio → Sora 2 T2V')
+        return "fal-ai/sora-2/text-to-video"
+      }
+      // Budget-friendly: Seedance T2V
+      console.log('[AI Planner] Single scene T2V budget → Seedance T2V')
+      return "fal-ai/seedance/text-to-video"
+    }
+
+    // Fallback: Sora 2 T2V (reliable all-rounder)
+    console.log('[AI Planner] Fallback → Sora 2 T2V')
+    return "fal-ai/sora-2/text-to-video"
   }
 
   /**

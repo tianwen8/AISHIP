@@ -48,6 +48,10 @@ export class WorkflowBuilder {
       t2i: string;
       i2v: string;
       tts?: string;
+    },
+    workflowOptions?: {
+      aspectRatio?: string;
+      referenceImage?: string;
     }
   ): WorkflowNode[] {
     const nodes: WorkflowNode[] = [];
@@ -63,7 +67,8 @@ export class WorkflowBuilder {
         scene,
         index,
         selectedModels,
-        i2vModel
+        i2vModel,
+        workflowOptions
       );
       nodes.push(...sceneNodes);
     });
@@ -100,7 +105,11 @@ export class WorkflowBuilder {
     scene: Scene,
     index: number,
     selectedModels: any,
-    i2vModel: ModelOption
+    i2vModel: ModelOption,
+    workflowOptions?: {
+      aspectRatio?: string;
+      referenceImage?: string;
+    }
   ): WorkflowNode[] {
     const nodes: WorkflowNode[] = [];
     const capabilities = i2vModel.capabilities;
@@ -109,36 +118,54 @@ export class WorkflowBuilder {
     const supportsT2V = capabilities?.inputType === 'both' || capabilities?.inputType === 'text';
     const needsT2I = !supportsT2V || capabilities?.inputType === 'image';
 
+    // Determine aspect ratio for this scene
+    const aspectRatio = workflowOptions?.aspectRatio || '16:9';
+    const imageSize = this.getImageSizeFromAspectRatio(aspectRatio);
+
+    // Check if we have a reference image (only use for first scene)
+    const useReferenceImage = index === 0 && workflowOptions?.referenceImage;
+
     if (needsT2I) {
       // Traditional workflow: T2I → I2V
-      nodes.push({
-        id: `t2i-${index}`,
-        type: 't2i',
-        model: selectedModels.t2i,
-        inputs: {
-          prompt: scene.description,
-          imageSize: 'landscape_16_9'
-        },
-        outputs: ['imageUrl'],
-        dependencies: [],
-        metadata: { sceneIndex: index }
-      });
+
+      // Only generate T2I if we don't have a reference image
+      if (!useReferenceImage) {
+        nodes.push({
+          id: `t2i-${index}`,
+          type: 't2i',
+          model: selectedModels.t2i,
+          inputs: {
+            prompt: scene.description,
+            imageSize: imageSize,
+            aspectRatio: aspectRatio
+          },
+          outputs: ['imageUrl'],
+          dependencies: [],
+          metadata: { sceneIndex: index, shotType: scene.cameraAngle }
+        });
+      }
 
       nodes.push({
         id: `i2v-${index}`,
         type: 'i2v',
         model: selectedModels.i2v,
         inputs: {
-          imageUrl: `{{t2i-${index}.imageUrl}}`,
+          imageUrl: useReferenceImage
+            ? workflowOptions.referenceImage
+            : `{{t2i-${index}.imageUrl}}`,
           prompt: scene.description,
-          duration: scene.duration
+          duration: scene.duration,
+          aspectRatio: aspectRatio,
+          cameraAngle: scene.cameraAngle,
+          movement: scene.movement
         },
         outputs: capabilities?.audioGeneration?.enabled
           ? ['videoUrl', 'audioUrl']
           : ['videoUrl'],
-        dependencies: [`t2i-${index}`],
+        dependencies: useReferenceImage ? [] : [`t2i-${index}`],
         metadata: {
           sceneIndex: index,
+          shotType: scene.cameraAngle,
           audioSource: capabilities?.audioGeneration?.enabled ? 'model' : undefined
         }
       });
@@ -148,26 +175,57 @@ export class WorkflowBuilder {
       const hasSeparateAudio = capabilities?.audioGeneration?.enabled &&
                                capabilities?.audioGeneration?.separateTrack;
 
+      const t2vInputs: Record<string, any> = {
+        prompt: scene.description,
+        duration: scene.duration,
+        aspectRatio: aspectRatio,
+        cameraAngle: scene.cameraAngle,
+        movement: scene.movement
+      };
+
+      // If reference image provided for first scene, use imageUrl (switches to I2V mode)
+      if (useReferenceImage) {
+        t2vInputs.imageUrl = workflowOptions.referenceImage;
+      }
+
       nodes.push({
         id: `t2v-${index}`,
         type: 't2v',
         model: selectedModels.i2v,
-        inputs: {
-          prompt: scene.description,
-          duration: scene.duration
-        },
+        inputs: t2vInputs,
         outputs: hasSeparateAudio
           ? ['videoUrl', 'audioUrl']
           : ['videoUrl'],
         dependencies: [],
         metadata: {
           sceneIndex: index,
+          shotType: scene.cameraAngle,
           audioSource: capabilities?.audioGeneration?.enabled ? 'model' : undefined
         }
       });
     }
 
     return nodes;
+  }
+
+  /**
+   * Convert aspect ratio to imageSize format for T2I models
+   */
+  private getImageSizeFromAspectRatio(aspectRatio: string): string {
+    switch (aspectRatio) {
+      case '9:16':
+        return 'portrait_9_16';
+      case '16:9':
+        return 'landscape_16_9';
+      case '1:1':
+        return 'square';
+      case '4:3':
+        return 'landscape_4_3';
+      case '21:9':
+        return 'landscape_21_9';
+      default:
+        return 'landscape_16_9';
+    }
   }
 
   /**
