@@ -162,6 +162,26 @@ export class AIPlanner {
   }
 
   /**
+   * Get human-readable aspect ratio description
+   */
+  private getAspectRatioDescription(aspectRatio: string): string {
+    switch (aspectRatio) {
+      case '9:16':
+        return 'TikTok/Reels vertical format - mobile-first, portrait orientation';
+      case '16:9':
+        return 'YouTube/Bilibili landscape format - widescreen, desktop-first';
+      case '1:1':
+        return 'Instagram square format - equal width and height';
+      case '4:3':
+        return 'Traditional video format - slightly taller than wide';
+      case '21:9':
+        return 'Cinematic ultra-wide format - dramatic widescreen';
+      default:
+        return 'Standard video format';
+    }
+  }
+
+  /**
    * Auto-detect aspect ratio based on user prompt keywords
    * TikTok/抖音/Reels/Stories → 9:16 (vertical)
    * YouTube/横屏/landscape → 16:9 (horizontal)
@@ -256,8 +276,12 @@ export class AIPlanner {
 1. **Duration**: Each scene duration must be specified. Total must sum to EXACTLY ${input.duration} seconds.
    - For ${input.duration}s video: Use ${sceneGuidance}, with each scene 8-12 seconds (optimal for Sora 2 model)
 
-2. **Visual Description**: Write cinematic, detailed descriptions suitable for AI video generation. Include:
-   - Subject and action (what's happening)
+2. **Visual Description**: Write cinematic, detailed descriptions suitable for AI video generation. **CRITICAL REQUIREMENTS**:
+   - **Include second-by-second time markers**: [0-2s], [2-4s], [4-7s], etc.
+   - **Specify aspect ratio**: "${input.aspectRatio}" (${this.getAspectRatioDescription(input.aspectRatio)})
+   - Subject and action (what's happening at each second)
+   - Shot type progression (Wide shot → Medium shot → Close-up)
+   - Camera movement (push in, pan left, static, etc.)
    - Composition and framing (rule of thirds, symmetry, depth)
    - Lighting (golden hour, dramatic shadows, soft key light, etc.)
    - Color palette and mood
@@ -306,7 +330,7 @@ ${input.voice && input.voice !== "none" ? `
   "scenes": [
     {
       "duration": 8,
-      "description": "Wide shot. A sleek Tesla Model 3 drives along Pacific Coast Highway at golden hour. The car's metallic blue paint gleams in warm sunlight. Ocean waves crash against rocky cliffs in the background. Cinematic color grading with teal shadows and orange highlights. Camera slowly pushes in from wide to medium shot, creating dynamic movement.",
+      "description": "[0-2s] Wide shot. A sleek Tesla Model 3 enters frame from left, driving along Pacific Coast Highway at golden hour. [2-4s] Camera slowly pushes in as the car approaches center frame. Ocean waves visible in background. [4-6s] Transition to medium shot, car's metallic blue paint gleams in warm sunlight. [6-8s] Hold medium shot, sunlight reflects off hood. Cinematic color grading with teal shadows and orange highlights. 16:9 widescreen format. Camera movement: static → push in → push in → static.",
       "cameraAngle": "wide",
       "movement": "push in",
       "audio": "Ocean waves, wind rushing, electric motor hum",
@@ -320,7 +344,7 @@ ${input.voice && input.voice !== "none" ? `
     },
     {
       "duration": 7,
-      "description": "Close-up of driver's hands on steering wheel. Modern minimalist interior with wood grain accents. Touchscreen dashboard displaying navigation. Soft natural light from sunroof creates gentle shadows. Static shot focusing on tactile details and premium materials.",
+      "description": "[0-2s] Close-up. Hands grip steering wheel, camera static. [2-4s] Finger taps touchscreen, dashboard lights glow. [4-5s] Camera pans right to show wood grain accents. [5-7s] Hands adjust gear selector. Modern minimalist interior with touchscreen dashboard displaying navigation. Soft natural light from sunroof creates gentle shadows. Static framing emphasizes tactile details and premium materials. 16:9 format. Camera: static → static → pan right → static.",
       "cameraAngle": "close-up",
       "movement": "static",
       "audio": "Soft electronic beep from dashboard, leather seats creaking",
@@ -352,9 +376,13 @@ ${input.voice && input.voice !== "none" ? `
 ${input.voice && input.voice !== "none" ? `- Voiceover: ${input.voice} voice (${Math.floor(input.duration * 2.5)} words approx.)` : "- No voiceover (rely on visuals and ambient audio)"}
 ${input.referenceImage ? `- Reference Image: Provided (match visual style, color palette, and mood)` : ""}
 
-**Director's Notes**:
+**Director's Notes** (CRITICAL - MUST FOLLOW):
 ✓ Scene durations MUST sum to EXACTLY ${input.duration} seconds
-✓ Use professional camera movements (push in, pull out, pan, tracking, etc.) - avoid only "static" shots
+✓ **REQUIRED**: Include time markers in description: [0-2s], [2-4s], [4-7s], etc.
+✓ **REQUIRED**: Mention aspect ratio in description: "${input.aspectRatio}" (${this.getAspectRatioDescription(input.aspectRatio)})
+✓ **REQUIRED**: Describe what happens at each 2-second interval
+✓ **REQUIRED**: Specify camera movement changes (static → push in → pan left, etc.)
+✓ Use professional camera movements (push in, pull out, pan, tracking, etc.) - vary movements for visual interest
 ✓ Each scene needs cinematic visual descriptions (lighting, composition, color grading)
 ✓ Include second-by-second shot breakdowns in the "shots" array (recommended for precise control)
 ✓ Use shot type progression (WS → MS → CU) to create visual flow between scenes
