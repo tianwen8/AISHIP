@@ -160,6 +160,24 @@ export default function HomePage() {
       return;
     }
 
+    // Check if user is logged in
+    if (status !== "authenticated") {
+      alert("Please sign in to generate videos. New users get 50 free credits!");
+      router.push("/login");
+      return;
+    }
+
+    // Check if user has enough credits
+    if (userCredits !== null && userCredits < estimatedCost) {
+      const confirmed = confirm(
+        `You have ${userCredits} credits but need ${estimatedCost} credits. Would you like to purchase more credits?`
+      );
+      if (confirmed) {
+        router.push("/pricing");
+      }
+      return;
+    }
+
     setIsGenerating(true);
 
     try {
@@ -435,9 +453,6 @@ export default function HomePage() {
                   <div className="text-right">
                     <div className="text-lg font-bold text-blue-700">
                       ~{estimatedCost.toFixed(1)} credits
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      (≈ ${(estimatedCost * 0.1).toFixed(2)})
                     </div>
                   </div>
                 </div>

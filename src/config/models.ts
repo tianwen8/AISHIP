@@ -44,7 +44,7 @@ export const T2I_MODELS: ModelOption[] = [
     provider: "Fal.ai",
     quality: "High Quality",
     speed: "Medium (15-30s)",
-    credits: 0.25,
+    credits: 2.5, // $0.025/MP × 100 = 2.5 积分/MP
     recommended: true,
     description: "Balanced quality and speed, best for most use cases",
   },
@@ -54,7 +54,7 @@ export const T2I_MODELS: ModelOption[] = [
     provider: "Fal.ai",
     quality: "Good Quality",
     speed: "Fast (5-10s)",
-    credits: 0.1,
+    credits: 0.3, // $0.003/MP × 100 = 0.3 积分/MP
     description: "Faster generation with good results",
   },
   {
@@ -63,7 +63,7 @@ export const T2I_MODELS: ModelOption[] = [
     provider: "Fal.ai",
     quality: "Very High Quality",
     speed: "Slow (30-60s)",
-    credits: 0.2,
+    credits: 3.5, // $0.035/MP × 100 = 3.5 积分/MP
     description: "Premium quality for professional content",
   },
 ];
@@ -77,8 +77,8 @@ export const I2V_MODELS: ModelOption[] = [
     provider: "Fal.ai",
     quality: "High Quality",
     speed: "Medium (20-40s)",
-    credits: 0.8, // per second
-    recommended: true,
+    credits: 10, // $0.10/秒 × 100 = 10 积分/秒
+    recommended: false,
     description: "Reliable video generation with smooth motion",
     capabilities: {
       inputType: 'image',
@@ -93,8 +93,9 @@ export const I2V_MODELS: ModelOption[] = [
     provider: "Fal.ai",
     quality: "Very High Quality",
     speed: "Medium (30-50s)",
-    credits: 1.0, // per second
-    description: "Latest Kling version with improved quality",
+    credits: 4.5, // $0.045/秒 × 100 = 4.5 积分/秒
+    recommended: true,
+    description: "Latest Kling version with improved quality (推荐)",
     capabilities: {
       inputType: 'image',
       outputs: {
@@ -109,8 +110,8 @@ export const I2V_MODELS: ModelOption[] = [
     provider: "OpenAI (via Fal.ai)",
     quality: "Premium Quality",
     speed: "Medium (30-50s)",
-    credits: 3.0, // $0.30/second * 10 = 3.0 credits/second
-    recommended: true,
+    credits: 10, // $0.10/秒 × 100 = 10 积分/秒
+    recommended: false,
     description: "Direct T2V with built-in dialogue and lip sync, 4-12 seconds",
     capabilities: {
       inputType: 'text',
@@ -131,7 +132,7 @@ export const I2V_MODELS: ModelOption[] = [
     provider: "OpenAI (via Fal.ai)",
     quality: "Premium Quality",
     speed: "Medium (30-50s)",
-    credits: 4.0, // Higher quality, higher cost
+    credits: 30, // $0.30/秒 × 100 = 30 积分/秒
     description: "Premium T2V with enhanced quality, 4-12 seconds",
     capabilities: {
       inputType: 'text',
@@ -152,7 +153,7 @@ export const I2V_MODELS: ModelOption[] = [
     provider: "OpenAI (via Fal.ai)",
     quality: "Premium Quality",
     speed: "Medium (30-50s)",
-    credits: 3.5, // I2V typically costs more
+    credits: 10, // $0.10/秒 × 100 = 10 积分/秒
     description: "Image-to-video with first frame control, 4-12 seconds",
     capabilities: {
       inputType: 'image',
@@ -173,7 +174,7 @@ export const I2V_MODELS: ModelOption[] = [
     provider: "OpenAI (via Fal.ai)",
     quality: "Premium Quality",
     speed: "Medium (30-50s)",
-    credits: 4.5,
+    credits: 30, // $0.30/秒 × 100 = 30 积分/秒
     description: "Premium I2V with enhanced quality, 4-12 seconds",
     capabilities: {
       inputType: 'image',
@@ -194,7 +195,7 @@ export const I2V_MODELS: ModelOption[] = [
     provider: "OpenAI (via Fal.ai)",
     quality: "Premium Quality",
     speed: "Medium (30-50s)",
-    credits: 3.5,
+    credits: 10, // $0.10/秒 × 100 = 10 积分/秒
     description: "Video-to-video transformation, 4-12 seconds",
     capabilities: {
       inputType: 'both', // Takes video input
@@ -215,7 +216,7 @@ export const I2V_MODELS: ModelOption[] = [
     provider: "ShengShu (via Fal.ai)",
     quality: "High Quality",
     speed: "Very Fast (10-20s)",
-    credits: 1.0, // Fixed duration, estimate based on typical usage
+    credits: 8, // $0.08/秒 × 100 = 8 积分/秒
     description: "Pure T2V, 1080p quality, fixed duration",
     capabilities: {
       inputType: 'text',
@@ -233,7 +234,7 @@ export const I2V_MODELS: ModelOption[] = [
     provider: "ShengShu (via Fal.ai)",
     quality: "Premium Quality",
     speed: "Fast (20-30s)",
-    credits: 0.5, // $0.10 base + $0.05/sec for 720p, average ~4s = ~$0.30 = 0.5 credits/sec
+    credits: 5, // $0.05/秒 × 100 = 5 积分/秒 (估算)
     recommended: true,
     description: "I2V with duration control (2-8s), 720p/1080p, motion amplitude control",
     capabilities: {
@@ -252,7 +253,7 @@ export const I2V_MODELS: ModelOption[] = [
     provider: "ShengShu (via Fal.ai)",
     quality: "Premium Quality",
     speed: "Fast (20-30s)",
-    credits: 1.2, // Higher cost due to multi-image processing
+    credits: 8, // $0.08/秒 × 100 = 8 积分/秒 (同Q1)
     description: "Multi-image reference for consistent character generation (up to 7 images)",
     capabilities: {
       inputType: 'image',  // Requires reference images
@@ -272,7 +273,7 @@ export const I2V_MODELS: ModelOption[] = [
     provider: "Google (via Fal.ai)",
     quality: "Premium Quality",
     speed: "Medium (30-50s)",
-    credits: 3.2, // $0.40/second * 8s = $3.20
+    credits: 40, // $0.40/秒 × 100 = 40 积分/秒
     recommended: true,
     description: "Google's premium T2V model, 8s fixed duration, 720p/1080p, with audio",
     capabilities: {
@@ -294,7 +295,7 @@ export const I2V_MODELS: ModelOption[] = [
     provider: "Google (via Fal.ai)",
     quality: "Premium Quality",
     speed: "Medium (30-50s)",
-    credits: 3.2,
+    credits: 40, // $0.40/秒 × 100 = 40 积分/秒
     description: "Veo 3.1 I2V with first frame control, 8s duration",
     capabilities: {
       inputType: 'image',
@@ -315,7 +316,7 @@ export const I2V_MODELS: ModelOption[] = [
     provider: "Google (via Fal.ai)",
     quality: "Premium Quality",
     speed: "Medium (30-50s)",
-    credits: 3.2,
+    credits: 40, // $0.40/秒 × 100 = 40 积分/秒
     description: "Multi-image reference for character consistency",
     capabilities: {
       inputType: 'image',
@@ -336,7 +337,7 @@ export const I2V_MODELS: ModelOption[] = [
     provider: "Google (via Fal.ai)",
     quality: "Premium Quality",
     speed: "Medium (30-50s)",
-    credits: 3.2,
+    credits: 40, // $0.40/秒 × 100 = 40 积分/秒
     recommended: true,
     description: "THE SOLUTION for perfect video continuity - control both first AND last frame",
     capabilities: {
@@ -358,7 +359,7 @@ export const I2V_MODELS: ModelOption[] = [
     provider: "Google (via Fal.ai)",
     quality: "High Quality",
     speed: "Fast (15-30s)",
-    credits: 1.2, // $0.15/second * 8s = $1.20 (62.5% cheaper!)
+    credits: 15, // $0.15/秒 × 100 = 15 积分/秒
     description: "Fast version, 62.5% cheaper than standard",
     capabilities: {
       inputType: 'text',
@@ -379,7 +380,7 @@ export const I2V_MODELS: ModelOption[] = [
     provider: "Google (via Fal.ai)",
     quality: "High Quality",
     speed: "Fast (15-30s)",
-    credits: 1.2,
+    credits: 15, // $0.15/秒 × 100 = 15 积分/秒
     description: "Fast I2V, 62.5% cheaper than standard",
     capabilities: {
       inputType: 'image',
@@ -400,7 +401,7 @@ export const I2V_MODELS: ModelOption[] = [
     provider: "Google (via Fal.ai)",
     quality: "High Quality",
     speed: "Fast (15-30s)",
-    credits: 1.2,
+    credits: 15, // $0.15/秒 × 100 = 15 积分/秒
     description: "Fast first/last frame control, 62.5% cheaper",
     capabilities: {
       inputType: 'image',
@@ -423,7 +424,7 @@ export const I2V_MODELS: ModelOption[] = [
     provider: "Alibaba (via Fal.ai)",
     quality: "High Quality",
     speed: "Fast (20-30s)",
-    credits: 0.75, // $0.15/second * 5s average
+    credits: 5, // $0.05/秒 × 100 = 5 积分/秒
     description: "Best open-source I2V with audio support, 5-10s duration",
     capabilities: {
       inputType: 'image',
@@ -446,7 +447,7 @@ export const I2V_MODELS: ModelOption[] = [
     provider: "ByteDance (via Fal.ai)",
     quality: "Good Quality",
     speed: "Very Fast (10-20s)",
-    credits: 0.25, // Ultra-cheap! ~$0.05/second * 5s
+    credits: 3.6, // $0.036/秒 × 100 = 3.6 积分/秒 (Lite版720p)
     description: "Ultra-cheap T2V with 2-12s precise duration control",
     capabilities: {
       inputType: 'text',
@@ -464,7 +465,7 @@ export const I2V_MODELS: ModelOption[] = [
     provider: "ByteDance (via Fal.ai)",
     quality: "Good Quality",
     speed: "Very Fast (10-20s)",
-    credits: 0.25,
+    credits: 3.6, // $0.036/秒 × 100 = 3.6 积分/秒 (Lite版720p)
     description: "Ultra-cheap I2V with 2-12s precise duration control",
     capabilities: {
       inputType: 'image',
@@ -483,7 +484,7 @@ export const I2V_MODELS: ModelOption[] = [
     provider: "MiniMax (via Fal.ai)",
     quality: "Very High Quality",
     speed: "Slow (40-60s)",
-    credits: 1.2, // per second
+    credits: 12, // $0.12/秒 × 100 = 12 积分/秒 (估算)
     description: "Advanced video quality with audio generation",
     capabilities: {
       inputType: 'both',  // Supports both T2V and I2V
@@ -528,7 +529,7 @@ export const TTS_MODELS: ModelOption[] = [
     provider: "Microsoft (via Fal.ai)",
     quality: "High Quality",
     speed: "Fast (5-10s)",
-    credits: 0.3,
+    credits: 0.067, // $0.04/分钟 ÷ 60 = $0.000667/秒 × 100 = 0.067 积分/秒
     recommended: true,
     description: "Open-source TTS with natural voices, supports EN/ZH",
   },
@@ -538,7 +539,7 @@ export const TTS_MODELS: ModelOption[] = [
     provider: "Microsoft (via Fal.ai)",
     quality: "Premium Quality",
     speed: "Medium (10-15s)",
-    credits: 0.5,
+    credits: 0.1, // 估算：约2.5倍于1.5B模型
     description: "Higher quality 7B model with background music support",
   },
 ];

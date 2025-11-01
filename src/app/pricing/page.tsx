@@ -11,11 +11,11 @@ const pricingPlans = [
     id: "starter_monthly",
     name: "Starter",
     price: "$18",
-    credits: 200,
+    credits: 120000,
     interval: "month",
     features: [
-      "200 credits per month",
-      "~13 video generations (15s videos)",
+      "120,000 credits per month",
+      "~31 video generations (15s videos)",
       "All AI models access",
       "HD quality (1080p)",
       "Email support",
@@ -28,11 +28,11 @@ const pricingPlans = [
     id: "pro_monthly",
     name: "Pro",
     price: "$30",
-    credits: 400,
+    credits: 240000,
     interval: "month",
     features: [
-      "400 credits per month",
-      "~26 video generations (15s videos)",
+      "240,000 credits per month",
+      "~62 video generations (15s videos)",
       "Priority processing",
       "All AI models access",
       "4K quality support",
@@ -46,11 +46,11 @@ const pricingPlans = [
     id: "business_monthly",
     name: "Business",
     price: "$88",
-    credits: 1200,
+    credits: 720000,
     interval: "month",
     features: [
-      "1,200 credits per month",
-      "~80 video generations (15s videos)",
+      "720,000 credits per month",
+      "~186 video generations (15s videos)",
       "Fastest processing",
       "All AI models access",
       "4K quality support",
@@ -209,9 +209,9 @@ export default function PricingPage() {
               </h3>
               <p className="text-gray-600 text-sm">
                 Credits are consumed when you generate videos. A typical 15s
-                video costs ~15 credits. Longer videos and premium models (like
-                Sora 2) may cost more. You can see the estimated cost before
-                generating.
+                video costs ~3,900 credits (using recommended high-quality models).
+                Different models and video lengths may vary in cost. You can see
+                the estimated cost before generating.
               </p>
             </Card>
 

@@ -428,26 +428,26 @@ Output ONLY valid JSON (no markdown, no additional text).`
     const hasReferenceImage = !!input.referenceImage
     const needsAudio = input.voice && input.voice !== "none"
 
-    // Decision Tree:
+    // Decision Tree (Updated for cost efficiency):
 
-    // 1. Multi-scene videos (15s+) with reference image → Veo 3.1 First/Last Frame (perfect continuity)
-    if (needsMultipleScenes && hasReferenceImage) {
-      console.log('[AI Planner] Multi-scene + reference image → Veo 3.1 First/Last Frame (perfect continuity)')
-      return "fal-ai/veo-3-1/first-last-frame-to-video"
-    }
-
-    // 2. Multi-scene videos WITHOUT reference image → Sora 2 T2V (built-in audio, good quality)
+    // 1. Multi-scene videos (15s+) WITHOUT reference image → Kling v1.6 Standard I2V (economical, high quality)
     if (needsMultipleScenes && !hasReferenceImage) {
-      console.log('[AI Planner] Multi-scene T2V → Sora 2 T2V (built-in audio)')
-      return "fal-ai/sora-2/text-to-video"
+      console.log('[AI Planner] Multi-scene T2V → Kling v1.6 Standard I2V (economical, high quality)')
+      return "fal-ai/kling-video/v1.6/standard/image-to-video"
     }
 
-    // 3. Single scene with reference image → Veo 3.1 I2V or Sora 2 I2V
+    // 2. Multi-scene videos with reference image → Kling v1.6 Standard I2V (good continuity, economical)
+    if (needsMultipleScenes && hasReferenceImage) {
+      console.log('[AI Planner] Multi-scene + reference image → Kling v1.6 Standard I2V')
+      return "fal-ai/kling-video/v1.6/standard/image-to-video"
+    }
+
+    // 3. Single scene with reference image → Kling v1.6 or Seedance I2V
     if (!needsMultipleScenes && hasReferenceImage) {
-      // If needs audio, prefer Veo 3.1 I2V (has audio generation)
+      // For higher quality, use Kling v1.6 I2V
       if (needsAudio) {
-        console.log('[AI Planner] Single scene I2V + audio → Veo 3.1 I2V')
-        return "fal-ai/veo-3-1/image-to-video"
+        console.log('[AI Planner] Single scene I2V + audio → Kling v1.6 I2V')
+        return "fal-ai/kling-video/v1.6/standard/image-to-video"
       }
       // Budget-friendly option: Seedance I2V (ultra-cheap)
       console.log('[AI Planner] Single scene I2V budget → Seedance I2V')
@@ -456,19 +456,14 @@ Output ONLY valid JSON (no markdown, no additional text).`
 
     // 4. Single scene WITHOUT reference image (pure T2V)
     if (!needsMultipleScenes && !hasReferenceImage) {
-      // Premium quality with audio: Sora 2 T2V
-      if (needsAudio) {
-        console.log('[AI Planner] Single scene T2V + audio → Sora 2 T2V')
-        return "fal-ai/sora-2/text-to-video"
-      }
-      // Budget-friendly: Seedance T2V
+      // Budget-friendly: Seedance T2V (for short clips)
       console.log('[AI Planner] Single scene T2V budget → Seedance T2V')
       return "fal-ai/seedance/text-to-video"
     }
 
-    // Fallback: Sora 2 T2V (reliable all-rounder)
-    console.log('[AI Planner] Fallback → Sora 2 T2V')
-    return "fal-ai/sora-2/text-to-video"
+    // Fallback: Kling v1.6 Standard I2V (economical, reliable)
+    console.log('[AI Planner] Fallback → Kling v1.6 Standard I2V')
+    return "fal-ai/kling-video/v1.6/standard/image-to-video"
   }
 
   /**
