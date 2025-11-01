@@ -1,9 +1,10 @@
 import type { Metadata } from 'next'
 import './globals.css'
+import SessionProvider from '@/components/SessionProvider'
 
 export const metadata: Metadata = {
-  title: 'AI Video SaaS',
-  description: 'AI-powered video generation platform',
+  title: 'AI Video Director - Create Stunning AI Videos',
+  description: 'Transform your ideas into engaging videos for TikTok, YouTube Shorts, and Instagram Reels with cutting-edge AI models.',
 }
 
 export default function RootLayout({
@@ -13,7 +14,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="zh-CN">
-      <body>{children}</body>
+      <body>
+        <SessionProvider>{children}</SessionProvider>
+      </body>
     </html>
   )
 }
