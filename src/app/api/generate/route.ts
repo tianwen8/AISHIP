@@ -10,6 +10,8 @@ import { AIPlanner } from "@/services/ai-planner"
 import { RunStatus, createRun } from "@/models/run"
 import { createGraph } from "@/models/graph"
 import { getUuid } from "@/lib/hash"
+import { getUserUuid } from "@/services/user"
+import { getUserCredits, decreaseCredits, CreditsTransType } from "@/services/credit"
 
 export async function POST(req: NextRequest) {
   try {
@@ -24,15 +26,14 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // MVP: Use a test user UUID (skip authentication for now)
-    // TODO: Replace with real authentication in production
-    const userUuid = "test-user-001"
-
-    // 2. Check credit balance (skip for MVP testing)
-    // const balance = await getCreditBalance(userUuid)
-    // if (balance < estimatedCost) {
-    //   return NextResponse.json({ error: "Insufficient credits" }, { status: 402 })
-    // }
+    // 2. Get authenticated user
+    const userUuid = await getUserUuid()
+    if (!userUuid) {
+      return NextResponse.json(
+        { error: "Authentication required. Please sign in to continue." },
+        { status: 401 }
+      )
+    }
 
     // 3. Generate workflow using real AI Planner
     const planner = new AIPlanner()
@@ -43,6 +44,29 @@ export async function POST(req: NextRequest) {
       voice: voice || "none",
       referenceImage: undefined,
       style: undefined,
+    })
+
+    // 3.5. Check credit balance and deduct estimated cost
+    const estimatedCost = workflowPlan.estimatedCredits || 0
+    const userCreditsData = await getUserCredits(userUuid)
+    const currentBalance = userCreditsData.left_credits || 0
+
+    if (currentBalance < estimatedCost) {
+      return NextResponse.json(
+        {
+          error: `Insufficient credits. You have ${currentBalance} credits but need ${estimatedCost} credits. Please purchase more credits.`,
+          currentBalance,
+          estimatedCost,
+        },
+        { status: 402 } // Payment Required
+      )
+    }
+
+    // Deduct estimated credits upfront
+    await decreaseCredits({
+      user_uuid: userUuid,
+      trans_type: CreditsTransType.VideoGeneration,
+      credits: estimatedCost,
     })
 
     // 4. Create Graph (save the AI-generated workflow as a project)
@@ -62,6 +86,7 @@ export async function POST(req: NextRequest) {
       user_uuid: userUuid,
       graph_uuid: graphUuid,
       graph_snapshot: workflowPlan, // Freeze workflow at run time
+      total_credits_deducted: estimatedCost, // Track deducted credits
     })
 
     // 6. Return runUuid to redirect to canvas

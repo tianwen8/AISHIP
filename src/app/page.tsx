@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useSession, signOut } from "next-auth/react";
 import { estimateWorkflowCost } from "@/services/pricing";
 
 // Duration options
@@ -93,7 +94,23 @@ export default function HomePage() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [referenceFile, setReferenceFile] = useState<File | null>(null);
   const [referencePreview, setReferencePreview] = useState<string | null>(null);
+  const [userCredits, setUserCredits] = useState<number | null>(null);
   const router = useRouter();
+  const { data: session, status } = useSession();
+
+  // Fetch user credits
+  useEffect(() => {
+    if (status === "authenticated" && session?.user) {
+      fetch("/api/user/credits")
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.code === 0 && data.data) {
+            setUserCredits(data.data.left_credits || 0);
+          }
+        })
+        .catch((err) => console.error("Failed to fetch credits:", err));
+    }
+  }, [status, session]);
 
   // Handle file upload
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -222,15 +239,51 @@ export default function HomePage() {
             <a href="/pricing" className="text-gray-600 hover:text-gray-900">
               Pricing
             </a>
-            <a href="/api/auth/signin" className="text-gray-600 hover:text-gray-900">
-              Sign In
-            </a>
-            <a
-              href="/api/auth/signin"
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-            >
-              Sign Up
-            </a>
+
+            {status === "authenticated" && session?.user ? (
+              <>
+                {/* Credit Balance Display */}
+                <div className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border border-purple-200">
+                  <span className="text-purple-600">💎</span>
+                  <span className="font-semibold text-purple-900">
+                    {userCredits !== null ? userCredits : "..."}
+                  </span>
+                  <span className="text-sm text-purple-600">credits</span>
+                </div>
+
+                {/* User Menu */}
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2">
+                    {session.user.image && (
+                      <img
+                        src={session.user.image}
+                        alt="User avatar"
+                        className="w-8 h-8 rounded-full border-2 border-gray-200"
+                      />
+                    )}
+                    <span className="text-sm text-gray-700">{session.user.name || session.user.email}</span>
+                  </div>
+                  <button
+                    onClick={() => signOut({ callbackUrl: "/" })}
+                    className="text-gray-600 hover:text-gray-900 text-sm"
+                  >
+                    Sign Out
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <a href="/login" className="text-gray-600 hover:text-gray-900">
+                  Sign In
+                </a>
+                <a
+                  href="/login"
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                >
+                  Sign Up - Get 50 Free Credits
+                </a>
+              </>
+            )}
           </nav>
         </div>
       </header>
