@@ -11,13 +11,16 @@ const pricingPlans = [
     id: "starter_monthly",
     name: "Starter",
     price: "$18",
-    credits: 120000,
+    credits: 2000,
     interval: "month",
     features: [
-      "120,000 credits per month",
-      "~31 video generations (15s videos)",
+      "2,000 Power Units per month",
+      "~5 complete 15s videos",
+      "~200 AI image generations",
       "All AI models access",
       "HD quality (1080p)",
+      "No watermark",
+      "Commercial use",
       "Email support",
       "Cancel anytime",
     ],
@@ -28,15 +31,18 @@ const pricingPlans = [
     id: "pro_monthly",
     name: "Pro",
     price: "$30",
-    credits: 240000,
+    credits: 3330,
     interval: "month",
     features: [
-      "240,000 credits per month",
-      "~62 video generations (15s videos)",
-      "Priority processing",
+      "3,330 Power Units per month",
+      "~8 complete 15s videos",
+      "~330 AI image generations",
       "All AI models access",
-      "4K quality support",
+      "HD/4K quality",
+      "No watermark",
+      "Priority processing",
       "Priority email support",
+      "Commercial use",
       "Cancel anytime",
     ],
     popular: true,
@@ -46,17 +52,19 @@ const pricingPlans = [
     id: "business_monthly",
     name: "Business",
     price: "$88",
-    credits: 720000,
+    credits: 9800,
     interval: "month",
     features: [
-      "720,000 credits per month",
-      "~186 video generations (15s videos)",
-      "Fastest processing",
+      "9,800 Power Units per month",
+      "~24 complete 15s videos",
+      "~980 AI image generations",
       "All AI models access",
       "4K quality support",
+      "No watermark",
+      "Fastest processing",
       "Dedicated support",
       "API access",
-      "Custom watermark removal",
+      "Commercial use",
       "Cancel anytime",
     ],
     popular: false,
@@ -205,13 +213,13 @@ export default function PricingPage() {
           <div className="space-y-6">
             <Card className="p-6">
               <h3 className="font-semibold text-lg mb-2">
-                How do credits work?
+                How do Power Units work?
               </h3>
               <p className="text-gray-600 text-sm">
-                Credits are consumed when you generate videos. A typical 15s
-                video costs ~3,900 credits (using recommended high-quality models).
-                Different models and video lengths may vary in cost. You can see
-                the estimated cost before generating.
+                Power Units are consumed when you generate videos and images.
+                A typical 15s high-quality video costs ~400 units, economy mode ~306 units.
+                New users get 306 free Power Units (1 video).
+                Daily login + social share earns another 306 units (with watermark).
               </p>
             </Card>
 

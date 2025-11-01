@@ -22,7 +22,7 @@ export async function POST(req: Request) {
     const pricingConfig: Record<string, any> = {
       starter_monthly: {
         amount: 1800, // $18.00
-        credits: 120000, // 120,000 credits (~31 videos @ 3,855 credits/video)
+        credits: 2000, // 2,000 算力 (~5 条15秒视频 @ 400算力/条, 5x profit)
         interval: "month",
         valid_months: 1,
         currency: "usd",
@@ -30,7 +30,7 @@ export async function POST(req: Request) {
       },
       pro_monthly: {
         amount: 3000, // $30.00
-        credits: 240000, // 240,000 credits (~62 videos @ 3,855 credits/video)
+        credits: 3330, // 3,330 算力 (~8 条15秒视频 @ 400算力/条, 5x profit)
         interval: "month",
         valid_months: 1,
         currency: "usd",
@@ -38,7 +38,7 @@ export async function POST(req: Request) {
       },
       business_monthly: {
         amount: 8800, // $88.00
-        credits: 720000, // 720,000 credits (~186 videos @ 3,855 credits/video)
+        credits: 9800, // 9,800 算力 (~24 条15秒视频 @ 400算力/条, 5x profit)
         interval: "month",
         valid_months: 1,
         currency: "usd",

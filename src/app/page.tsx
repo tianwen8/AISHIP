@@ -162,15 +162,15 @@ export default function HomePage() {
 
     // Check if user is logged in
     if (status !== "authenticated") {
-      alert("Please sign in to generate videos. New users get 50 free credits!");
+      alert("Please sign in to generate videos. New users get 306 free Power Units!");
       router.push("/login");
       return;
     }
 
-    // Check if user has enough credits
+    // Check if user has enough Power Units
     if (userCredits !== null && userCredits < estimatedCost) {
       const confirmed = confirm(
-        `You have ${userCredits} credits but need ${estimatedCost} credits. Would you like to purchase more credits?`
+        `You have ${userCredits} Power Units but need ${estimatedCost} Power Units. Would you like to purchase more?`
       );
       if (confirmed) {
         router.push("/pricing");
@@ -266,7 +266,7 @@ export default function HomePage() {
                   <span className="font-semibold text-purple-900">
                     {userCredits !== null ? userCredits : "..."}
                   </span>
-                  <span className="text-sm text-purple-600">credits</span>
+                  <span className="text-sm text-purple-600">Power Units</span>
                 </div>
 
                 {/* User Menu */}
@@ -298,7 +298,7 @@ export default function HomePage() {
                   href="/login"
                   className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
                 >
-                  Sign Up - Get 50 Free Credits
+                  Sign Up - Get 306 Power Units
                 </a>
               </>
             )}
@@ -452,7 +452,7 @@ export default function HomePage() {
                   <span className="text-sm text-gray-700">Estimated Cost:</span>
                   <div className="text-right">
                     <div className="text-lg font-bold text-blue-700">
-                      ~{estimatedCost.toFixed(1)} credits
+                      ~{estimatedCost.toFixed(1)} Power Units
                     </div>
                   </div>
                 </div>
@@ -475,7 +475,7 @@ export default function HomePage() {
         </div>
 
         <p className="text-sm text-gray-500">
-          Free tier: 50 credits • No credit card required
+          New users get 306 Power Units (1 video) • Daily login + share earns 306 more • No credit card required
         </p>
       </section>
 

@@ -33,7 +33,8 @@ export enum CreditsTransType {
 }
 
 export enum CreditsAmount {
-  NewUserGet = 50,
+  NewUserGet = 306, // 新用户赠送306算力（1条Seedance视频，5倍利润）
+  DailyCheckIn = 306, // 每日签到+分享赠送306算力（1条Seedance视频）
   PingCost = 1,
 }
 
