@@ -21,10 +21,13 @@ interface T2VNodeData {
   thumbnailUrl?: string;
   error?: string;
   onModelChange?: (nodeId: string, newModel: string, newCredits: number) => void;
+  onPromptChange?: (nodeId: string, newPrompt: string) => void;
 }
 
 export default function T2VNode({ data, selected, id }: NodeProps<T2VNodeData>) {
   const [copied, setCopied] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedPrompt, setEditedPrompt] = useState(data.prompt || '');
   const status = data.status || 'pending';
 
   const handleCopy = () => {
@@ -39,6 +42,28 @@ export default function T2VNode({ data, selected, id }: NodeProps<T2VNodeData>) 
 
     if (data.onModelChange) {
       data.onModelChange(id, newModelId, newCredits);
+    }
+  };
+
+  const handlePromptClick = () => {
+    if (status !== 'running') {
+      setIsEditing(true);
+    }
+  };
+
+  const handlePromptBlur = () => {
+    setIsEditing(false);
+    if (editedPrompt !== data.prompt && data.onPromptChange) {
+      data.onPromptChange(id, editedPrompt);
+    }
+  };
+
+  const handlePromptKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && e.ctrlKey) {
+      handlePromptBlur();
+    } else if (e.key === 'Escape') {
+      setEditedPrompt(data.prompt || '');
+      setIsEditing(false);
     }
   };
 
@@ -73,17 +98,46 @@ export default function T2VNode({ data, selected, id }: NodeProps<T2VNodeData>) 
 
       {/* Body */}
       <div className="p-4 space-y-3">
-        {/* Prompt Display (for T2V) */}
+        {/* Prompt Display/Edit (for T2V) */}
         {data.prompt && (
           <div>
-            <div className="text-xs text-gray-500 mb-1 flex items-center gap-1">
-              <span className="text-purple-500">✏️</span>
-              Prompt
-              {copied && <span className="ml-2 text-purple-500 font-medium">(Copied!)</span>}
+            <div className="text-xs text-gray-500 mb-1 flex items-center justify-between">
+              <div className="flex items-center gap-1">
+                <span className="text-purple-500">✏️</span>
+                Prompt
+              </div>
+              {!isEditing && status !== 'running' && (
+                <button
+                  onClick={handlePromptClick}
+                  className="text-blue-500 hover:text-blue-700 text-xs"
+                  title="Click to edit"
+                >
+                  ✏️ Edit
+                </button>
+              )}
             </div>
-            <div className="text-xs text-gray-700 bg-gray-50 p-2 rounded border border-gray-200 line-clamp-2">
-              {data.prompt}
-            </div>
+            {isEditing ? (
+              <textarea
+                value={editedPrompt}
+                onChange={(e) => setEditedPrompt(e.target.value)}
+                onBlur={handlePromptBlur}
+                onKeyDown={handlePromptKeyDown}
+                autoFocus
+                className="w-full text-sm text-gray-900 border border-blue-500 rounded p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                rows={3}
+                placeholder="Enter prompt..."
+              />
+            ) : (
+              <div
+                onClick={handlePromptClick}
+                className={`text-xs text-gray-700 bg-gray-50 p-2 rounded border border-gray-200 line-clamp-2 ${
+                  status !== 'running' ? 'cursor-pointer hover:bg-blue-50' : ''
+                }`}
+                title="Click to edit"
+              >
+                {data.prompt}
+              </div>
+            )}
           </div>
         )}
 

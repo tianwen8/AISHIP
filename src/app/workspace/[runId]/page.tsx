@@ -342,6 +342,7 @@ export default function WorkspacePage() {
               credits: scene.t2vCredits || (scene.duration * 3.0), // Sora 2 pricing
               sceneIndex: index + 1,
               onModelChange: handleModelChange,
+              onPromptChange: handlePromptChange,
             },
           });
 
@@ -620,6 +621,7 @@ export default function WorkspacePage() {
               credits: scene.t2vCredits || (scene.duration * 3.0),
               sceneIndex: index + 1,
               onModelChange: handleModelChange,
+              onPromptChange: handlePromptChange,
             },
           });
 
