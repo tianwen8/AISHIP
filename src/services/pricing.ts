@@ -1,162 +1,229 @@
 /**
- * Pricing Module - Single source of truth for all credit costs
+ * Pricing Module - Power Units System
  *
- * CRITICAL: This module MUST be imported by both:
- * - AI Planner (for estimation)
- * - Orchestrator (for actual deduction)
- *
- * To ensure estimate = deduction parity and prevent overcharging users
+ * DESIGN PHILOSOPHY:
+ * - Simple fixed pricing per video (not per-second micro-calculation)
+ * - 1 Power Unit ≈ $0.001 USD
+ * - High quality 15s video = 400 PU
+ * - Economy 15s video = 306 PU
+ * - New users get 306 PU (1 free economy video)
  */
 
 // ============ Core Constants ============
 
 /**
- * Base conversion rate: 1 credit = $0.10 USD
+ * Power Unit to USD conversion
+ * 1 Power Unit = $0.001 USD
+ * 1000 Power Units = $1 USD
  */
-export const USD_PER_CREDIT = 0.10
+export const USD_PER_POWER_UNIT = 0.001
 
 /**
- * Credit scale for micro-units (prevents fractional rounding issues)
- * SCALE = 10 means 0.1 credit precision (e.g., 2.5 credits = 25 units)
+ * Power Unit scale for micro-units (database storage)
+ * SCALE = 10 means 0.1 PU precision
  */
-export const CREDIT_SCALE = 10
+export const POWER_UNIT_SCALE = 10
 
-// ============ Model Pricing (in USD) ============
+// ============ Fixed Video Pricing ============
 
 /**
- * Text-to-Image pricing per image
- * Based on Fal.ai FLUX pricing: ~$0.025/image
+ * Standard 15-second video pricing
  */
-export const T2I_COST_USD = {
-  "fal-ai/flux-dev": 0.025,
-  "fal-ai/flux-schnell": 0.01,
-  "fal-ai/nanobanana-flux": 0.02,
-  default: 0.025,
+export const VIDEO_PRICING_15S = {
+  // High quality: Kling v1.6 T2V ($0.771 cost × 5x profit ≈ $3.86)
+  highQuality: 400,  // Power Units
+
+  // Economy: Seedance T2V ($0.55 cost × 5x profit ≈ $2.75)
+  economy: 306,      // Power Units (also the new user bonus amount!)
+
+  // Premium: Sora 2 T2V ($1.50 cost × 5x profit ≈ $7.50)
+  premium: 750,      // Power Units
 } as const
 
 /**
- * Image-to-Video pricing per second
- * Based on Fal.ai Kling-v1 pricing: ~$0.08/second
+ * Pricing by duration (scales linearly from 15s base)
  */
-export const T2V_COST_USD_PER_SECOND = {
-  "fal-ai/kling-v1": 0.08,
-  "fal-ai/veo-3": 0.12,
-  "fal-ai/sora-2": 0.15,
-  default: 0.08,
-} as const
+export function getVideoPricing(durationSeconds: number, quality: 'economy' | 'highQuality' | 'premium' = 'highQuality'): number {
+  const basePricing = VIDEO_PRICING_15S[quality]
+  const scaleFactor = durationSeconds / 15
+  return Math.round(basePricing * scaleFactor)
+}
+
+// ============ Model-Specific Pricing ============
 
 /**
- * Text-to-Speech pricing per generation
- * Based on ElevenLabs Turbo pricing: ~$0.05/generation (typical script ~50-100 chars)
+ * T2V Model pricing (per 15 seconds)
+ * Maps model IDs to Power Units for 15s video
  */
-export const TTS_COST_USD = {
-  "elevenlabs/turbo-v2": 0.05,
-  "openai/tts-1": 0.015,
-  default: 0.05,
-} as const
+export const T2V_MODEL_PRICING: Record<string, number> = {
+  // Kling models
+  "fal-ai/kling-video/v1": 600,           // $0.10/s × 15s = $1.50 × 5 = $7.50
+  "fal-ai/kling-video/v1.6/standard/text-to-video": 400,  // Recommended
+  "fal-ai/kling-video/v1.6/standard/image-to-video": 400,
+  "fal-ai/kling-video/v1.6/pro/text-to-video": 1000,
 
-/**
- * Video merging cost (Shotstack API)
- */
-export const MERGE_COST_USD = 0.05
+  // Sora models
+  "fal-ai/sora-2/text-to-video": 750,
+  "fal-ai/sora-2/text-to-video/pro": 2250,
+  "fal-ai/sora-2/image-to-video": 750,
 
-// ============ Helper Functions ============
+  // Seedance models (economy)
+  "fal-ai/seedance/text-to-video": 306,   // Economy option!
+  "fal-ai/seedance/image-to-video": 306,
 
-/**
- * Convert USD to credits
- */
-export function usdToCredits(usd: number): number {
-  return usd / USD_PER_CREDIT
+  // Veo models
+  "fal-ai/veo-3-1": 3000,                 // $0.40/s × 15s = $6 × 5 = $30
+  "fal-ai/veo-3-1/fast": 1125,
+
+  // Other models
+  "fal-ai/wan-25-preview/text-to-video": 375,
+  "fal-ai/wan-25-preview/image-to-video": 375,
+  "fal-ai/minimax-video": 900,
+  "fal-ai/ltx-video": 113,
+  "fal-ai/vidu/text-to-video": 600,
 }
 
 /**
- * Convert credits to micro-units for database storage
+ * Calculate T2V cost based on model and duration
  */
-export function creditsToUnits(credits: number): number {
-  return Math.round(credits * CREDIT_SCALE)
+export function calculateT2VCost(model: string, durationSeconds: number): number {
+  const base15sCost = T2V_MODEL_PRICING[model] || VIDEO_PRICING_15S.highQuality
+  const scaleFactor = durationSeconds / 15
+  return Math.round(base15sCost * scaleFactor)
 }
 
 /**
- * Convert micro-units back to credits for display
+ * T2I Model pricing (per image)
  */
-export function unitsToCredits(units: number): number {
-  return units / CREDIT_SCALE
-}
-
-// ============ Model-Specific Cost Calculators ============
-
-/**
- * Calculate T2I cost in credits
- */
-export function calculateT2ICost(model: string = "default"): number {
-  const usdCost = T2I_COST_USD[model as keyof typeof T2I_COST_USD] || T2I_COST_USD.default
-  return usdToCredits(usdCost)
+export const T2I_MODEL_PRICING: Record<string, number> = {
+  "fal-ai/flux/dev": 3,           // $0.025 × 100 = 2.5 ≈ 3 PU
+  "fal-ai/flux/schnell": 1,       // $0.003 × 100 = 0.3 ≈ 1 PU
+  "fal-ai/flux-lora": 4,          // $0.035 × 100 = 3.5 ≈ 4 PU
+  "fal-ai/flux-pro": 8,
 }
 
 /**
- * Calculate T2V cost in credits
+ * Calculate T2I cost
  */
-export function calculateT2VCost(model: string = "default", durationSeconds: number): number {
-  const usdPerSecond = T2V_COST_USD_PER_SECOND[model as keyof typeof T2V_COST_USD_PER_SECOND] || T2V_COST_USD_PER_SECOND.default
-  return usdToCredits(usdPerSecond * durationSeconds)
+export function calculateT2ICost(model: string = "fal-ai/flux/dev"): number {
+  return T2I_MODEL_PRICING[model] || 3
 }
 
 /**
- * Calculate TTS cost in credits
+ * TTS Model pricing (per generation, ~15s of audio)
  */
-export function calculateTTSCost(model: string = "default"): number {
-  const usdCost = TTS_COST_USD[model as keyof typeof TTS_COST_USD] || TTS_COST_USD.default
-  return usdToCredits(usdCost)
+export const TTS_MODEL_PRICING: Record<string, number> = {
+  "fal-ai/vibevoice": 1,          // $0.04/min = $0.01/15s × 100 = 1 PU
+  "fal-ai/vibevoice/7b": 2,
 }
 
 /**
- * Calculate merge cost in credits
+ * Calculate TTS cost
+ */
+export function calculateTTSCost(model: string = "fal-ai/vibevoice"): number {
+  return TTS_MODEL_PRICING[model] || 1
+}
+
+/**
+ * Video merging cost (fixed)
+ */
+export const MERGE_COST = 1  // Power Unit (negligible, $0.001)
+
+/**
+ * Calculate merge cost
  */
 export function calculateMergeCost(): number {
-  return usdToCredits(MERGE_COST_USD)
+  return MERGE_COST
 }
 
 // ============ Workflow Estimation ============
 
 /**
- * Estimate total credits for a workflow
+ * Estimate total Power Units for a complete workflow
  * Used by AI Planner for user-facing estimates
  */
 export function estimateWorkflowCost(params: {
   sceneCount: number
   totalDurationSeconds: number
   hasVoiceover: boolean
+  workflowType: 't2v' | 't2i-i2v'  // NEW: workflow type
   t2iModel?: string
   t2vModel?: string
   ttsModel?: string
 }): number {
-  let totalCredits = 0
+  let totalPowerUnits = 0
 
-  // T2I cost (one image per scene)
-  totalCredits += params.sceneCount * calculateT2ICost(params.t2iModel)
+  if (params.workflowType === 't2v') {
+    // Direct T2V workflow (recommended for pure text input)
+    totalPowerUnits += calculateT2VCost(
+      params.t2vModel || "fal-ai/kling-video/v1.6/standard/text-to-video",
+      params.totalDurationSeconds
+    )
+  } else {
+    // T2I + I2V workflow (only when user provides reference image)
+    // T2I cost (one image per scene)
+    totalPowerUnits += params.sceneCount * calculateT2ICost(params.t2iModel)
 
-  // T2V cost (total video duration)
-  totalCredits += calculateT2VCost(params.t2vModel, params.totalDurationSeconds)
+    // I2V cost
+    totalPowerUnits += calculateT2VCost(
+      params.t2vModel || "fal-ai/kling-video/v1.6/standard/image-to-video",
+      params.totalDurationSeconds
+    )
+  }
 
   // TTS cost (if voiceover requested)
   if (params.hasVoiceover) {
-    totalCredits += calculateTTSCost(params.ttsModel)
+    totalPowerUnits += calculateTTSCost(params.ttsModel)
   }
 
   // Merge cost
-  totalCredits += calculateMergeCost()
+  totalPowerUnits += calculateMergeCost()
 
-  return totalCredits
+  return Math.round(totalPowerUnits)
 }
 
-// ============ Exports for Quick Reference ============
+// ============ Unit Conversion Helpers ============
 
 /**
- * Standard pricing in credits (for quick reference)
+ * Convert USD to Power Units
+ */
+export function usdToPowerUnits(usd: number): number {
+  return Math.round(usd / USD_PER_POWER_UNIT)
+}
+
+/**
+ * Convert Power Units to micro-units for database storage
+ */
+export function powerUnitsToMicroUnits(powerUnits: number): number {
+  return Math.round(powerUnits * POWER_UNIT_SCALE)
+}
+
+/**
+ * Convert micro-units back to Power Units for display
+ */
+export function microUnitsToPowerUnits(microUnits: number): number {
+  return microUnits / POWER_UNIT_SCALE
+}
+
+// Legacy aliases for backward compatibility
+export const creditsToUnits = powerUnitsToMicroUnits
+export const unitsToCredits = microUnitsToPowerUnits
+
+// ============ Quick Reference ============
+
+/**
+ * Standard pricing summary (for reference)
  */
 export const STANDARD_PRICING = {
-  t2i: calculateT2ICost(),           // 0.25 credits/image
-  t2vPerSecond: usdToCredits(0.08),  // 0.8 credits/second
-  tts: calculateTTSCost(),            // 0.5 credits/generation
-  merge: calculateMergeCost(),        // 0.5 credits
+  video15sEconomy: VIDEO_PRICING_15S.economy,        // 306 PU
+  video15sHighQuality: VIDEO_PRICING_15S.highQuality, // 400 PU
+  video15sPremium: VIDEO_PRICING_15S.premium,        // 750 PU
+  imageGeneration: 3,                                // 3 PU
+  voiceover: 1,                                      // 1 PU
+  merge: 1,                                          // 1 PU
 } as const
+
+/**
+ * New user bonus
+ */
+export const NEW_USER_BONUS = VIDEO_PRICING_15S.economy  // 306 Power Units

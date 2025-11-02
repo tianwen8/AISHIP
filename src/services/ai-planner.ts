@@ -136,7 +136,7 @@ export class AIPlanner {
       }
 
       // Step 5: Calculate estimated credits
-      workflow.estimatedCredits = this.calculateEstimatedCredits(workflow)
+      workflow.estimatedCredits = this.calculateEstimatedCredits(workflow, !!finalInput.referenceImage)
 
       // Step 6: Generate workflow nodes using WorkflowBuilder
       const workflowBuilder = createWorkflowBuilder()
@@ -419,64 +419,110 @@ Output ONLY valid JSON (no markdown, no additional text).`
   }
 
   /**
-   * Select the best T2V model based on input characteristics
-   * Considers: reference image, audio needs, scene count, budget
+   * Intelligent model selection based on multiple factors
+   *
+   * Decision factors (in priority order):
+   * 1. Quality requirement (economy/standard/premium)
+   * 2. Video duration and scene count
+   * 3. Audio/voiceover needs
+   * 4. Reference image (only for strict consistency needs)
+   *
+   * Returns: Model ID (T2V or I2V based on optimal workflow)
    */
   private selectBestT2VModel(input: UserInput): string {
     const sceneCount = this.getRecommendedSceneCount(input.duration)
     const needsMultipleScenes = sceneCount.min > 1
     const hasReferenceImage = !!input.referenceImage
-    const needsAudio = input.voice && input.voice !== "none"
+    const needsVoiceover = input.voice && input.voice !== "none"
+    const duration = input.duration
 
-    // Decision Tree (Updated for cost efficiency):
-
-    // 1. Multi-scene videos (15s+) WITHOUT reference image → Kling v1.6 Standard I2V (economical, high quality)
-    if (needsMultipleScenes && !hasReferenceImage) {
-      console.log('[AI Planner] Multi-scene T2V → Kling v1.6 Standard I2V (economical, high quality)')
-      return "fal-ai/kling-video/v1.6/standard/image-to-video"
+    // ============ Priority 1: Audio Generation Needs ============
+    // If voiceover requested, prefer models with built-in audio generation
+    if (needsVoiceover) {
+      console.log('[AI Planner] Voiceover requested → Sora 2 T2V (built-in audio generation)')
+      return "fal-ai/sora-2/text-to-video"  // 750 PU/15s, has audio
     }
 
-    // 2. Multi-scene videos with reference image → Kling v1.6 Standard I2V (good continuity, economical)
-    if (needsMultipleScenes && hasReferenceImage) {
-      console.log('[AI Planner] Multi-scene + reference image → Kling v1.6 Standard I2V')
-      return "fal-ai/kling-video/v1.6/standard/image-to-video"
+    // ============ Priority 2: Reference Image with Strict Consistency ============
+    // Only use I2V workflow if reference image AND need strict first-frame consistency
+    // (e.g., character consistency, brand assets)
+    if (hasReferenceImage) {
+      // For reference images, user likely wants consistent character/style
+      // But we still prefer T2V for better quality-to-cost ratio
+      // Use I2V only for strict consistency needs
+      console.log('[AI Planner] Reference image detected → Kling V1.6 I2V (character consistency)')
+      return "fal-ai/kling-video/v1.6/standard/image-to-video"  // 400 PU/15s
     }
 
-    // 3. Single scene with reference image → Kling v1.6 or Seedance I2V
-    if (!needsMultipleScenes && hasReferenceImage) {
-      // For higher quality, use Kling v1.6 I2V
-      if (needsAudio) {
-        console.log('[AI Planner] Single scene I2V + audio → Kling v1.6 I2V')
-        return "fal-ai/kling-video/v1.6/standard/image-to-video"
-      }
-      // Budget-friendly option: Seedance I2V (ultra-cheap)
-      console.log('[AI Planner] Single scene I2V budget → Seedance I2V')
-      return "fal-ai/seedance/image-to-video"
+    // ============ Priority 3: Quality Tier Selection (No ref image) ============
+    // Analyze prompt for quality hints
+    const promptLower = input.prompt.toLowerCase()
+    const isHighQualityRequest =
+      promptLower.includes('high quality') ||
+      promptLower.includes('premium') ||
+      promptLower.includes('professional') ||
+      promptLower.includes('cinematic')
+
+    const isEconomyRequest =
+      promptLower.includes('quick') ||
+      promptLower.includes('fast') ||
+      promptLower.includes('simple') ||
+      promptLower.includes('test')
+
+    // --- PREMIUM TIER ---
+    if (isHighQualityRequest) {
+      console.log('[AI Planner] Premium quality requested → Kling V1.6 T2V (high quality, 400 PU)')
+      return "fal-ai/kling-video/v1.6/standard/text-to-video"  // 400 PU/15s
     }
 
-    // 4. Single scene WITHOUT reference image (pure T2V)
-    if (!needsMultipleScenes && !hasReferenceImage) {
-      // Budget-friendly: Seedance T2V (for short clips)
-      console.log('[AI Planner] Single scene T2V budget → Seedance T2V')
-      return "fal-ai/seedance/text-to-video"
+    // --- ECONOMY TIER ---
+    if (isEconomyRequest || duration <= 15) {
+      // For short videos or economy requests, use Seedance
+      console.log('[AI Planner] Economy/Short video → Seedance T2V (economy, 306 PU)')
+      return "fal-ai/seedance/text-to-video"  // 306 PU/15s (perfect for new users!)
     }
 
-    // Fallback: Kling v1.6 Standard I2V (economical, reliable)
-    console.log('[AI Planner] Fallback → Kling v1.6 Standard I2V')
-    return "fal-ai/kling-video/v1.6/standard/image-to-video"
+    // ============ Priority 4: Duration-Based Selection ============
+
+    // Short videos (8-15s): Economy option
+    if (duration <= 15) {
+      console.log('[AI Planner] Short video (≤15s) → Seedance T2V (economy, fast)')
+      return "fal-ai/seedance/text-to-video"  // 306 PU/15s
+    }
+
+    // Medium videos (16-30s): Balanced quality
+    if (duration <= 30) {
+      console.log('[AI Planner] Medium video (16-30s) → Kling V1.6 T2V (balanced quality)')
+      return "fal-ai/kling-video/v1.6/standard/text-to-video"  // 400 PU/15s
+    }
+
+    // Long videos (31-60s): Premium quality for better coherence
+    if (duration <= 60) {
+      console.log('[AI Planner] Long video (31-60s) → Kling V1.6 T2V (high quality)')
+      return "fal-ai/kling-video/v1.6/standard/text-to-video"  // 400 PU/15s
+    }
+
+    // ============ Default: Best Value ============
+    // For most cases, Seedance T2V offers best value
+    console.log('[AI Planner] Default recommendation → Seedance T2V (best value)')
+    return "fal-ai/seedance/text-to-video"  // 306 PU/15s
   }
 
   /**
    * Calculate estimated credits for the workflow
    * Uses shared pricing module to ensure estimate = deduction parity
    */
-  private calculateEstimatedCredits(workflow: WorkflowPlan): number {
+  private calculateEstimatedCredits(workflow: WorkflowPlan, hasReferenceImage: boolean = false): number {
     const totalDuration = workflow.scenes.reduce((sum, s) => sum + s.duration, 0)
+
+    // Determine workflow type based on whether user provided reference image
+    const workflowType = hasReferenceImage ? 't2i-i2v' : 't2v'
 
     const estimate = estimateWorkflowCost({
       sceneCount: workflow.scenes.length,
       totalDurationSeconds: totalDuration,
       hasVoiceover: !!workflow.voiceover,
+      workflowType: workflowType,  // NEW: Pass workflow type
       t2iModel: workflow.recommendedModels.t2i,
       t2vModel: workflow.recommendedModels.t2v,
       ttsModel: workflow.recommendedModels.tts,
