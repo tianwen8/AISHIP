@@ -75,7 +75,7 @@ export default function LoginPage() {
           </div>
           <div className="flex items-center gap-3 text-sm text-gray-700">
             <span className="text-green-500">✓</span>
-            <span>50 free credits upon signup</span>
+            <span>306 free Power Units upon signup</span>
           </div>
           <div className="flex items-center gap-3 text-sm text-gray-700">
             <span className="text-green-500">✓</span>
