@@ -132,7 +132,7 @@ export default function I2VNode({ data, selected, id }: NodeProps<I2VNodeData>) 
           >
             {I2V_MODELS.map((model) => (
               <option key={model.id} value={model.id}>
-                {model.name} ({model.credits}/s) - {model.quality}
+                {model.name} ({model.credits} PU/s) - {model.quality}
               </option>
             ))}
           </select>
@@ -143,7 +143,7 @@ export default function I2VNode({ data, selected, id }: NodeProps<I2VNodeData>) 
           <div className="flex items-center gap-1">
             <span className="text-xs text-gray-500">Cost:</span>
             <span className="text-sm font-bold text-green-600">
-              {data.credits.toFixed(1)} credits
+              {data.credits.toFixed(1)} Power Units
             </span>
           </div>
           <button

@@ -188,7 +188,7 @@ export default function T2INode({ data, selected, id }: NodeProps<T2INodeData>) 
           >
             {T2I_MODELS.map((model) => (
               <option key={model.id} value={model.id}>
-                {model.name} ({model.credits} credits) - {model.quality}
+                {model.name} ({model.credits} Power Units) - {model.quality}
               </option>
             ))}
           </select>
@@ -199,7 +199,7 @@ export default function T2INode({ data, selected, id }: NodeProps<T2INodeData>) 
           <div className="flex items-center gap-1">
             <span className="text-xs text-gray-500">Cost:</span>
             <span className="text-sm font-bold text-blue-600">
-              {data.credits.toFixed(1)} credits
+              {data.credits.toFixed(1)} Power Units
             </span>
           </div>
           <button

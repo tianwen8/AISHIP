@@ -121,7 +121,7 @@ export default function MergeNode({ data, selected }: NodeProps<MergeNodeData>) 
           <div className="flex items-center justify-between">
             <span className="text-xs text-gray-500">Merge Cost:</span>
             <span className="text-sm font-bold text-purple-600">
-              {data.credits.toFixed(1)} credits
+              {data.credits.toFixed(1)} Power Units
             </span>
           </div>
         </div>

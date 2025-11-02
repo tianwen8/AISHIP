@@ -1228,7 +1228,7 @@ export default function WorkspacePage() {
           <div className="text-right pr-3 border-r border-gray-200">
             <div className="text-xs text-gray-500">Estimated Cost</div>
             <div className="text-lg font-bold text-blue-700">
-              {run.estimated_credits.toFixed(1)} credits
+              {run.estimated_credits.toFixed(1)} Power Units
             </div>
           </div>
 

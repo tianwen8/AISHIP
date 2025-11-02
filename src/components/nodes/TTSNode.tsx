@@ -134,7 +134,7 @@ export default function TTSNode({ data, selected, id }: NodeProps<TTSNodeData>) 
           >
             {TTS_MODELS.map((model) => (
               <option key={model.id} value={model.id}>
-                {model.name} ({model.credits} credits) - {model.quality}
+                {model.name} ({model.credits} PU) - {model.quality}
               </option>
             ))}
           </select>
@@ -145,7 +145,7 @@ export default function TTSNode({ data, selected, id }: NodeProps<TTSNodeData>) 
           <div className="flex items-center gap-1">
             <span className="text-xs text-gray-500">Cost:</span>
             <span className="text-sm font-bold text-orange-600">
-              {data.credits.toFixed(1)} credits
+              {data.credits.toFixed(1)} Power Units
             </span>
           </div>
           <button

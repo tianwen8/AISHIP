@@ -158,7 +158,7 @@ export default function T2VNode({ data, selected, id }: NodeProps<T2VNodeData>) 
           >
             {I2V_MODELS.map((model) => (
               <option key={model.id} value={model.id}>
-                {model.name} ({model.credits.toFixed(2)} credits{model.id.includes('kling') ? '/s' : ''})
+                {model.name} ({model.credits.toFixed(2)} PU{model.id.includes('kling') ? '/s' : ''})
               </option>
             ))}
           </select>
@@ -171,7 +171,7 @@ export default function T2VNode({ data, selected, id }: NodeProps<T2VNodeData>) 
             onClick={handleCopy}
             className="flex items-center gap-1 text-purple-600 hover:text-purple-700 font-medium transition"
           >
-            <span>{data.credits.toFixed(2)} credits</span>
+            <span>{data.credits.toFixed(2)} Power Units</span>
             <span className="text-gray-400">📋</span>
             {!copied && <span className="text-gray-400 ml-1">Copy</span>}
           </button>
