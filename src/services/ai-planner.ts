@@ -419,15 +419,17 @@ Output ONLY valid JSON (no markdown, no additional text).`
   }
 
   /**
-   * Intelligent model selection based on multiple factors
+   * COMPREHENSIVE AI Decision Engine
+   * Intelligently selects from ALL 21 models based on multiple factors
    *
-   * Decision factors (in priority order):
-   * 1. Quality requirement (economy/standard/premium)
-   * 2. Video duration and scene count
-   * 3. Audio/voiceover needs
-   * 4. Reference image (only for strict consistency needs)
+   * Decision factors (priority order):
+   * 1. Multi-scene continuity needs (Veo 3.1 First/Last Frame)
+   * 2. Audio generation needs (Veo 3.1, Sora 2, MiniMax, Wan 2.5)
+   * 3. Reference image consistency (various I2V models)
+   * 4. Quality tier + Speed + Budget (all models considered)
+   * 5. Duration-based optimization
    *
-   * Returns: Model ID (T2V or I2V based on optimal workflow)
+   * Returns: Optimal model ID from all 21 available models
    */
   private selectBestT2VModel(input: UserInput): string {
     const sceneCount = this.getRecommendedSceneCount(input.duration)
@@ -435,77 +437,132 @@ Output ONLY valid JSON (no markdown, no additional text).`
     const hasReferenceImage = !!input.referenceImage
     const needsVoiceover = input.voice && input.voice !== "none"
     const duration = input.duration
-
-    // ============ Priority 1: Audio Generation Needs ============
-    // If voiceover requested, prefer models with built-in audio generation
-    if (needsVoiceover) {
-      console.log('[AI Planner] Voiceover requested → Sora 2 T2V (built-in audio generation)')
-      return "fal-ai/sora-2/text-to-video"  // 750 PU/15s, has audio
-    }
-
-    // ============ Priority 2: Reference Image with Strict Consistency ============
-    // Only use I2V workflow if reference image AND need strict first-frame consistency
-    // (e.g., character consistency, brand assets)
-    if (hasReferenceImage) {
-      // For reference images, user likely wants consistent character/style
-      // But we still prefer T2V for better quality-to-cost ratio
-      // Use I2V only for strict consistency needs
-      console.log('[AI Planner] Reference image detected → Kling V1.6 I2V (character consistency)')
-      return "fal-ai/kling-video/v1.6/standard/image-to-video"  // 400 PU/15s
-    }
-
-    // ============ Priority 3: Quality Tier Selection (No ref image) ============
-    // Analyze prompt for quality hints
     const promptLower = input.prompt.toLowerCase()
-    const isHighQualityRequest =
-      promptLower.includes('high quality') ||
-      promptLower.includes('premium') ||
-      promptLower.includes('professional') ||
-      promptLower.includes('cinematic')
 
-    const isEconomyRequest =
-      promptLower.includes('quick') ||
-      promptLower.includes('fast') ||
-      promptLower.includes('simple') ||
-      promptLower.includes('test')
+    // Quality & Speed keywords detection
+    const isHighQualityRequest = /high quality|premium|professional|cinematic|top quality/.test(promptLower)
+    const isEconomyRequest = /quick|fast|simple|test|cheap|budget/.test(promptLower)
+    const needsSpeed = /urgent|fast|quick|rapid/.test(promptLower)
 
-    // --- PREMIUM TIER ---
-    if (isHighQualityRequest) {
-      console.log('[AI Planner] Premium quality requested → Kling V1.6 T2V (high quality, 400 PU)')
-      return "fal-ai/kling-video/v1.6/standard/text-to-video"  // 400 PU/15s
+    // ============ Priority 1: Multi-Scene Continuity (CRITICAL for 15s+) ============
+    // Veo 3.1 First/Last Frame is THE SOLUTION for perfect scene transitions
+    if (needsMultipleScenes && !hasReferenceImage) {
+      // For multiple scenes, perfect continuity is crucial
+      if (needsVoiceover || isHighQualityRequest) {
+        console.log('[AI Planner] Multi-scene + high quality/audio → Veo 3.1 First/Last Frame (perfect continuity, 601 PU)')
+        return "fal-ai/veo-3-1/first-last-frame-to-video"  // 601 PU/15s, has audio
+      }
+
+      // Economy multi-scene: Use Veo 3.1 Fast for continuity at lower cost
+      if (isEconomyRequest || needsSpeed) {
+        console.log('[AI Planner] Multi-scene economy → Veo 3.1 Fast First/Last Frame (226 PU, fast + continuity)')
+        return "fal-ai/veo-3-1/fast/first-last-frame-to-video"  // 226 PU/15s, has audio
+      }
     }
 
-    // --- ECONOMY TIER ---
-    if (isEconomyRequest || duration <= 15) {
-      // For short videos or economy requests, use Seedance
-      console.log('[AI Planner] Economy/Short video → Seedance T2V (economy, 306 PU)')
-      return "fal-ai/seedance/text-to-video"  // 306 PU/15s (perfect for new users!)
+    // ============ Priority 2: Audio Generation Needs ============
+    if (needsVoiceover) {
+      // Tier 1: Premium with audio
+      if (isHighQualityRequest) {
+        console.log('[AI Planner] Voiceover + premium → Sora 2 T2V Pro (ultra-premium, 2251 PU)')
+        return "fal-ai/sora-2/text-to-video/pro"  // 2251 PU/15s, best audio
+      }
+
+      // Tier 2: Balanced audio generation
+      if (duration <= 30) {
+        console.log('[AI Planner] Voiceover + standard → Veo 3.1 T2V (Google quality, 601 PU)')
+        return "fal-ai/veo-3-1"  // 601 PU/15s, has audio (music + sound effects)
+      }
+
+      // Tier 3: Economy audio
+      console.log('[AI Planner] Voiceover + economy → Veo 3.1 Fast T2V (226 PU, has audio)')
+      return "fal-ai/veo-3-1/fast"  // 226 PU/15s, has audio
     }
 
-    // ============ Priority 4: Duration-Based Selection ============
+    // ============ Priority 3: Reference Image Workflows ============
+    if (hasReferenceImage) {
+      // Multi-image reference (character consistency)
+      if (needsMultipleScenes) {
+        console.log('[AI Planner] Multi-scene + ref image → Veo 3.1 Reference (multi-image support, 601 PU)')
+        return "fal-ai/veo-3-1/reference-to-video"  // 601 PU/15s, has audio
+      }
 
-    // Short videos (8-15s): Economy option
+      // Single image I2V
+      if (isHighQualityRequest) {
+        console.log('[AI Planner] Ref image + premium → Sora 2 I2V (750 PU, premium quality)')
+        return "fal-ai/sora-2/image-to-video"  // 751 PU/15s, has audio
+      }
+
+      // Economy I2V with audio
+      if (needsSpeed || isEconomyRequest) {
+        console.log('[AI Planner] Ref image + economy → Wan 2.5 I2V (76 PU, has music)')
+        return "fal-ai/wan-25-preview/image-to-video"  // 76 PU/15s, has music
+      }
+
+      // Balanced I2V
+      console.log('[AI Planner] Ref image + balanced → Kling V1.6 I2V (401 PU)')
+      return "fal-ai/kling-video/v1.6/standard/image-to-video"  // 401 PU/15s
+    }
+
+    // ============ Priority 4: Pure T2V - Quality Tiers ============
+
+    // Ultra-Budget: For testing or ultra-cheap needs
+    if (isEconomyRequest && promptLower.includes('test')) {
+      console.log('[AI Planner] Ultra-budget test → LTX Video (23 PU, cheapest!)')
+      return "fal-ai/ltx-video"  // 23 PU/15s, cheapest option
+    }
+
+    // Premium Tier: High quality + long duration
+    if (isHighQualityRequest || duration > 30) {
+      if (duration > 45) {
+        console.log('[AI Planner] Long premium video → Veo 3.1 T2V (601 PU, Google quality)')
+        return "fal-ai/veo-3-1"  // 601 PU/15s, Google premium
+      }
+
+      if (needsSpeed) {
+        console.log('[AI Planner] Premium + fast → Vidu Q1 T2V (121 PU, very fast)')
+        return "fal-ai/vidu/q1/text-to-video"  // 121 PU/15s, fast generation
+      }
+
+      console.log('[AI Planner] Premium standard → Kling V1.6 T2V (401 PU)')
+      return "fal-ai/kling-video/v1.6/standard/text-to-video"  // 401 PU/15s
+    }
+
+    // Speed Priority: Fast generation
+    if (needsSpeed) {
+      console.log('[AI Planner] Speed priority → Vidu Q1 T2V (121 PU, very fast)')
+      return "fal-ai/vidu/q1/text-to-video"  // 121 PU/15s, 10-20s generation
+    }
+
+    // ============ Priority 5: Duration-Based Optimization ============
+
+    // Very short (≤8s): Ultra-cheap
+    if (duration <= 8) {
+      console.log('[AI Planner] Very short video → LTX Video (23 PU, perfect for shorts)')
+      return "fal-ai/ltx-video"  // 23 PU/15s
+    }
+
+    // Short (8-15s): Economy tier
     if (duration <= 15) {
-      console.log('[AI Planner] Short video (≤15s) → Seedance T2V (economy, fast)')
-      return "fal-ai/seedance/text-to-video"  // 306 PU/15s
+      console.log('[AI Planner] Short video → Seedance T2V (307 PU, new user friendly)')
+      return "fal-ai/seedance/text-to-video"  // 307 PU/15s
     }
 
-    // Medium videos (16-30s): Balanced quality
+    // Medium (16-30s): Balanced tier
     if (duration <= 30) {
-      console.log('[AI Planner] Medium video (16-30s) → Kling V1.6 T2V (balanced quality)')
-      return "fal-ai/kling-video/v1.6/standard/text-to-video"  // 400 PU/15s
+      console.log('[AI Planner] Medium video → Veo 3.1 Fast T2V (226 PU, fast + quality)')
+      return "fal-ai/veo-3-1/fast"  // 226 PU/15s, has audio
     }
 
-    // Long videos (31-60s): Premium quality for better coherence
+    // Long (31-60s): Premium tier for coherence
     if (duration <= 60) {
-      console.log('[AI Planner] Long video (31-60s) → Kling V1.6 T2V (high quality)')
-      return "fal-ai/kling-video/v1.6/standard/text-to-video"  // 400 PU/15s
+      console.log('[AI Planner] Long video → Veo 3.1 T2V (601 PU, best coherence)')
+      return "fal-ai/veo-3-1"  // 601 PU/15s, has audio
     }
 
-    // ============ Default: Best Value ============
-    // For most cases, Seedance T2V offers best value
-    console.log('[AI Planner] Default recommendation → Seedance T2V (best value)')
-    return "fal-ai/seedance/text-to-video"  // 306 PU/15s
+    // ============ Default: Best Value for New Users ============
+    console.log('[AI Planner] Default → Seedance T2V (307 PU, best value)')
+    return "fal-ai/seedance/text-to-video"  // 307 PU/15s
   }
 
   /**
