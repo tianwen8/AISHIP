@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { estimateWorkflowCost } from "@/services/pricing";
+import { WaterfallGallery } from "@/components/WaterfallGallery";
 
 // Duration options
 const durations = [
@@ -479,58 +480,8 @@ export default function HomePage() {
         </p>
       </section>
 
-      {/* Featured Templates */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="flex items-center justify-between mb-8">
-          <h2 className="text-3xl font-bold text-gray-900">Featured Templates</h2>
-          <a href="/templates" className="text-blue-600 hover:text-blue-700 font-medium">
-            View All →
-          </a>
-        </div>
-
-        {/* Masonry Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {featuredTemplates.map((template) => (
-            <div
-              key={template.id}
-              className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg transition group"
-            >
-              {/* Thumbnail */}
-              <div className="aspect-[9/16] bg-gradient-to-br from-gray-200 to-gray-300 relative">
-                {/* Placeholder for video thumbnail */}
-                <div className="absolute inset-0 flex items-center justify-center text-gray-400 text-4xl">
-                  🎥
-                </div>
-                {/* Play overlay */}
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition flex items-center justify-center">
-                  <div className="w-16 h-16 bg-white/90 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
-                    <span className="text-2xl">▶️</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Info */}
-              <div className="p-4">
-                <h3 className="font-semibold text-gray-900 mb-1">{template.title}</h3>
-                <p className="text-xs text-gray-500 mb-3">{template.uses.toLocaleString()} uses</p>
-                <button
-                  onClick={() => handleUseTemplate(template.id)}
-                  className="w-full py-2 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 transition"
-                >
-                  Use Template
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Load More */}
-        <div className="text-center mt-12">
-          <button className="px-8 py-3 border-2 border-gray-300 text-gray-700 font-medium rounded-lg hover:border-gray-400 hover:bg-gray-50 transition">
-            Load More Templates
-          </button>
-        </div>
-      </section>
+      {/* Waterfall Gallery - Community Creations */}
+      <WaterfallGallery />
 
       {/* Footer */}
       <footer className="border-t border-gray-200 mt-16">
