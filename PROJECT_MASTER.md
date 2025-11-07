@@ -2,10 +2,26 @@
 
 **Project Name**: AI Video Studio
 **Target Market**: Global English-speaking content creators (TikTok/YouTube Shorts/Instagram Reels)
-**Document Version**: 4.0
-**Last Updated**: 2025-10-28
-**Status**: Phase 2.7 智能导演系统开发中，目标 MVP 上线
+**Document Version**: 5.0
+**Last Updated**: 2025-11-07
+**Status**: ✅ 核心系统 100% 完成，订阅体系合理（毛利率 78-80%），准备 MVP 上线
 **Git Repo**: https://github.com/tianwen8/soravideos
+
+---
+
+## 🎯 当前状态概览（2025-11-07）
+
+### ✅ 已完成系统
+- ✅ **登录系统**：Google/GitHub OAuth（100%）
+- ✅ **支付系统**：Creem 集成完成，Webhook 验证（100%）
+- ✅ **会员系统**：三档套餐（$18/$30/$88），积分管理（100%）
+- ✅ **AI 引擎**：21个模型集成，AI Planner + Orchestrator（100%）
+- ✅ **定价分析**：5倍利润率，78-80% 毛利率（100%）
+
+### 🚀 上线计划
+- **方案决策**：✅ 方案B（保持306算力，省成本）
+- **上线时间**：2天（Day 1: 配置测试 4-6h，Day 2: 部署上线 3-4h）
+- **详细清单**：见 [Section 9.3 MVP上线清单](#93-mvp-上线清单2天计划)
 
 ---
 
@@ -2790,17 +2806,1187 @@ curl http://localhost:3001/api/runs/<runUuid> \
 - Automatic backups
 - Global CDN for assets
 
-### 9.2 Pre-Launch Checklist
+---
 
-- [ ] Environment variables configured in Vercel
-- [ ] Database migrations run on production
-- [ ] Shotstack API key obtained
-- [ ] Fal.ai API key configured
-- [ ] Google OAuth production credentials
-- [ ] Creem payment webhook configured
-- [ ] Custom domain configured
-- [ ] SSL certificate installed
-- [ ] Analytics tracking enabled
+### 9.2 订阅体系与定价分析 ✅
+
+**最后更新**: 2025-11-07
+**状态**: ✅ 定价合理，可以直接上线
+
+#### 当前定价配置
+
+```typescript
+// src/app/api/checkout/route.ts
+const pricingConfig = {
+  starter_monthly: {
+    amount: 1800,     // $18.00
+    credits: 2000,    // 2,000 Power Units
+    product_name: "Starter Plan"
+  },
+  pro_monthly: {
+    amount: 3000,     // $30.00
+    credits: 3330,    // 3,330 Power Units
+    product_name: "Pro Plan"
+  },
+  business_monthly: {
+    amount: 8800,     // $88.00
+    credits: 9800,    // 9,800 Power Units
+    product_name: "Business Plan"
+  }
+}
+```
+
+#### 成本与利润分析
+
+**基于 Kling v1.6 工作流**（T2I + I2V + TTS，15秒高质量视频）:
+
+| 套餐 | 价格 | Power Units | 视频数 | 实际成本 | 毛利 | **毛利率** |
+|------|------|------------|--------|---------|------|-----------|
+| **Starter** | $18 | 2,000 | 5个 | $3.86 | $14.14 | **78.6%** ✅ |
+| **Pro** | $30 | 3,330 | 8个 | $6.17 | $23.83 | **79.4%** ✅ |
+| **Business** | $88 | 9,800 | 24个 | $18.50 | $69.50 | **79.0%** ✅ |
+
+**结论**:
+- ✅ 毛利率非常健康（78-80%）
+- ✅ 5倍单视频利润率
+- ✅ 价格有竞争力
+- ✅ 用户获得合理数量视频
+
+#### Power Units 消耗详情
+
+**内部核算公式**（用户不可见）:
+```
+1 Power Unit = $0.00965 USD (约 $0.01)
+```
+
+**15秒视频成本核算**:
+```
+T2I (FLUX Dev): 3图 × 1.15MP × $0.025/MP = $0.086
+I2V (Kling v1.6): 15秒 × $0.045/秒 = $0.675
+TTS (VibeVoice): 0.25分钟 × $0.04/分钟 = $0.01
+---------------------------------------------------
+总成本: $0.771
+售价: $0.771 × 5 = $3.855 (5倍利润)
+需要 Power Units: 400 units
+```
+
+**不同模型对比**:
+
+| 工作流 | 成本 | 售价(5x) | Power Units | 质量 | 推荐度 |
+|--------|------|---------|------------|------|--------|
+| **Seedance Lite** | $0.55 | $2.75 | 306 | 720p | ⭐⭐⭐ 经济 |
+| **Kling v1.6** | $0.77 | $3.86 | 400 | 1080p | ⭐⭐⭐⭐⭐ 推荐 |
+| **Wan 2.5** | $0.85 | $4.25 | 425 | 1080p+音效 | ⭐⭐⭐⭐ 带背景音乐 |
+| **Sora 2** | $1.61 | $8.05 | 805 | 顶级质量 | ⭐⭐⭐⭐⭐ 高端 |
+
+#### 新用户赠送策略
+
+**决策**: ✅ 方案B（保持306算力，省成本）
+
+```typescript
+// src/services/credit.ts
+export enum CreditsAmount {
+  NewUserGet = 306,      // 新用户赠送（1条 Seedance 经济视频）
+  DailyCheckIn = 306,    // 每日签到+分享赠送
+  PingCost = 1,
+}
+```
+
+**说明**:
+- 306 Power Units = $2.95 成本
+- 可生成：1条 Seedance Lite 视频（720p，经济模式）
+- 或：0.765条 Kling 视频（需要400，不足）
+- **策略**: AI Planner 自动为新用户选择 Seedance Lite 模式
+
+**优点**:
+- ✅ 省成本（比400算力省$0.91/新用户）
+- ✅ 用户仍可完整体验视频生成流程
+- ⚠️ 首次体验质量略低（720p vs 1080p）
+
+**付费升级引导**:
+- 用户生成第1条视频后，提示："升级到Pro可使用高质量模型（1080p）"
+- 引导到 /pricing 页面
+
+---
+
+### 9.2.5 MVP 上线前必做功能（新增）⭐
+
+**最后更新**: 2025-11-07
+**状态**: 需要补充这3个关键功能才能上线
+
+#### 1. 首页瀑布流展示（参考 lovart.ai）⭐ 必做
+
+**设计目标**：展示用户生成的精彩视频，增强社交证明
+
+**Lovart.ai 分析**：
+- ✅ 响应式网格瀑布流（2/3/4列自适应）
+- ✅ 混合尺寸卡片（9:16竖屏视频为主）
+- ✅ 悬停播放预览
+- ✅ "Use Template" 快速复制
+- ✅ 社区作品展示（非个人作品集）
+
+**我们的实现方案**：
+
+```typescript
+// src/components/WaterfallGallery.tsx
+"use client";
+
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+
+interface VideoCard {
+  id: string;
+  videoUrl: string;
+  thumbnailUrl: string;
+  prompt: string;
+  duration: number;
+  createdAt: string;
+  userName?: string;
+  userAvatar?: string;
+  likes?: number;
+}
+
+export function WaterfallGallery() {
+  const [videos, setVideos] = useState<VideoCard[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const router = useRouter();
+
+  useEffect(() => {
+    // Fetch featured/public videos
+    fetch("/api/gallery/featured")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.code === 0) {
+          setVideos(data.data.videos || []);
+        }
+      })
+      .finally(() => setIsLoading(false));
+  }, []);
+
+  const handleUseTemplate = (video: VideoCard) => {
+    // Pre-fill the prompt and redirect to homepage
+    router.push(`/?prompt=${encodeURIComponent(video.prompt)}`);
+  };
+
+  return (
+    <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      <div className="text-center mb-12">
+        <h2 className="text-4xl font-bold text-gray-900 mb-4">
+          Community Creations
+        </h2>
+        <p className="text-lg text-gray-600">
+          See what others are creating with AI Video Studio
+        </p>
+      </div>
+
+      {isLoading ? (
+        <div className="text-center py-20">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          <p className="mt-4 text-gray-600">Loading amazing videos...</p>
+        </div>
+      ) : (
+        <>
+          {/* Masonry Grid - CSS columns for waterfall effect */}
+          <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-4 space-y-4">
+            {videos.map((video) => (
+              <div
+                key={video.id}
+                className="break-inside-avoid mb-4"
+              >
+                <div className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-xl transition group">
+                  {/* Video Thumbnail */}
+                  <div className="aspect-[9/16] bg-gray-900 relative overflow-hidden">
+                    <video
+                      src={video.videoUrl}
+                      poster={video.thumbnailUrl}
+                      className="w-full h-full object-cover"
+                      loop
+                      muted
+                      playsInline
+                      onMouseEnter={(e) => e.currentTarget.play()}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.pause();
+                        e.currentTarget.currentTime = 0;
+                      }}
+                    />
+
+                    {/* Play overlay */}
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition flex items-center justify-center">
+                      <div className="w-16 h-16 bg-white/90 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
+                        <span className="text-2xl">▶️</span>
+                      </div>
+                    </div>
+
+                    {/* Duration badge */}
+                    <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
+                      {video.duration}s
+                    </div>
+                  </div>
+
+                  {/* Info */}
+                  <div className="p-4">
+                    {/* Prompt */}
+                    <p className="text-sm text-gray-700 mb-3 line-clamp-2">
+                      {video.prompt}
+                    </p>
+
+                    {/* User info */}
+                    {video.userName && (
+                      <div className="flex items-center gap-2 mb-3">
+                        {video.userAvatar && (
+                          <img
+                            src={video.userAvatar}
+                            alt={video.userName}
+                            className="w-6 h-6 rounded-full"
+                          />
+                        )}
+                        <span className="text-xs text-gray-500">{video.userName}</span>
+                      </div>
+                    )}
+
+                    {/* Actions */}
+                    <button
+                      onClick={() => handleUseTemplate(video)}
+                      className="w-full py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white text-sm font-medium rounded-lg hover:from-blue-700 hover:to-purple-700 transition"
+                    >
+                      Use as Template
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Load More */}
+          {videos.length >= 12 && (
+            <div className="text-center mt-12">
+              <button className="px-8 py-3 border-2 border-gray-300 text-gray-700 font-medium rounded-lg hover:border-gray-400 hover:bg-gray-50 transition">
+                Load More Creations
+              </button>
+            </div>
+          )}
+        </>
+      )}
+    </section>
+  );
+}
+```
+
+**后端 API**（`src/app/api/gallery/featured/route.ts`）：
+```typescript
+import { respData, respErr } from "@/lib/resp";
+import { db } from "@/db";
+import { artifacts, runs } from "@/db/schema-extended";
+import { users } from "@/db/schema";
+import { eq, desc } from "drizzle-orm";
+
+export async function GET(req: Request) {
+  try {
+    // Fetch successful public runs with video artifacts
+    const featuredVideos = await db
+      .select({
+        id: runs.uuid,
+        videoUrl: artifacts.url,
+        thumbnailUrl: artifacts.metadata, // Store thumbnail in metadata
+        prompt: runs.user_input,
+        duration: runs.total_duration,
+        createdAt: runs.created_at,
+        userName: users.nickname,
+        userAvatar: users.avatar_url,
+      })
+      .from(runs)
+      .innerJoin(artifacts, eq(artifacts.run_uuid, runs.uuid))
+      .leftJoin(users, eq(users.uuid, runs.user_uuid))
+      .where(eq(runs.status, "completed"))
+      .orderBy(desc(runs.created_at))
+      .limit(20);
+
+    return respData({
+      videos: featuredVideos,
+    });
+  } catch (error: any) {
+    console.error("Failed to fetch featured videos:", error);
+    return respErr("Failed to load gallery");
+  }
+}
+```
+
+**集成到首页**（`src/app/page.tsx`）：
+```tsx
+import { WaterfallGallery } from "@/components/WaterfallGallery";
+
+export default function HomePage() {
+  // ... existing code ...
+
+  return (
+    <div className="min-h-screen bg-white">
+      {/* Header */}
+      {/* Hero Section with Input */}
+
+      {/* Waterfall Gallery - Replace "Featured Templates" section */}
+      <WaterfallGallery />
+
+      {/* Footer */}
+    </div>
+  );
+}
+```
+
+**开发时间**: 3-4 小时
+
+---
+
+#### 2. 法律页面（隐私政策 + 服务条款）⭐ 必做
+
+**需求**：GDPR/CCPA 合规，保护公司和用户权益
+
+**实现方案**：
+
+##### 2.1 隐私政策页面（`src/app/privacy/page.tsx`）
+
+```typescript
+export default function PrivacyPage() {
+  return (
+    <div className="min-h-screen bg-white">
+      <div className="max-w-4xl mx-auto px-4 py-16">
+        <h1 className="text-4xl font-bold mb-8">Privacy Policy</h1>
+        <p className="text-gray-600 mb-8">Last updated: November 7, 2025</p>
+
+        <div className="prose prose-lg max-w-none">
+          <h2>1. Information We Collect</h2>
+          <p>
+            We collect information you provide directly to us, including:
+          </p>
+          <ul>
+            <li>Account information (email, name, profile picture via OAuth)</li>
+            <li>Content you create (video prompts, generated videos)</li>
+            <li>Payment information (processed securely via Creem)</li>
+            <li>Usage data (page views, feature usage, error logs)</li>
+          </ul>
+
+          <h2>2. How We Use Your Information</h2>
+          <ul>
+            <li>Provide and improve our services</li>
+            <li>Process payments and manage your account</li>
+            <li>Send service updates and marketing (opt-out available)</li>
+            <li>Ensure security and prevent fraud</li>
+          </ul>
+
+          <h2>3. Data Sharing</h2>
+          <p>
+            We do not sell your personal information. We share data only with:
+          </p>
+          <ul>
+            <li><strong>Service providers</strong>: Fal.ai (AI processing), Creem (payments), Vercel (hosting)</li>
+            <li><strong>Legal compliance</strong>: When required by law</li>
+          </ul>
+
+          <h2>4. Your Rights (GDPR/CCPA)</h2>
+          <ul>
+            <li>Access your data</li>
+            <li>Request deletion</li>
+            <li>Opt-out of marketing</li>
+            <li>Data portability</li>
+          </ul>
+          <p>
+            Contact us at <a href="mailto:privacy@yourdomain.com">privacy@yourdomain.com</a>
+          </p>
+
+          <h2>5. Cookies</h2>
+          <p>
+            We use essential cookies for authentication. Analytics cookies are optional.
+          </p>
+
+          <h2>6. Data Security</h2>
+          <p>
+            We use industry-standard encryption (HTTPS, encrypted databases).
+          </p>
+
+          <h2>7. Children's Privacy</h2>
+          <p>
+            Our service is not intended for users under 13 years old.
+          </p>
+
+          <h2>8. Changes to This Policy</h2>
+          <p>
+            We will notify you of significant changes via email.
+          </p>
+
+          <h2>9. Contact Us</h2>
+          <p>
+            For privacy concerns: <a href="mailto:privacy@yourdomain.com">privacy@yourdomain.com</a>
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+```
+
+##### 2.2 服务条款页面（`src/app/terms/page.tsx`）
+
+```typescript
+export default function TermsPage() {
+  return (
+    <div className="min-h-screen bg-white">
+      <div className="max-w-4xl mx-auto px-4 py-16">
+        <h1 className="text-4xl font-bold mb-8">Terms of Service</h1>
+        <p className="text-gray-600 mb-8">Last updated: November 7, 2025</p>
+
+        <div className="prose prose-lg max-w-none">
+          <h2>1. Acceptance of Terms</h2>
+          <p>
+            By accessing AI Video Studio, you agree to these Terms of Service.
+          </p>
+
+          <h2>2. Service Description</h2>
+          <p>
+            AI Video Studio provides AI-powered video generation services on a subscription basis.
+          </p>
+
+          <h2>3. Account Responsibilities</h2>
+          <ul>
+            <li>You must be 13+ years old</li>
+            <li>Provide accurate information</li>
+            <li>Keep your password secure</li>
+            <li>You are responsible for all activity under your account</li>
+          </ul>
+
+          <h2>4. Acceptable Use</h2>
+          <p><strong>You may NOT use our service to create:</strong></p>
+          <ul>
+            <li>Illegal content</li>
+            <li>Harmful, abusive, or discriminatory content</li>
+            <li>Content infringing copyrights or trademarks</li>
+            <li>Deepfakes or misleading content without disclosure</li>
+            <li>Spam or malware</li>
+          </ul>
+
+          <h2>5. Intellectual Property</h2>
+          <ul>
+            <li><strong>Your content</strong>: You retain ownership of videos you create</li>
+            <li><strong>Commercial use</strong>: Allowed with paid subscriptions</li>
+            <li><strong>Our platform</strong>: We own the AI Video Studio software and branding</li>
+          </ul>
+
+          <h2>6. Billing & Refunds</h2>
+          <ul>
+            <li>Subscriptions renew automatically</li>
+            <li>Cancel anytime (no refunds for unused credits)</li>
+            <li>Credits expire at end of billing period</li>
+            <li>We reserve the right to change pricing with 30 days notice</li>
+          </ul>
+
+          <h2>7. Service Availability</h2>
+          <p>
+            We strive for 99% uptime but do not guarantee uninterrupted service.
+          </p>
+
+          <h2>8. Termination</h2>
+          <p>
+            We may suspend/terminate accounts for Terms violations. You may delete your account anytime.
+          </p>
+
+          <h2>9. Disclaimers</h2>
+          <p>
+            Service provided "AS IS". We are not liable for AI-generated content accuracy or third-party service failures.
+          </p>
+
+          <h2>10. Limitation of Liability</h2>
+          <p>
+            Our liability is limited to the amount you paid in the past 12 months.
+          </p>
+
+          <h2>11. Governing Law</h2>
+          <p>
+            These Terms are governed by [Your Country/State] law.
+          </p>
+
+          <h2>12. Contact</h2>
+          <p>
+            Questions: <a href="mailto:support@yourdomain.com">support@yourdomain.com</a>
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+```
+
+##### 2.3 联系页面（`src/app/contact/page.tsx`）
+
+```typescript
+export default function ContactPage() {
+  return (
+    <div className="min-h-screen bg-white">
+      <div className="max-w-2xl mx-auto px-4 py-16">
+        <h1 className="text-4xl font-bold mb-8 text-center">Contact Us</h1>
+
+        <div className="bg-white rounded-xl border border-gray-200 p-8 mb-8">
+          <h2 className="text-2xl font-semibold mb-4">Get in Touch</h2>
+
+          <div className="space-y-4">
+            <div>
+              <h3 className="font-medium text-gray-900 mb-1">General Support</h3>
+              <a href="mailto:support@yourdomain.com" className="text-blue-600 hover:underline">
+                support@yourdomain.com
+              </a>
+            </div>
+
+            <div>
+              <h3 className="font-medium text-gray-900 mb-1">Business Inquiries</h3>
+              <a href="mailto:business@yourdomain.com" className="text-blue-600 hover:underline">
+                business@yourdomain.com
+              </a>
+            </div>
+
+            <div>
+              <h3 className="font-medium text-gray-900 mb-1">Privacy Concerns</h3>
+              <a href="mailto:privacy@yourdomain.com" className="text-blue-600 hover:underline">
+                privacy@yourdomain.com
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <div className="text-center">
+          <p className="text-gray-600 mb-4">Follow us on social media:</p>
+          <div className="flex justify-center gap-4">
+            <a href="https://twitter.com/yourhandle" className="text-gray-600 hover:text-blue-500">
+              Twitter
+            </a>
+            <a href="https://linkedin.com/company/yourcompany" className="text-gray-600 hover:text-blue-500">
+              LinkedIn
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+```
+
+**开发时间**: 1-2 小时（使用模板）
+
+---
+
+#### 3. Creem 支付测试→生产流程 ⭐ 必做
+
+**重要**: Creem 必须先在测试环境完整测试，再切换到生产环境
+
+**完整流程**：
+
+##### Phase 1: 测试环境配置（Day 1）
+
+```bash
+# Step 1: 注册 Creem 测试账号
+1. 访问 https://dashboard.creem.io
+2. 注册账号 → 选择 "Test Mode"
+3. 进入 Developers → API Keys
+
+# Step 2: 获取测试环境密钥
+CREEM_ENV="test"
+CREEM_API_KEY="ck_test_xxxxxxxxxxxxx"
+CREEM_WEBHOOK_SECRET="whsec_test_xxxxxxxxxxxxx"
+
+# Step 3: 配置测试 Webhook
+Webhook URL: https://yourdomain.com/api/pay/notify/creem
+Events: checkout.completed
+Secret: 复制到 CREEM_WEBHOOK_SECRET
+```
+
+##### Phase 2: 测试环境验证（Day 1）
+
+**测试清单**：
+```
+✓ [ ] 测试卡支付成功: 4242 4242 4242 4242, CVV: 123, 未来日期
+✓ [ ] 测试卡支付失败: 4000 0000 0000 0002
+✓ [ ] 订单创建成功（orders 表）
+✓ [ ] Webhook 接收成功（签名验证通过）
+✓ [ ] 算力自动充值（credits 表）
+✓ [ ] 支付回调跳转正确
+✓ [ ] 所有3个套餐都测试过（Starter/Pro/Business）
+```
+
+**测试命令**：
+```bash
+# 1. 启动本地服务器
+npm run dev
+
+# 2. 使用 ngrok 暴露本地服务（用于接收 Webhook）
+npx ngrok http 3000
+# 复制 HTTPS URL（例如：https://abc123.ngrok.io）
+
+# 3. 更新 Creem Webhook URL 为 ngrok URL
+https://abc123.ngrok.io/api/pay/notify/creem
+
+# 4. 测试支付流程
+访问 http://localhost:3000/pricing
+点击 "Get Started"
+使用测试卡支付
+
+# 5. 检查 Webhook 日志
+检查控制台输出，确认 Webhook 收到并验证签名
+```
+
+##### Phase 3: 生产环境切换（Day 2，上线时）
+
+**切换清单**：
+```bash
+# Step 1: 在 Creem Dashboard 切换到 Production Mode
+Dashboard → Settings → Switch to Production Mode
+
+# Step 2: 获取生产环境密钥
+CREEM_ENV="production"
+CREEM_API_KEY="ck_live_xxxxxxxxxxxxx"  # ⚠️ 注意是 live 不是 test
+CREEM_WEBHOOK_SECRET="whsec_live_xxxxxxxxxxxxx"
+
+# Step 3: 更新 Vercel 环境变量
+Vercel Dashboard → Settings → Environment Variables
+更新以下3个变量：
+- CREEM_ENV = "production"
+- CREEM_API_KEY = "ck_live_xxx"
+- CREEM_WEBHOOK_SECRET = "whsec_live_xxx"
+
+# Step 4: 更新 Creem Webhook URL 为生产域名
+https://app.yourdomain.com/api/pay/notify/creem
+
+# Step 5: 重新部署
+Vercel Dashboard → Deployments → Redeploy
+```
+
+##### Phase 4: 生产环境验证（Day 2）
+
+**验证清单**：
+```
+✓ [ ] 使用真实信用卡测试（小额 $1 测试）
+✓ [ ] 订单创建成功
+✓ [ ] Webhook 接收成功（生产环境）
+✓ [ ] 算力充值成功
+✓ [ ] 收到 Creem 支付确认邮件
+✓ [ ] 检查 Creem Dashboard → Transactions 有记录
+✓ [ ] 退款测试（可选，在 Dashboard 手动退款）
+```
+
+**风险提示**：
+- ⚠️ 测试环境和生产环境密钥**不能混用**
+- ⚠️ Webhook Secret 必须与环境匹配
+- ⚠️ 生产环境 Webhook 必须使用 HTTPS
+- ⚠️ 首次上线建议用小额测试（$1）验证流程
+
+---
+
+### 9.3 MVP 上线清单（2天计划）- 更新版
+
+**目标**: 2天内完成 MVP 上线
+**当前状态**: ✅ 核心系统 100% 完成 + ⚠️ 需补充3个功能
+
+#### 更新后的时间安排
+
+**Day 1（6-8小时）**:
+- Step 1: 实现首页瀑布流（3-4小时）⭐ 新增
+- Step 2: 创建法律页面（1-2小时）⭐ 新增
+- Step 3: 配置 Creem 测试环境（1小时）
+- Step 4: 完整测试支付流程（1小时）
+
+**Day 2（3-4小时）**:
+- Step 5: 部署到 Vercel（1小时）
+- Step 6: 切换 Creem 到生产环境（30分钟）⭐ 新增
+- Step 7: 生产环境完整测试（1小时）
+- Step 8: 性能优化 + 最后检查（1小时）
+
+---
+
+### 9.3 MVP 上线清单（2天计划）
+
+**目标**: 2天内完成 MVP 上线
+**当前状态**: ✅ 核心系统 100% 完成
+
+#### Day 1：环境配置 + 测试（4-6小时）
+
+##### Step 1: 配置 Creem 支付账号（1小时）
+
+**注册与配置**:
+```bash
+1. 注册 Creem 商户账号: https://creem.io
+2. 进入开发者中心 → API Keys
+3. 创建测试环境 API Key
+4. 获取 Webhook Secret
+5. 配置产品价格（或使用动态定价）
+```
+
+**配置 .env**:
+```bash
+# Payment Configuration
+PAY_PROVIDER="creem"
+CREEM_ENV="test"  # 先用测试环境
+CREEM_API_KEY="ck_test_xxxxx"
+CREEM_WEBHOOK_SECRET="whsec_xxxxx"
+
+# Payment Callback URLs
+NEXT_PUBLIC_WEB_URL="http://localhost:3000"
+NEXT_PUBLIC_PAY_SUCCESS_URL="/dashboard"
+NEXT_PUBLIC_PAY_FAIL_URL="/pricing"
+NEXT_PUBLIC_PAY_CANCEL_URL="/pricing"
+```
+
+**设置 Webhook**:
+- URL: `https://yourdomain.com/api/pay/notify/creem`
+- Events: `checkout.completed`
+- Secret: 复制到 `CREEM_WEBHOOK_SECRET`
+
+##### Step 2: 配置其他必需环境变量（30分钟）
+
+**必需配置清单**:
+
+```bash
+# 数据库（Supabase）✅
+DATABASE_URL="postgresql://..."
+DIRECT_URL="postgresql://..."
+
+# 认证（NextAuth）✅
+NEXTAUTH_URL="http://localhost:3000"
+NEXTAUTH_SECRET="xxx"  # openssl rand -base64 32
+AUTH_GOOGLE_ID="xxx.apps.googleusercontent.com"
+AUTH_GOOGLE_SECRET="GOCSPX-xxx"
+
+# AI 服务（Fal.ai）✅ 必需！
+FAL_API_KEY="xxx"  # 用于所有视频生成
+
+# 可选：其他 AI 服务（可后续添加）
+OPENAI_API_KEY="sk-..."
+ANTHROPIC_API_KEY="sk-ant-..."
+```
+
+**验证配置**:
+```bash
+# 1. 检查环境变量
+npm run dev
+# 访问 http://localhost:3000
+
+# 2. 测试数据库连接
+npm run db:studio
+
+# 3. 测试登录
+访问 /login，尝试 Google 登录
+```
+
+##### Step 3: 支付流程完整测试（1小时）
+
+**测试场景 1: Starter 套餐购买流程**
+```
+✓ [ ] 1. 访问 http://localhost:3000/pricing
+✓ [ ] 2. 点击 Starter "Get Started" 按钮
+✓ [ ] 3. 跳转到 Creem 支付页面
+✓ [ ] 4. 使用测试卡完成支付: 4242 4242 4242 4242
+✓ [ ] 5. 支付成功后跳转到 /dashboard
+✓ [ ] 6. 检查数据库 orders 表: status = "paid"
+✓ [ ] 7. 检查数据库 credits 表: 增加 2000 算力
+✓ [ ] 8. 用户余额显示: 2306 算力 (2000 + 306)
+```
+
+**预期数据库变化**:
+```sql
+-- orders 表
+order_no: "xxx"
+status: "paid"
+amount: 1800  -- $18.00
+credits: 2000
+user_uuid: "xxx"
+
+-- credits 表（2条记录）
+1. trans_type: "charge", credits: +2000, order_no: "xxx"
+2. trans_type: "grant", credits: +306 (新用户赠送)
+```
+
+**测试场景 2: Webhook 验证**
+```
+✓ [ ] 1. 在 Creem Dashboard 触发测试 Webhook
+✓ [ ] 2. 检查服务器日志: /api/pay/notify/creem 收到请求
+✓ [ ] 3. 签名验证通过（HMAC SHA-256）
+✓ [ ] 4. 订单状态更新成功
+✓ [ ] 5. 算力自动充值
+```
+
+**测试场景 3: 支付失败处理**
+```
+✓ [ ] 1. 使用失败测试卡: 4000 0000 0000 0002
+✓ [ ] 2. 支付失败后跳转到 /pricing
+✓ [ ] 3. 订单状态保持 "created" (不是 "paid")
+✓ [ ] 4. 算力未增加
+✓ [ ] 5. 显示友好错误提示
+```
+
+##### Step 4: 视频生成完整测试（1小时）
+
+**测试场景 1: 新用户首次生成（Seedance Lite）**
+```
+✓ [ ] 1. 注册新账号（Google OAuth）
+✓ [ ] 2. 检查初始算力: 306 Power Units
+✓ [ ] 3. 输入简单提示词: "A cat playing in a park"
+✓ [ ] 4. 选择: 15秒, TikTok (9:16), 无配音
+✓ [ ] 5. AI Planner 自动选择 Seedance Lite（因为只有306算力）
+✓ [ ] 6. 点击 "Generate Video"
+✓ [ ] 7. 等待生成完成（约 1-2 分钟）
+✓ [ ] 8. 检查算力扣减: 306 → 0
+✓ [ ] 9. 视频可正常播放和下载
+```
+
+**测试场景 2: 付费用户生成（Kling v1.6）**
+```
+✓ [ ] 1. 购买 Starter 套餐（上面测试过）
+✓ [ ] 2. 算力: 2306 units (2000 + 306)
+✓ [ ] 3. 输入复杂提示词: "Product showcase for luxury watch"
+✓ [ ] 4. 选择: 15秒, Instagram Reels (9:16), 男声配音
+✓ [ ] 5. AI Planner 自动选择 Kling v1.6（因为算力充足）
+✓ [ ] 6. 预估消耗: ~400 Power Units
+✓ [ ] 7. 生成完成后检查: 2306 → 1906
+✓ [ ] 8. 连续生成第2条视频
+✓ [ ] 9. 检查算力: 1906 → 1506
+```
+
+**测试场景 3: 余额不足处理**
+```
+✓ [ ] 1. 用完所有算力（连续生成多条视频）
+✓ [ ] 2. 尝试生成新视频
+✓ [ ] 3. 显示错误: "Insufficient Power Units"
+✓ [ ] 4. 提示: "Please upgrade your plan"
+✓ [ ] 5. 显示 "Upgrade" 按钮，跳转到 /pricing
+```
+
+##### Step 5: 错误处理测试（30分钟）
+
+**测试清单**:
+```
+✓ [ ] AI 生成失败（Fal.ai API 错误）
+      - 预期: 显示错误信息，不扣费，允许重试
+
+✓ [ ] 支付失败（网络错误）
+      - 预期: 跳转到失败页，订单未创建
+
+✓ [ ] Webhook 签名错误
+      - 预期: 返回 500 错误，订单不更新
+
+✓ [ ] 数据库连接失败
+      - 预期: 友好错误提示，不崩溃
+
+✓ [ ] 无效的模型 ID
+      - 预期: 降级到默认模型，记录警告
+```
+
+---
+
+#### Day 2：部署 + 上线（3-4小时）
+
+##### Step 6: 部署到 Vercel（1小时）
+
+**部署步骤**:
+
+```bash
+# 1. 推送代码到 GitHub
+git add .
+git commit -m "feat: MVP ready for production"
+git push origin main
+
+# 2. 连接 Vercel 项目
+# 访问 https://vercel.com/new
+# 导入 GitHub 仓库
+
+# 3. 配置环境变量（Vercel Dashboard）
+# 复制所有 .env 变量到 Vercel Environment Variables
+# 重要：更新以下变量为生产值
+NEXTAUTH_URL="https://app.yourdomain.com"
+NEXT_PUBLIC_WEB_URL="https://app.yourdomain.com"
+CREEM_ENV="production"  # 切换到生产环境
+CREEM_API_KEY="ck_live_xxxxx"  # 使用生产 API Key
+
+# 4. 配置自定义域名
+# Settings → Domains → Add Domain
+# 输入: app.yourdomain.com
+# 添加 DNS 记录（A 记录或 CNAME）
+
+# 5. 部署
+# Framework Preset: Next.js
+# Root Directory: ./
+# Build Command: npm run build
+# Output Directory: .next
+# 点击 "Deploy"
+```
+
+**部署验证**:
+```
+✓ [ ] 构建成功（无错误）
+✓ [ ] 首页正常加载
+✓ [ ] 静态资源加载（图片、CSS）
+✓ [ ] API 路由正常工作
+```
+
+##### Step 7: 生产环境完整测试（1小时）
+
+**重复 Day 1 的所有测试**:
+```
+✓ [ ] 新用户注册 + Google OAuth 登录
+✓ [ ] 初始算力赠送（306 units）
+✓ [ ] Starter 套餐购买流程
+✓ [ ] 算力充值成功
+✓ [ ] 生成第1条视频（Seedance Lite）
+✓ [ ] 生成第2条视频（Kling v1.6）
+✓ [ ] 余额不足提示
+✓ [ ] 支付失败处理
+```
+
+**额外测试**:
+```
+✓ [ ] 不同浏览器: Chrome, Safari, Firefox
+✓ [ ] 移动端: iPhone, Android
+✓ [ ] 并发: 2个用户同时生成视频
+✓ [ ] 大流量: 5个用户同时注册
+```
+
+##### Step 8: 性能优化检查（30分钟）
+
+**Lighthouse 检查**:
+```bash
+# 访问生产 URL
+# 打开 Chrome DevTools → Lighthouse
+# 运行测试
+```
+
+**目标分数**:
+```
+✓ [ ] Performance: > 90
+✓ [ ] Accessibility: > 90
+✓ [ ] Best Practices: > 90
+✓ [ ] SEO: > 90
+```
+
+**优化项**:
+```
+✓ [ ] 图片已优化（Next.js Image）
+✓ [ ] 启用 Gzip 压缩
+✓ [ ] 设置 Cache-Control 头
+✓ [ ] 删除未使用的 CSS/JS
+✓ [ ] 首页加载时间 < 2秒
+```
+
+##### Step 9: 上线前最后检查（30分钟）
+
+**功能清单**:
+```
+✓ [ ] 登录系统正常（Google OAuth）
+✓ [ ] 支付系统正常（Creem）
+✓ [ ] 视频生成正常（Fal.ai）
+✓ [ ] 算力扣减准确
+✓ [ ] 错误提示友好
+✓ [ ] 所有链接有效（无404）
+```
+
+**内容清单**:
+```
+✓ [ ] 删除所有 "TODO" 注释
+✓ [ ] 检查英文文案无误（无中文）
+✓ [ ] 隐私政策页面（/privacy）
+✓ [ ] 服务条款页面（/terms）
+✓ [ ] 联系方式页面（/contact）
+```
+
+**安全清单**:
+```
+✓ [ ] 环境变量未泄露到前端
+✓ [ ] API 密钥已保护（服务器端）
+✓ [ ] Webhook 签名验证启用
+✓ [ ] HTTPS 强制启用（Vercel 自动）
+✓ [ ] CORS 正确配置
+✓ [ ] XSS 防护启用
+```
+
+---
+
+### 9.4 上线！🎉
+
+#### 生产环境切换清单
+
+```bash
+# 1. Creem 切换到生产模式
+✓ [ ] CREEM_ENV="production"
+✓ [ ] 更新 CREEM_API_KEY 为生产 Key
+✓ [ ] 更新 Webhook URL 为生产域名
+
+# 2. 更新 Fal.ai 配额
+✓ [ ] 充值 Fal.ai 账户（建议 $50-100）
+✓ [ ] 监控配额使用情况
+
+# 3. 启用监控
+✓ [ ] Vercel Analytics（免费）
+✓ [ ] Google Analytics（可选）
+✓ [ ] Sentry 错误监控（可选）
+```
+
+#### 发布宣传
+
+```
+✓ [ ] 社交媒体发布（Twitter/X, LinkedIn）
+✓ [ ] Product Hunt 提交（可选）
+✓ [ ] Hacker News 发布（可选）
+✓ [ ] Reddit r/SideProject（可选）
+```
+
+#### 上线后第一周监控
+
+**关键指标**:
+```
+- 新用户注册数
+- 付费转化率（免费 → 付费）
+- 视频生成成功率
+- 平均生成时间
+- 支付成功率
+- 用户留存率（D1, D7）
+```
+
+**监控工具**:
+```
+- Vercel Dashboard: 流量、错误率
+- Creem Dashboard: 支付订单、收入
+- Fal.ai Dashboard: API 使用量、成本
+- Supabase Dashboard: 数据库查询、存储
+```
+
+**问题追踪**:
+```
+✓ [ ] 收集用户反馈（Discord/Email）
+✓ [ ] Bug 修复优先级排序
+✓ [ ] 性能瓶颈识别
+✓ [ ] 成本异常监控
+```
+
+---
+
+### 9.5 上线后优化路线图（Week 2-4）
+
+#### 优先级 1：用户增长功能（Week 2）
+
+**每日签到系统** (1天开发):
+```typescript
+// src/app/api/checkin/route.ts
+- 用户每日登录可领取 306 Power Units
+- 防止重复领取（检查当日是否已签到）
+- UI: 显示连续签到天数
+```
+
+**社交分享奖励** (1天开发):
+```typescript
+// src/app/api/share-reward/route.ts
+- 分享到 Twitter/Facebook/TikTok
+- 每次分享获得 306 Power Units
+- 每日限制 1 次
+```
+
+**推荐奖励系统** (2天开发):
+```typescript
+- 邀请好友注册
+- 双方各获得 500 Power Units
+- 生成唯一推荐链接
+- 追踪推荐转化
+```
+
+#### 优先级 2：用户体验优化（Week 3）
+
+**Canvas 画布增强**:
+```
+- 自定义节点样式（圆角、阴影、图标）
+- 实时进度显示（WebSocket）
+- 节点可拖拽重新连接
+- 缩略图预览
+```
+
+**视频编辑功能**:
+```
+- 简单裁剪（调整时长）
+- 添加文字覆盖层
+- 背景音乐库
+- 滤镜效果（黑白、复古等）
+```
+
+#### 优先级 3：商业化功能（Week 4）
+
+**免费算力视频添加水印**:
+```typescript
+// 使用免费算力生成的视频带水印
+- 修改数据库：credits 表添加 is_free 字段
+- 生成时检查积分来源
+- FFmpeg 添加水印处理
+```
+
+**高级模型付费解锁**:
+```
+- Sora 2 仅 Pro/Business 可用
+- Veo 3.1 仅 Business 可用
+- 付费用户优先队列
+```
+
+**API 访问（Enterprise）**:
+```
+- REST API endpoints
+- API Key 管理
+- Rate limiting
+- Webhook 通知
+```
+
+---
+
+### 9.6 Pre-Launch Checklist（最终确认）
+
+```
+✅ 核心功能
+✓ [ ] 登录系统：Google OAuth 正常
+✓ [ ] 支付系统：Creem 集成完成
+✓ [ ] 会员系统：三档套餐配置正确
+✓ [ ] 视频生成：AI Planner + Orchestrator 正常
+✓ [ ] 算力系统：扣费准确，余额不足提示
+
+✅ 环境配置
+✓ [ ] DATABASE_URL（Supabase）
+✓ [ ] AUTH_GOOGLE_ID & SECRET
+✓ [ ] FAL_API_KEY（必需）
+✓ [ ] CREEM_API_KEY & WEBHOOK_SECRET
+✓ [ ] NEXTAUTH_URL（生产域名）
+
+✅ 支付测试
+✓ [ ] Starter 套餐购买成功
+✓ [ ] Pro 套餐购买成功
+✓ [ ] Business 套餐购买成功
+✓ [ ] Webhook 签名验证通过
+✓ [ ] 算力自动充值
+
+✅ 视频生成测试
+✓ [ ] 新用户首次生成（306算力）
+✓ [ ] 付费用户生成（Kling v1.6）
+✓ [ ] 连续生成多条视频
+✓ [ ] 余额不足提示
+
+✅ 错误处理
+✓ [ ] API 错误友好提示
+✓ [ ] 支付失败正确处理
+✓ [ ] 数据库错误不崩溃
+
+✅ 安全检查
+✓ [ ] 环境变量保护
+✓ [ ] Webhook 签名验证
+✓ [ ] HTTPS 启用
+✓ [ ] XSS/CSRF 防护
+
+✅ 性能优化
+✓ [ ] Lighthouse 分数 > 90
+✓ [ ] 首页加载 < 2秒
+✓ [ ] 图片优化
+✓ [ ] 代码压缩
+
+✅ 内容完整性
+✓ [ ] 所有文案为英文
+✓ [ ] 无 TODO 注释
+✓ [ ] 隐私政策页面
+✓ [ ] 服务条款页面
+```
 
 ---
 
