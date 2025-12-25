@@ -5,8 +5,8 @@ export default function PrivacyPage() {
       <header className="border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <a href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg"></div>
-            <span className="text-xl font-bold text-gray-900">AI Video Studio</span>
+            <div className="w-8 h-8 bg-gradient-to-br from-emerald-600 to-teal-600 rounded-lg"></div>
+            <span className="text-xl font-bold text-gray-900">PromptShip</span>
           </a>
         </div>
       </header>
@@ -65,7 +65,7 @@ export default function PrivacyPage() {
               <li><strong>Data portability</strong>: Export your data in machine-readable format</li>
             </ul>
             <p className="text-gray-700 mt-3">
-              Contact us at <a href="mailto:privacy@aivideostudio.com" className="text-blue-600 hover:underline">privacy@aivideostudio.com</a> to exercise these rights.
+              Contact us at <a href="mailto:privacy@promptship.ai" className="text-emerald-600 hover:underline">privacy@promptship.ai</a> to exercise these rights.
             </p>
           </section>
 
@@ -140,9 +140,9 @@ export default function PrivacyPage() {
               For privacy-related questions or concerns, please contact:
             </p>
             <div className="bg-gray-50 p-4 rounded-lg mt-3">
-              <p className="text-gray-700">Email: <a href="mailto:privacy@aivideostudio.com" className="text-blue-600 hover:underline">privacy@aivideostudio.com</a></p>
+              <p className="text-gray-700">Email: <a href="mailto:privacy@promptship.ai" className="text-emerald-600 hover:underline">privacy@promptship.ai</a></p>
               <p className="text-gray-700 mt-2">
-                Or visit our <a href="/contact" className="text-blue-600 hover:underline">Contact page</a>
+                Or visit our <a href="/contact" className="text-emerald-600 hover:underline">Contact page</a>
               </p>
             </div>
           </section>
@@ -152,9 +152,9 @@ export default function PrivacyPage() {
         <div className="mt-12 text-center">
           <a
             href="/"
-            className="inline-block px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-medium rounded-lg hover:from-blue-700 hover:to-purple-700 transition"
+            className="inline-block px-6 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-medium rounded-lg hover:from-emerald-700 hover:to-teal-700 transition"
           >
-            ← Back to Home
+            Back to Home
           </a>
         </div>
       </div>

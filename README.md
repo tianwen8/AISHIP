@@ -163,3 +163,25 @@ Pro preview verified: Pro can generate Flux preview image, total cost 50 (20 + 3
 Webhook test events: Creem test webhooks return sample data and do not create credits; only real paid webhooks with metadata will insert records.
 
 Tool metadata: shared definitions live in src/tools/definitions.ts (pricing, preview permissions, plan gating).
+
+Homepage now renders public_prompts in a masonry grid (PromptHero-style) with search and tags.
+
+Prompt detail now reads public_prompts by slug and renders prompt blocks, shot list, and copy buttons.
+
+Free browsing: prompt detail is public; views/copies tracked via /api/prompts/view and /api/prompts/copy; copy does not require login.
+
+Quick copy: library cards include a copy button that records copies without login.
+
+
+## Update Log (2025-12-25)
+- UI refresh: emerald/teal palette, new fonts (Manrope + Space Grotesk), hero background shapes.
+- Login/Contact/Terms/Privacy pages cleaned to PromptShip branding and ASCII-only text.
+- Prompt detail copy flow: CopyButton records copies internally via slug (no server->client handler props).
+- Next.js 15 fix: server components await searchParams/params before access.
+- CRLF issue fixed in src/app/tools/video-storyboard/page.tsx (removed literal \\r\\n).
+
+## Pending Plan (Short)
+1) Prompt library polish: watermark previews, curated tags, copy CTA A/B.
+2) Prompt detail: related prompts + next/prev navigation.
+3) Pricing flow: clarify Basic vs Pro usage limits on UI.
+4) Template hardening: tool registry docs + optional schema add-ons.

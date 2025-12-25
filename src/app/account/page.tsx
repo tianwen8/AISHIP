@@ -53,7 +53,7 @@ export default async function AccountPage() {
         {/* Header Section */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">My Studio</h1>
+            <h1 className="text-3xl font-bold text-gray-900 font-display">My Studio</h1>
             <p className="text-gray-500 mt-1">Manage your credits and view your generation history.</p>
           </div>
           <div className="flex items-center gap-4">
@@ -70,13 +70,13 @@ export default async function AccountPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
           {/* Credit Balance */}
           <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm relative overflow-hidden group">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-violet-50 rounded-full translate-x-10 -translate-y-10 group-hover:scale-110 transition duration-500"></div>
+            <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-50 rounded-full translate-x-10 -translate-y-10 group-hover:scale-110 transition duration-500"></div>
             <div className="relative z-10">
               <div className="text-sm font-medium text-gray-500 mb-1 flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-violet-500" /> Available Credits
+                <Sparkles className="w-4 h-4 text-emerald-500" /> Available Credits
               </div>
               <div className="text-4xl font-bold text-gray-900 mb-4">{currentBalance}</div>
-              <Link href="/pricing" className="text-sm font-semibold text-violet-600 hover:text-violet-700 flex items-center gap-1">
+              <Link href="/pricing" className="text-sm font-semibold text-emerald-600 hover:text-emerald-700 flex items-center gap-1">
                 Top up credits <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
@@ -122,7 +122,7 @@ export default async function AccountPage() {
               <p className="text-gray-500 mb-6">Create your first video storyboard today.</p>
               <Link 
                 href="/tools/video-storyboard" 
-                className="inline-flex items-center gap-2 px-5 py-2.5 bg-violet-600 text-white font-medium rounded-lg hover:bg-violet-700 transition"
+                className="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 text-white font-medium rounded-lg hover:bg-emerald-700 transition"
               >
                 Start Creating
               </Link>
@@ -142,8 +142,8 @@ export default async function AccountPage() {
                 return (
                   <div key={run.id} className="p-6 hover:bg-gray-50 transition flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div className="flex items-start gap-4">
-                      <div className="w-10 h-10 bg-violet-100 rounded-lg flex items-center justify-center shrink-0">
-                        <FileText className="w-5 h-5 text-violet-600" />
+                      <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center shrink-0">
+                        <FileText className="w-5 h-5 text-emerald-600" />
                       </div>
                       <div>
                         <h3 className="font-semibold text-gray-900">{outputTitle}</h3>
@@ -152,9 +152,9 @@ export default async function AccountPage() {
                             <Calendar className="w-3 h-3" />
                             {run.created_at ? formatDistanceToNow(new Date(run.created_at), { addSuffix: true }) : "Unknown date"}
                           </span>
-                          <span>•</span>
+                          <span>|</span>
                           <span>{run.cost_credits} Credits</span>
-                          <span>•</span>
+                          <span>|</span>
                           <span className="uppercase text-xs font-bold bg-green-50 text-green-700 px-2 py-0.5 rounded border border-green-100">
                             {run.status}
                           </span>

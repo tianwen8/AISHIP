@@ -46,10 +46,10 @@ export function Header() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-gradient-to-br from-violet-600 to-indigo-600 rounded-lg flex items-center justify-center text-white font-bold shadow-sm">
+          <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-lg flex items-center justify-center text-white font-bold shadow-sm">
             P
           </div>
-          <span className="text-xl font-bold text-gray-900 tracking-tight">PromptShip</span>
+          <span className="text-xl font-bold text-gray-900 tracking-tight font-display">PromptShip</span>
         </Link>
 
         {/* Desktop Navigation */}
@@ -76,8 +76,8 @@ export function Header() {
               </Link>
 
               {/* Credits Badge */}
-              <Link href="/pricing" className="group flex items-center gap-1.5 px-3 py-1.5 bg-violet-50 text-violet-700 rounded-full text-xs font-semibold border border-violet-100 hover:bg-violet-100 transition">
-                <Sparkles className="w-3 h-3 text-violet-600 group-hover:animate-pulse" />
+              <Link href="/pricing" className="group flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded-full text-xs font-semibold border border-emerald-100 hover:bg-emerald-100 transition">
+                <Sparkles className="w-3 h-3 text-emerald-600 group-hover:animate-pulse" />
                 <span>{credits !== null ? credits : "..."} Credits</span>
               </Link>
 
@@ -143,7 +143,7 @@ export function Header() {
             
             {status === "authenticated" ? (
                <>
-                 <Link href="/account" className="text-base font-medium text-violet-700 py-2 flex items-center gap-2">
+                 <Link href="/account" className="text-base font-medium text-emerald-700 py-2 flex items-center gap-2">
                     <LayoutDashboard className="w-4 h-4" /> My Dashboard
                  </Link>
                  <button 

@@ -37,7 +37,7 @@ const pricingPlans = [
       "Cancel anytime",
     ],
     popular: true,
-    color: "from-purple-500 to-pink-500",
+    color: "from-emerald-500 to-teal-500",
   },
 ];
 
@@ -81,7 +81,7 @@ export default function PricingPage() {
       <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+            <div className="text-2xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent font-display">
               PromptShip
             </div>
           </div>
@@ -91,7 +91,7 @@ export default function PricingPage() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">Choose Your Plan</h1>
+          <h1 className="text-4xl font-bold text-gray-900 mb-4 font-display">Choose Your Plan</h1>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
             Choose a plan that fits your workflow. Basic gives text-only storyboards; Pro adds Flux preview images.
           </p>
@@ -103,13 +103,13 @@ export default function PricingPage() {
               key={plan.id}
               className={`relative overflow-hidden transition-all hover:shadow-2xl ${
                 plan.popular
-                  ? "border-2 border-purple-500 shadow-xl scale-105"
+                  ? "border-2 border-emerald-500 shadow-xl scale-105"
                   : "border-gray-200"
               }`}
             >
               {plan.popular && (
                 <div className="absolute top-0 right-0">
-                  <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-tl-none rounded-br-none px-4 py-1">
+                  <Badge className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-tl-none rounded-br-none px-4 py-1">
                     Most Popular
                   </Badge>
                 </div>
@@ -139,7 +139,7 @@ export default function PricingPage() {
                   disabled={loading === plan.id}
                   className={`w-full mt-6 ${
                     plan.popular
-                      ? "bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+                      ? "bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600"
                       : ""
                   }`}
                 >
@@ -151,7 +151,7 @@ export default function PricingPage() {
         </div>
 
         <div className="mt-20 max-w-3xl mx-auto">
-          <h2 className="text-2xl font-bold text-center mb-8">Frequently Asked Questions</h2>
+          <h2 className="text-2xl font-bold text-center mb-8 font-display">Frequently Asked Questions</h2>
           <div className="space-y-6">
             <Card className="p-6">
               <h3 className="font-semibold text-lg mb-2">How do credits work?</h3>

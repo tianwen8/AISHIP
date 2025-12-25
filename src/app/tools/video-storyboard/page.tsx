@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Sparkles, Clapperboard, Video, Download, ArrowRight, Loader2, Save } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { getToolDefinition } from "@/tools/definitions";
 
@@ -26,6 +26,7 @@ interface DirectorOutput {
 export default function AIStoryDirectorPage() {
   const { status } = useSession();
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const [prompt, setPrompt] = useState("");
   const [duration, setDuration] = useState(15);
@@ -58,6 +59,13 @@ export default function AIStoryDirectorPage() {
       loadPlan();
     }
   }, [status]);
+
+  useEffect(() => {
+    const preset = searchParams.get("prompt");
+    if (preset) {
+      setPrompt(preset);
+    }
+  }, [searchParams]);
 
   const handleGenerate = async () => {
     const trimmedPrompt = prompt.trim();
@@ -139,8 +147,8 @@ export default function AIStoryDirectorPage() {
       <div className="flex-1 max-w-7xl w-full mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
         <div className="lg:col-span-4 space-y-6">
           <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm sticky top-24">
-            <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-              <Clapperboard className="w-5 h-5 text-violet-600" />
+            <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2 font-display">
+              <Clapperboard className="w-5 h-5 text-emerald-600" />
               Director's Panel
             </h2>
 
@@ -153,7 +161,7 @@ export default function AIStoryDirectorPage() {
                   value={prompt}
                   onChange={(e) => setPrompt(e.target.value)}
                   placeholder="E.g., A cyberpunk detective walking in neon rain..."
-                  className="w-full h-32 px-4 py-3 rounded-xl border border-gray-300 focus:border-violet-500 focus:ring-2 focus:ring-violet-200 outline-none resize-none text-base"
+                  className="w-full h-32 px-4 py-3 rounded-xl border border-gray-300 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none resize-none text-base"
                 />
               </div>
 
@@ -163,7 +171,7 @@ export default function AIStoryDirectorPage() {
                   <select
                     value={duration}
                     onChange={(e) => setDuration(Number(e.target.value))}
-                    className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:border-violet-500 outline-none bg-white"
+                    className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:border-emerald-500 outline-none bg-white"
                   >
                     <option value={8}>8 Seconds</option>
                     <option value={15}>15 Seconds</option>
@@ -176,7 +184,7 @@ export default function AIStoryDirectorPage() {
                   <select
                     value={style}
                     onChange={(e) => setStyle(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:border-violet-500 outline-none bg-white"
+                    className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:border-emerald-500 outline-none bg-white"
                   >
                     <option value="Cinematic">Cinematic</option>
                     <option value="Anime">Anime</option>
@@ -193,7 +201,7 @@ export default function AIStoryDirectorPage() {
                 className={`w-full py-4 rounded-xl font-bold text-lg shadow-lg flex items-center justify-center gap-2 transition-all ${
                   isGenerating || !prompt.trim()
                     ? "bg-gray-100 text-gray-400 cursor-not-allowed shadow-none"
-                    : "bg-gradient-to-r from-violet-600 to-indigo-600 text-white hover:shadow-violet-200 hover:scale-[1.02] active:scale-[0.98]"
+                    : "bg-gradient-to-r from-emerald-600 to-teal-600 text-white hover:shadow-emerald-200 hover:scale-[1.02] active:scale-[0.98]"
                 }`}
               >
                 {isGenerating ? (
@@ -227,7 +235,7 @@ export default function AIStoryDirectorPage() {
                   <button
                     type="button"
                     onClick={() => router.push("/pricing")}
-                    className="text-violet-600 hover:text-violet-700"
+                    className="text-emerald-600 hover:text-emerald-700"
                   >
                     Upgrade to Pro
                   </button>
@@ -243,7 +251,7 @@ export default function AIStoryDirectorPage() {
               <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-6">
                 <Video className="w-10 h-10 text-gray-300" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Ready for Action</h3>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2 font-display">Ready for Action</h3>
               <p className="max-w-md">
                 Enter your story idea on the left. Our AI Director will break it down into professional shots with camera movements and lighting.
               </p>
@@ -253,11 +261,11 @@ export default function AIStoryDirectorPage() {
           {isGenerating && (
             <div className="h-full min-h-[500px] flex flex-col items-center justify-center text-center bg-white rounded-3xl border border-gray-200 p-8">
               <div className="relative w-24 h-24 mb-8">
-                <div className="absolute inset-0 border-4 border-violet-100 rounded-full"></div>
-                <div className="absolute inset-0 border-4 border-violet-600 rounded-full border-t-transparent animate-spin"></div>
-                <Sparkles className="absolute inset-0 m-auto text-violet-600 w-8 h-8 animate-pulse" />
+                <div className="absolute inset-0 border-4 border-emerald-100 rounded-full"></div>
+                <div className="absolute inset-0 border-4 border-emerald-600 rounded-full border-t-transparent animate-spin"></div>
+                <Sparkles className="absolute inset-0 m-auto text-emerald-600 w-8 h-8 animate-pulse" />
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">The Director is thinking...</h3>
+              <h3 className="text-xl font-bold text-gray-900 mb-2 font-display">The Director is thinking...</h3>
               <p className="text-gray-500 animate-pulse">Analyzing story arc. Calculating camera angles. Designing lighting.</p>
             </div>
           )}
@@ -266,14 +274,14 @@ export default function AIStoryDirectorPage() {
             <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
               <div className="bg-white rounded-2xl border border-gray-200 p-6 flex items-start justify-between shadow-sm">
                 <div>
-                  <h1 className="text-2xl font-bold text-gray-900 mb-2">{result.title}</h1>
+                  <h1 className="text-2xl font-bold text-gray-900 mb-2 font-display">{result.title}</h1>
                   <p className="text-gray-600">{result.logline}</p>
                 </div>
                 <div className="flex gap-2">
-                  <button className="p-2 text-gray-500 hover:text-violet-600 bg-gray-50 hover:bg-violet-50 rounded-lg transition" title="Save to Library">
+                  <button className="p-2 text-gray-500 hover:text-emerald-600 bg-gray-50 hover:bg-emerald-50 rounded-lg transition" title="Save to Library">
                     <Save className="w-5 h-5" />
                   </button>
-                  <button className="p-2 text-gray-500 hover:text-violet-600 bg-gray-50 hover:bg-violet-50 rounded-lg transition" title="Export JSON">
+                  <button className="p-2 text-gray-500 hover:text-emerald-600 bg-gray-50 hover:bg-emerald-50 rounded-lg transition" title="Export JSON">
                     <Download className="w-5 h-5" />
                   </button>
                 </div>
@@ -310,7 +318,7 @@ export default function AIStoryDirectorPage() {
                           </span>
                         </div>
                         <div className="flex gap-2">
-                          <span className="text-xs font-medium px-2 py-1 bg-violet-50 text-violet-700 rounded border border-violet-100">
+                          <span className="text-xs font-medium px-2 py-1 bg-emerald-50 text-emerald-700 rounded border border-emerald-100">
                             {shot.camera_movement}
                           </span>
                         </div>

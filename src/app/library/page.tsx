@@ -3,6 +3,7 @@ import { Search, Sparkles, Video, Zap } from "lucide-react";
 import { db } from "@/db";
 import { public_prompts } from "@/db/schema";
 import { and, desc, ilike, or, eq } from "drizzle-orm";
+import QuickCopyButton from "@/components/prompt/QuickCopyButton";
 
 export const dynamic = "force-dynamic";
 
@@ -32,13 +33,30 @@ function parseTags(raw: string | null): string[] {
     .filter(Boolean);
 }
 
+function parseMasterPrompt(raw: string | null): string {
+  if (!raw) return "";
+  try {
+    const parsed = JSON.parse(raw);
+    const master = parsed.master_prompt || parsed.masterPrompt;
+    if (typeof master === "string") return master;
+    if (master && typeof master === "object") {
+      const first = Object.values(master)[0];
+      return first ? String(first) : "";
+    }
+  } catch {
+    return "";
+  }
+  return "";
+}
+
 export default async function LibraryPage({
   searchParams,
 }: {
-  searchParams?: { q?: string; tag?: string };
+  searchParams?: Promise<{ q?: string; tag?: string }>;
 }) {
-  const query = (searchParams?.q || "").trim();
-  const tag = (searchParams?.tag || "all").trim().toLowerCase();
+  const resolvedParams = await searchParams;
+  const query = (resolvedParams?.q || "").trim();
+  const tag = (resolvedParams?.tag || "all").trim().toLowerCase();
 
   const conditions: any[] = [eq(public_prompts.is_public, true)];
 
@@ -67,10 +85,12 @@ export default async function LibraryPage({
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <section className="bg-white border-b border-gray-200 pt-20 pb-16 px-4">
-        <div className="max-w-4xl mx-auto text-center">
-          <h1 className="text-5xl font-extrabold text-gray-900 tracking-tight mb-6">
-            Find the perfect <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-indigo-600">Video Prompt</span>
+      <section className="relative overflow-hidden bg-white border-b border-gray-200 pt-20 pb-16 px-4">
+        <div className="absolute -top-24 left-0 w-72 h-72 bg-emerald-100 rounded-full blur-3xl opacity-70 pointer-events-none" aria-hidden="true"></div>
+        <div className="absolute -bottom-32 right-0 w-72 h-72 bg-teal-100 rounded-full blur-3xl opacity-70 pointer-events-none" aria-hidden="true"></div>
+        <div className="relative max-w-4xl mx-auto text-center">
+          <h1 className="text-5xl font-extrabold text-gray-900 tracking-tight mb-6 font-display">
+            Find the perfect <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-500 to-teal-500">Video Prompt</span>
           </h1>
           <p className="text-xl text-gray-500 mb-10 max-w-2xl mx-auto">
             Discover cinematic storyboards and prompts for Sora, Kling, Runway, and Veo. Tested and ready to copy.
@@ -85,7 +105,7 @@ export default async function LibraryPage({
               name="q"
               defaultValue={query}
               placeholder="Search styles (e.g. cyberpunk, drone shot, food commercial)"
-              className="w-full pl-12 pr-4 py-4 rounded-xl border-2 border-gray-200 focus:border-violet-600 focus:ring-4 focus:ring-violet-50 outline-none text-lg transition shadow-sm"
+              className="w-full pl-12 pr-4 py-4 rounded-xl border-2 border-gray-200 focus:border-emerald-600 focus:ring-4 focus:ring-emerald-50 outline-none text-lg transition shadow-sm"
             />
             {tag && tag !== "all" && (
               <input type="hidden" name="tag" value={tag} />
@@ -115,6 +135,7 @@ export default async function LibraryPage({
           {prompts.map((prompt) => {
             const tags = parseTags(prompt.tags || "");
             const models = prompt.model ? [prompt.model] : [];
+            const masterPrompt = parseMasterPrompt(prompt.content_json || "");
             return (
               <Link href={`/prompt/${prompt.slug}`} key={prompt.uuid} className="group">
                 <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden hover:shadow-xl transition-all duration-300 h-full flex flex-col transform hover:-translate-y-1">
@@ -140,13 +161,13 @@ export default async function LibraryPage({
                   <div className="p-5 flex-1 flex flex-col">
                     <div className="flex items-center gap-2 mb-3">
                       {models.map((m) => (
-                        <span key={m} className="px-2 py-0.5 bg-violet-50 text-violet-700 text-xs font-semibold rounded-md border border-violet-100">
+                        <span key={m} className="px-2 py-0.5 bg-emerald-50 text-emerald-700 text-xs font-semibold rounded-md border border-emerald-100">
                           {m}
                         </span>
                       ))}
                     </div>
 
-                    <h3 className="text-lg font-bold text-gray-900 mb-2 group-hover:text-violet-600 transition-colors">
+                    <h3 className="text-lg font-bold text-gray-900 mb-2 group-hover:text-emerald-600 transition-colors">
                       {prompt.title}
                     </h3>
 
@@ -164,6 +185,15 @@ export default async function LibraryPage({
                       </span>
                       <span>{prompt.views} views</span>
                     </div>
+
+                    {masterPrompt && (
+                      <div className="mt-4 flex items-center justify-between">
+                        <span className="text-xs text-gray-500">
+                          Copy without logging in
+                        </span>
+                        <QuickCopyButton slug={prompt.slug} text={masterPrompt} />
+                      </div>
+                    )}
                   </div>
                 </div>
               </Link>
@@ -178,7 +208,7 @@ export default async function LibraryPage({
 
       <section className="bg-gray-900 text-white py-16 mt-16">
         <div className="max-w-4xl mx-auto px-4 text-center">
-          <h2 className="text-2xl font-bold mb-4">Why use PromptShip?</h2>
+          <h2 className="text-2xl font-bold mb-4 font-display">Why use PromptShip?</h2>
           <p className="text-gray-400 leading-relaxed">
             AI video generation is expensive. Wasting credits on bad prompts hurts.
             PromptShip provides tested, director-approved shot lists that ensure your videos look professional on the first try.

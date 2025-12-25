@@ -5,8 +5,8 @@ export default function TermsPage() {
       <header className="border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <a href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg"></div>
-            <span className="text-xl font-bold text-gray-900">AI Video Studio</span>
+            <div className="w-8 h-8 bg-gradient-to-br from-emerald-600 to-teal-600 rounded-lg"></div>
+            <span className="text-xl font-bold text-gray-900">PromptShip</span>
           </a>
         </div>
       </header>
@@ -19,7 +19,7 @@ export default function TermsPage() {
           <section>
             <h2 className="text-2xl font-bold text-gray-900 mb-4">1. Acceptance of Terms</h2>
             <p className="text-gray-700">
-              By accessing or using AI Video Studio ("Service"), you agree to be bound by these Terms of Service.
+              By accessing or using PromptShip ("Service"), you agree to be bound by these Terms of Service.
               If you do not agree to these terms, please do not use our service.
             </p>
           </section>
@@ -27,7 +27,7 @@ export default function TermsPage() {
           <section>
             <h2 className="text-2xl font-bold text-gray-900 mb-4">2. Service Description</h2>
             <p className="text-gray-700">
-              AI Video Studio provides AI-powered video generation services on a subscription basis.
+              PromptShip provides AI-powered video generation services on a subscription basis.
               We use cutting-edge AI models to help you create professional videos quickly and easily.
             </p>
           </section>
@@ -76,7 +76,7 @@ export default function TermsPage() {
             </p>
             <h3 className="text-xl font-semibold text-gray-900 mb-2">Our Platform</h3>
             <p className="text-gray-700">
-              All rights, title, and interest in the AI Video Studio software, website, and branding remain
+              All rights, title, and interest in the PromptShip software, website, and branding remain
               our exclusive property.
             </p>
           </section>
@@ -178,9 +178,9 @@ export default function TermsPage() {
               For questions about these Terms, please contact:
             </p>
             <div className="bg-gray-50 p-4 rounded-lg mt-3">
-              <p className="text-gray-700">Email: <a href="mailto:support@aivideostudio.com" className="text-blue-600 hover:underline">support@aivideostudio.com</a></p>
+              <p className="text-gray-700">Email: <a href="mailto:support@promptship.ai" className="text-emerald-600 hover:underline">support@promptship.ai</a></p>
               <p className="text-gray-700 mt-2">
-                Or visit our <a href="/contact" className="text-blue-600 hover:underline">Contact page</a>
+                Or visit our <a href="/contact" className="text-emerald-600 hover:underline">Contact page</a>
               </p>
             </div>
           </section>
@@ -190,9 +190,9 @@ export default function TermsPage() {
         <div className="mt-12 text-center">
           <a
             href="/"
-            className="inline-block px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-medium rounded-lg hover:from-blue-700 hover:to-purple-700 transition"
+            className="inline-block px-6 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-medium rounded-lg hover:from-emerald-700 hover:to-teal-700 transition"
           >
-            ← Back to Home
+            Back to Home
           </a>
         </div>
       </div>
