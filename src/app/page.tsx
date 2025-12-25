@@ -138,7 +138,7 @@ export default async function HomePage({
             {TAGS.map((tagItem) => (
               <Link
                 key={tagItem}
-                href={`/?${new URLSearchParams({ q: query || "", tag: tagItem }).toString()}`}
+                href={`/tags/${encodeURIComponent(tagItem)}`}
                 className={`px-3 py-1 rounded-full text-xs font-semibold border transition ${
                   tag === tagItem
                     ? "bg-gray-900 text-white border-gray-900"
