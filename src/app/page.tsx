@@ -7,6 +7,21 @@ import QuickCopyButton from "@/components/prompt/QuickCopyButton";
 
 export const dynamic = "force-dynamic";
 
+const TAGS = [
+  "cinematic",
+  "documentary",
+  "advertising",
+  "travel",
+  "fantasy",
+  "sci-fi",
+  "thriller",
+  "horror",
+  "drone",
+  "handheld",
+  "slow-motion",
+  "montage",
+];
+
 function parseTags(raw: string | null): string[] {
   if (!raw) return [];
   const trimmed = raw.trim();
@@ -117,10 +132,62 @@ export default async function HomePage({
               Browse Full Library
             </Link>
           </div>
+
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-2">
+            <span className="text-xs uppercase tracking-wider text-gray-400 mr-2">Popular video tags</span>
+            {TAGS.map((tagItem) => (
+              <Link
+                key={tagItem}
+                href={`/?${new URLSearchParams({ q: query || "", tag: tagItem }).toString()}`}
+                className={`px-3 py-1 rounded-full text-xs font-semibold border transition ${
+                  tag === tagItem
+                    ? "bg-gray-900 text-white border-gray-900"
+                    : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
+                }`}
+              >
+                #{tagItem}
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {[
+            {
+              title: "Shot-level precision",
+              copy: "Every storyboard includes shot duration, framing, movement, and lighting notes.",
+            },
+            {
+              title: "Story continuity baked in",
+              copy: "Characters, props, and tone stay consistent from the opening to the final beat.",
+            },
+            {
+              title: "Built for video models",
+              copy: "Prompts are tuned for Sora, Veo, Kling, and Runway style generation.",
+            },
+          ].map((item) => (
+            <div key={item.title} className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
+              <h3 className="text-lg font-bold text-gray-900 mb-2 font-display">{item.title}</h3>
+              <p className="text-sm text-gray-600">{item.copy}</p>
+            </div>
+          ))}
         </div>
       </section>
 
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <div className="flex items-end justify-between mb-6">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900 font-display">Latest storyboards</h2>
+            <p className="text-sm text-gray-500">
+              {tag !== "all" ? `Filtered by #${tag}` : "Curated for video-first prompts."}
+            </p>
+          </div>
+          <Link href="/library" className="text-sm font-semibold text-emerald-600 hover:text-emerald-700">
+            View all
+          </Link>
+        </div>
         <div className="columns-1 sm:columns-2 lg:columns-3 gap-6 [column-fill:_balance]">
           {prompts.map((prompt) => {
             const tags = parseTags(prompt.tags || "");

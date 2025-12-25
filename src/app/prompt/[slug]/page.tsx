@@ -60,6 +60,9 @@ export default async function PromptDetailPage({
   const shots = Array.isArray(content.shots) ? content.shots : [];
   const master = content.master_prompt || content.masterPrompt;
   const negative = content.negative_prompt || content.negativePrompt || "";
+  const styleLock = content.style_lock || content.styleLock || "";
+  const continuityNotes = content.continuity_notes || content.continuityNotes || "";
+  const characters = Array.isArray(content.characters) ? content.characters : [];
   const created = formatDate(prompt.created_at || null);
 
   let promptBlocks: Array<{ label: string; text: string }> = [];
@@ -73,6 +76,10 @@ export default async function PromptDetailPage({
   }
 
   const allPromptsText = promptBlocks.map((p) => p.text).join("\n\n");
+  const totalDuration = shots.reduce((sum: number, shot: any) => {
+    const duration = Number(shot.duration);
+    return Number.isFinite(duration) ? sum + duration : sum;
+  }, 0);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -188,9 +195,53 @@ export default async function PromptDetailPage({
               </div>
             </div>
 
+            {(styleLock || characters.length > 0 || continuityNotes) && (
+              <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+                <div className="p-6 space-y-4">
+                  <h2 className="text-xl font-bold text-gray-900 font-display">Storyboard anchors</h2>
+                  {styleLock && (
+                    <div>
+                      <div className="text-xs font-semibold text-gray-500 uppercase mb-2">Style lock</div>
+                      <div className="text-sm text-gray-700 bg-gray-50 rounded-lg border border-gray-200 p-4">
+                        {styleLock}
+                      </div>
+                    </div>
+                  )}
+                  {characters.length > 0 && (
+                    <div>
+                      <div className="text-xs font-semibold text-gray-500 uppercase mb-2">Characters</div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {characters.map((character: any, index: number) => (
+                          <div key={character.id || index} className="bg-gray-50 rounded-lg border border-gray-200 p-4">
+                            <div className="text-sm font-semibold text-gray-900">{character.id || `Character ${index + 1}`}</div>
+                            {character.anchors && (
+                              <div className="text-xs text-gray-600 mt-1">{character.anchors}</div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {continuityNotes && (
+                    <div>
+                      <div className="text-xs font-semibold text-gray-500 uppercase mb-2">Continuity notes</div>
+                      <div className="text-sm text-gray-700 bg-gray-50 rounded-lg border border-gray-200 p-4">
+                        {continuityNotes}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
             {shots.length > 0 && (
               <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
-                <h2 className="text-xl font-bold text-gray-900 mb-4 font-display">Shot list</h2>
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-xl font-bold text-gray-900 font-display">Shot list</h2>
+                  <span className="text-xs font-semibold text-gray-500">
+                    Total duration: {totalDuration > 0 ? `${totalDuration}s` : "TBD"}
+                  </span>
+                </div>
                 <div className="space-y-6">
                   {shots.map((shot: any, index: number) => (
                     <div key={shot.id || index} className="border-l-2 border-gray-200 pl-4">
@@ -203,11 +254,19 @@ export default async function PromptDetailPage({
                       {shot.description && (
                         <p className="text-sm text-gray-700 mb-2">{shot.description}</p>
                       )}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-gray-600">
-                        {shot.camera_movement && <div>Camera: {shot.camera_movement}</div>}
-                        {shot.composition && <div>Composition: {shot.composition}</div>}
-                        {shot.lighting && <div>Lighting: {shot.lighting}</div>}
-                        {shot.audio_sfx && <div>Audio: {shot.audio_sfx}</div>}
+                      <div className="flex flex-wrap gap-2 text-xs text-gray-600">
+                        {shot.camera_movement && (
+                          <span className="px-2 py-1 rounded border border-gray-200 bg-gray-50">Camera: {shot.camera_movement}</span>
+                        )}
+                        {shot.composition && (
+                          <span className="px-2 py-1 rounded border border-gray-200 bg-gray-50">Composition: {shot.composition}</span>
+                        )}
+                        {shot.lighting && (
+                          <span className="px-2 py-1 rounded border border-gray-200 bg-gray-50">Lighting: {shot.lighting}</span>
+                        )}
+                        {shot.audio_sfx && (
+                          <span className="px-2 py-1 rounded border border-gray-200 bg-gray-50">Audio: {shot.audio_sfx}</span>
+                        )}
                       </div>
                       {shot.prompt_en && (
                         <div className="mt-3 bg-gray-50 p-3 rounded-lg border border-gray-200 text-xs font-mono text-gray-700">

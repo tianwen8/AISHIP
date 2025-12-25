@@ -10,9 +10,17 @@ export const dynamic = "force-dynamic";
 const FILTERS = [
   { id: "all", label: "All Prompts" },
   { id: "cinematic", label: "Cinematic" },
+  { id: "documentary", label: "Documentary" },
   { id: "advertising", label: "Advertising" },
-  { id: "animation", label: "3D Animation" },
-  { id: "drone", label: "Drone / FPV" },
+  { id: "travel", label: "Travel" },
+  { id: "fantasy", label: "Fantasy" },
+  { id: "sci-fi", label: "Sci-Fi" },
+  { id: "thriller", label: "Thriller" },
+  { id: "horror", label: "Horror" },
+  { id: "drone", label: "Drone" },
+  { id: "handheld", label: "Handheld" },
+  { id: "slow-motion", label: "Slow Motion" },
+  { id: "montage", label: "Montage" },
 ];
 
 function parseTags(raw: string | null): string[] {
