@@ -139,6 +139,48 @@ Please generate a professional storyboard in JSON format.
         throw new Error("AI output missing required 'shots' array");
       }
 
+      const ensureText = (value: any, fallback: string) =>
+        typeof value === "string" && value.trim() ? value : fallback;
+
+      outputData.style_lock = ensureText(
+        outputData.style_lock,
+        "cinematic, consistent color palette, stable lighting, cohesive film grain"
+      );
+
+      outputData.continuity_notes = ensureText(
+        outputData.continuity_notes,
+        "Maintain consistent character appearance, wardrobe, and lighting across shots."
+      );
+
+      if (!Array.isArray(outputData.characters) || outputData.characters.length === 0) {
+        outputData.characters = [
+          {
+            id: "lead",
+            anchors: "distinct outfit, signature accessory, consistent hairstyle",
+            prompt:
+              "Character reference sheet: lead character, distinct outfit, signature accessory, consistent hairstyle, neutral pose, front view, side view, back view.",
+          },
+        ];
+      }
+
+      outputData.characters = outputData.characters.map((character, index) => {
+        const id = ensureText(character?.id, `character_${index + 1}`);
+        const anchors = ensureText(
+          character?.anchors,
+          "distinct outfit, signature accessory, consistent hairstyle"
+        );
+        const prompt = ensureText(
+          character?.prompt,
+          `Character reference sheet: ${anchors}. Neutral pose, front view, side view, back view.`
+        );
+        return { id, anchors, prompt };
+      });
+
+      outputData.scene_prompt = ensureText(
+        outputData.scene_prompt,
+        `Scene reference image: ${outputData.logline}. ${outputData.style_lock}.`
+      );
+
       // Inject long-form metadata
       if (isLongForm) {
         outputData.is_long_form = true;
