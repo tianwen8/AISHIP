@@ -1,10 +1,11 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import SessionProvider from '@/components/SessionProvider'
+import { Header } from '@/components/layout/Header'
 
 export const metadata: Metadata = {
-  title: 'AI Video Director - Create Stunning AI Videos',
-  description: 'Transform your ideas into engaging videos for TikTok, YouTube Shorts, and Instagram Reels with cutting-edge AI models.',
+  title: 'PromptShip - AI Video Director & Storyboard Generator',
+  description: 'Create Hollywood-level shot lists and prompts for Sora, Kling, Runway, and Veo. The ultimate AI video director tool.',
 }
 
 export default function RootLayout({
@@ -13,9 +14,12 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="zh-CN">
-      <body>
-        <SessionProvider>{children}</SessionProvider>
+    <html lang="en">
+      <body className="bg-gray-50 text-gray-900">
+        <SessionProvider>
+          <Header />
+          {children}
+        </SessionProvider>
       </body>
     </html>
   )

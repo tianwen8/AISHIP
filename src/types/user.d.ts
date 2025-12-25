@@ -25,4 +25,5 @@ export interface UserCredits {
   free_credits?: number;
   is_recharged?: boolean;
   is_pro?: boolean;
+  plan_tier?: "basic" | "pro" | null;
 }

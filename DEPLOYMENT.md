@@ -1,4 +1,4 @@
-# Deployment Guide - AI Video Director
+# Deployment Guide - PromptShip (Video Prompt SaaS)
 
 ## Prerequisites
 
@@ -51,28 +51,19 @@ NEXT_PUBLIC_PAY_SUCCESS_URL="/dashboard"
 NEXT_PUBLIC_PAY_FAIL_URL="/pricing"
 NEXT_PUBLIC_PAY_CANCEL_URL="/pricing"
 NEXT_PUBLIC_WEB_URL="https://your-domain.vercel.app"
-NEXT_PUBLIC_PROJECT_NAME="AI Video Director"
+NEXT_PUBLIC_PROJECT_NAME="PromptShip"
 ```
 
 #### AI Services
 ```bash
-# LLM
+# LLM (Director Logic)
 OPENAI_API_KEY="sk-..."
 ANTHROPIC_API_KEY="sk-ant-..."
 DEEPSEEK_API_KEY="..."
 OPENROUTER_API_KEY="sk-or-..."
 
-# Image/Video Generation
+# Image Generation (Previews)
 FAL_API_KEY="..."
-REPLICATE_API_TOKEN="r8_..."
-
-# Video Services
-RUNWAY_API_KEY="..."
-LUMA_API_KEY="..."
-PIKA_API_KEY="..."
-
-# Audio
-ELEVENLABS_API_KEY="..."
 ```
 
 ## Step-by-Step Deployment
@@ -106,6 +97,8 @@ npm run db:push
    - **Authorized JavaScript origins**: `https://your-domain.vercel.app`
    - **Authorized redirect URIs**: `https://your-domain.vercel.app/api/auth/callback/google`
 5. Copy Client ID and Client Secret
+
+> **Note**: This project uses NextAuth.js. You do **NOT** need to enable Google Login in the Supabase Authentication dashboard. The database is only used to store user records.
 
 ### 3. Creem Payment Setup
 
@@ -155,10 +148,11 @@ vercel --prod
    - Verify webhook is called
    - Check credits are added to user account
 
-4. **Test Video Generation**:
+4. **Test Prompt Generation**:
    - Sign in with Google
-   - Check you received 50 free credits
-   - Generate a test video
+   - Check you received free credits (if configured)
+   - Go to /tools/video-storyboard
+   - Generate a storyboard/prompt
    - Verify credits are deducted
 
 ## Environment Variable Checklist
@@ -172,7 +166,7 @@ vercel --prod
 - [ ] CREEM_API_KEY
 - [ ] CREEM_WEBHOOK_SECRET
 - [ ] CREEM_PRODUCTS
-- [ ] OPENAI_API_KEY
+- [ ] OPENROUTER_API_KEY
 - [ ] FAL_API_KEY
 - [ ] NEXT_PUBLIC_WEB_URL
 - [ ] NEXT_PUBLIC_PROJECT_NAME
@@ -199,7 +193,7 @@ vercel --prod
 - Check user is authenticated
 - Verify credit balance API works: `/api/user/credits`
 - Check database credits table has transactions
-- Review `/api/generate` logs
+- Review `/api/tools/run` logs
 
 ## Production Checklist
 
@@ -208,7 +202,7 @@ Before going live:
 - [ ] Set CREEM_ENV to "production"
 - [ ] Use production Creem API keys
 - [ ] Test payment flow end-to-end
-- [ ] Test video generation with all models
+- [ ] Test prompt generation workflow
 - [ ] Verify webhook signature validation
 - [ ] Set up monitoring (Vercel Analytics)
 - [ ] Configure custom domain

@@ -1,7 +1,6 @@
 import { AdapterUser } from "next-auth/adapters";
 import { Account, User } from "next-auth";
 import { getUuid } from "@/lib/hash";
-import { getIsoTimestr } from "@/lib/time";
 import { saveUser } from "@/services/user";
 import { User as UserType } from "@/types/user";
 import { getClientIp } from "@/lib/ip";

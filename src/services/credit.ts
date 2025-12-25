@@ -12,7 +12,7 @@ import {
   TransType,
 } from "@/models/credit"
 import { getSnowId } from "@/lib/hash"
-import { getFirstPaidOrderByUserUuid } from "@/models/order"
+import { getFirstPaidOrderByUserUuid, getLatestPaidOrderByUserUuid } from "@/models/order"
 import { UserCredits } from "@/types/user"
 import { Order } from "@/types/order"
 
@@ -52,6 +52,25 @@ export async function getUserCredits(user_uuid: string): Promise<UserCredits> {
       user_credits.is_recharged = true
     }
 
+    const latest_paid_order = await getLatestPaidOrderByUserUuid(user_uuid)
+    if (latest_paid_order) {
+      const now = new Date()
+      const isActive =
+        !latest_paid_order.expired_at || latest_paid_order.expired_at > now
+      const basicId = process.env.CREEM_PRODUCT_BASIC_ID || ""
+      const proId = process.env.CREEM_PRODUCT_PRO_ID || ""
+
+      if (isActive) {
+        if (latest_paid_order.product_id === proId) {
+          user_credits.plan_tier = "pro"
+        } else if (latest_paid_order.product_id === basicId) {
+          user_credits.plan_tier = "basic"
+        }
+      } else {
+        user_credits.plan_tier = null
+      }
+    }
+
     const balance = await getCreditBalance(user_uuid)
     user_credits.left_credits = balance
 
@@ -59,7 +78,9 @@ export async function getUserCredits(user_uuid: string): Promise<UserCredits> {
       user_credits.left_credits = 0
     }
 
-    if (user_credits.left_credits > 0) {
+    if (user_credits.plan_tier) {
+      user_credits.is_pro = user_credits.plan_tier === "pro"
+    } else if (user_credits.left_credits > 0) {
       user_credits.is_pro = true
     }
 

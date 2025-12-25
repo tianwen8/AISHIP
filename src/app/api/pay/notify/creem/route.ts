@@ -1,4 +1,6 @@
 import { updateOrder } from "@/services/order";
+import { findOrderByOrderNo } from "@/models/order";
+import { addCreditTransaction, findTransactionByTransNo, TransType } from "@/models/credit";
 import { PaymentStatus } from "@/integrations/payment/types";
 import { respOk } from "@/lib/resp";
 
@@ -24,30 +26,45 @@ export async function POST(req: Request) {
 
     const event = JSON.parse(body);
 
-    switch (event.eventType) {
-      case "checkout.completed": {
-        const session = event.object;
+    const session = event.object;
+    const isPaid = session?.order?.status === PaymentStatus.Paid;
 
-        if (
-          !session ||
-          !session.metadata ||
-          !session.metadata.order_no ||
-          !session.order ||
-          session.order.status !== PaymentStatus.Paid
-        ) {
-          throw new Error("invalid session");
-        }
+    // Ignore test events or incomplete payloads (Creem test webhook)
+    if (!session || !isPaid || !session.metadata) {
+      return respOk();
+    }
 
-        const order_no = session.metadata.order_no;
-        const paid_email = session.customer?.email || "";
-        const paid_detail = JSON.stringify(session);
+    const order_no = session.metadata.order_no;
+    const paid_email = session.customer?.email || "";
+    const paid_detail = JSON.stringify(session);
+    const user_uuid = session.metadata.user_uuid;
+    const credits = Number(session.metadata.credits || 0);
+    const subscriptionId = session.subscription?.id || session.subscription_id;
 
-        await updateOrder({ order_no, paid_email, paid_detail });
-        break;
+    if (!order_no || !user_uuid || !credits) {
+      return respOk();
+    }
+
+    const order = await findOrderByOrderNo(order_no);
+    if (!order) {
+      return respOk();
+    }
+
+    if (order.status !== "paid") {
+      await updateOrder({ order_no, paid_email, paid_detail });
+    } else if (subscriptionId) {
+      // Renewal payment: grant credits again (idempotent)
+      const transNo = `SUB_RENEW_${subscriptionId}_${session.order.id}`;
+      const existing = await findTransactionByTransNo(transNo);
+      if (!existing) {
+        await addCreditTransaction({
+          trans_no: transNo,
+          user_uuid: user_uuid,
+          trans_type: TransType.Charge,
+          credits: credits,
+          order_no: order_no,
+        });
       }
-
-      default:
-        console.log("not handle event: ", event.eventType);
     }
 
     return respOk();

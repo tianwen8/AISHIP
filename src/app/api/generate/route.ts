@@ -10,7 +10,7 @@ import { AIPlanner } from "@/services/ai-planner"
 import { RunStatus, createRun } from "@/models/run"
 import { createGraph } from "@/models/graph"
 import { getUuid } from "@/lib/hash"
-import { getUserUuid } from "@/services/user"
+import { getUserUuid } from "@/services/user-session"
 import { getUserCredits, decreaseCredits, CreditsTransType } from "@/services/credit"
 
 export async function POST(req: NextRequest) {

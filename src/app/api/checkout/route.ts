@@ -1,4 +1,4 @@
-import { getUserEmail, getUserUuid } from "@/services/user";
+import { getUserEmail, getUserUuid } from "@/services/user-session";
 import { insertOrder, OrderStatus, updateOrderSession } from "@/models/order";
 import { respData, respErr } from "@/lib/resp";
 import { findUserByUuid } from "@/models/user";
@@ -7,43 +7,32 @@ import { getPaymentClient } from "@/integrations/payment";
 
 export async function POST(req: Request) {
   try {
-    let { product_id, currency, locale } = await req.json();
-
-    let cancel_url = `${
-      process.env.NEXT_PUBLIC_PAY_CANCEL_URL || process.env.NEXT_PUBLIC_WEB_URL
-    }`;
+    const { product_id, currency: requestedCurrency, locale } = await req.json();
 
     if (!product_id) {
       return respErr("invalid params");
     }
 
-    // TODO: validate product_id against pricing config
-    // For now, hardcode pricing
+    // For now, hardcode pricing (Basic/Pro monthly)
     const pricingConfig: Record<string, any> = {
-      starter_monthly: {
-        amount: 1800, // $18.00
-        credits: 2000, // 2,000 算力 (~5 条15秒视频 @ 400算力/条, 5x profit)
+      basic_monthly: {
+        amount: 490, // $4.90
+        credits: 150,
         interval: "month",
         valid_months: 1,
         currency: "usd",
-        product_name: "Starter Plan"
+        product_name: "Basic Monthly",
+        creem_product_id: process.env.CREEM_PRODUCT_BASIC_ID || "",
       },
       pro_monthly: {
-        amount: 3000, // $30.00
-        credits: 3330, // 3,330 算力 (~8 条15秒视频 @ 400算力/条, 5x profit)
+        amount: 990, // $9.90
+        credits: 300,
         interval: "month",
         valid_months: 1,
         currency: "usd",
-        product_name: "Pro Plan"
+        product_name: "Pro Monthly",
+        creem_product_id: process.env.CREEM_PRODUCT_PRO_ID || "",
       },
-      business_monthly: {
-        amount: 8800, // $88.00
-        credits: 9800, // 9,800 算力 (~24 条15秒视频 @ 400算力/条, 5x profit)
-        interval: "month",
-        valid_months: 1,
-        currency: "usd",
-        product_name: "Business Plan"
-      }
     };
 
     const item = pricingConfig[product_id];
@@ -51,7 +40,11 @@ export async function POST(req: Request) {
       return respErr("invalid product_id");
     }
 
-    let { amount, interval, valid_months, credits, product_name } = item;
+    const { amount, interval, valid_months, credits, product_name, creem_product_id } = item;
+
+    if (!creem_product_id) {
+      return respErr("invalid creem product id");
+    }
 
     if (!["year", "month", "one-time"].includes(interval)) {
       return respErr("invalid interval");
@@ -65,15 +58,9 @@ export async function POST(req: Request) {
       return respErr("invalid valid_months");
     }
 
-    if (currency) {
-      // Use provided currency
-    } else {
-      currency = item.currency;
-    }
-
+    const currency = requestedCurrency || item.currency;
     const is_subscription = interval === "month" || interval === "year";
 
-    // get signed user
     const user_uuid = await getUserUuid();
     if (!user_uuid) {
       return respErr("no auth, please sign-in");
@@ -90,33 +77,24 @@ export async function POST(req: Request) {
       return respErr("invalid user");
     }
 
-    // generate order_no
     const order_no = getSnowId();
-
     const currentDate = new Date();
     const created_at = currentDate.toISOString();
 
-    // calculate expired_at
     let expired_at = "";
     if (valid_months && valid_months > 0) {
       const timePeriod = new Date(currentDate);
       timePeriod.setMonth(currentDate.getMonth() + valid_months);
 
-      const timePeriodMillis = timePeriod.getTime();
       let delayTimeMillis = 0;
-
-      // subscription
       if (is_subscription) {
-        delayTimeMillis = 24 * 60 * 60 * 1000; // delay 24 hours expired
+        delayTimeMillis = 24 * 60 * 60 * 1000;
       }
 
-      const newTimeMillis = timePeriodMillis + delayTimeMillis;
-      const newDate = new Date(newTimeMillis);
-
+      const newDate = new Date(timePeriod.getTime() + delayTimeMillis);
       expired_at = newDate.toISOString();
     }
 
-    // create order
     const order = {
       order_no: order_no,
       created_at: new Date(created_at),
@@ -128,16 +106,15 @@ export async function POST(req: Request) {
       status: OrderStatus.Created,
       credits: credits || 0,
       currency: currency,
-      product_id: product_id,
+      product_id: creem_product_id,
       product_name: product_name,
       valid_months: valid_months,
     };
     await insertOrder(order);
 
-    // Use payment factory to get the appropriate client
     const paymentClient = getPaymentClient();
-
-    const success_url = `${process.env.NEXT_PUBLIC_WEB_URL}/api/pay/callback?locale=${locale}&order_no=${order_no}`;
+    const success_url = `${process.env.NEXT_PUBLIC_WEB_URL}/api/pay/callback/creem?locale=${locale}&request_id=${order_no}`;
+    const cancel_url = `${process.env.NEXT_PUBLIC_PAY_CANCEL_URL || process.env.NEXT_PUBLIC_WEB_URL}`;
 
     const result = await paymentClient.createCheckout({
       amount: order.amount,
@@ -153,11 +130,11 @@ export async function POST(req: Request) {
       success_url: success_url,
       cancel_url: cancel_url,
       metadata: {
+        plan_key: product_id,
         project: process.env.NEXT_PUBLIC_PROJECT_NAME || "",
       },
     });
 
-    // Update order with session information
     await updateOrderSession(order.order_no, result.session_id, JSON.stringify(result));
 
     return respData(result);

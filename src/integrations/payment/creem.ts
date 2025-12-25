@@ -1,8 +1,7 @@
 /**
  * Creem Payment Client Implementation
+ * Uses Creem REST API with product_id (no price_id required).
  */
-
-import { newCreemClient } from '@/integrations/creem'
 import type {
   IPaymentClient,
   CheckoutParams,
@@ -13,25 +12,34 @@ import { PaymentStatus } from './types'
 
 export class CreemPaymentClient implements IPaymentClient {
   async createCheckout(params: CheckoutParams): Promise<CheckoutResult> {
-    const client = newCreemClient()
-
-    //  Get price_id from CREEM_PRODUCTS env
-    const productsJson = process.env.CREEM_PRODUCTS || '[]'
-    const products = JSON.parse(productsJson)
-    const product = products.find((p: any) => p.product_id === params.product_id)
-
-    if (!product) {
-      throw new Error(`Product ${params.product_id} not found in CREEM_PRODUCTS`)
+    const apiKey = process.env.CREEM_API_KEY
+    if (!apiKey) {
+      throw new Error("CREEM_API_KEY is not set")
     }
 
-    const result = await client.creem().createCheckout({
-      xApiKey: client.apiKey(),
-      createCheckoutRequest: {
-        requestId: params.order_no,
-        priceId: product.price_id,
-        customer: {
-          email: params.user_email,
-        },
+    // Optional allowlist via CREEM_PRODUCTS (supports array of strings or objects)
+    const productsJson = process.env.CREEM_PRODUCTS || "[]"
+    const products = JSON.parse(productsJson)
+    const isAllowed = products.length === 0 || products.some((p: any) => {
+      if (typeof p === "string") return p === params.product_id
+      return p.product_id === params.product_id
+    })
+    if (!isAllowed) {
+      throw new Error(`Product ${params.product_id} not allowed by CREEM_PRODUCTS`)
+    }
+
+    const env = (process.env.CREEM_ENV || "").toLowerCase()
+    const baseUrl = env === "production" ? "https://api.creem.io" : "https://test-api.creem.io"
+
+    const response = await fetch(`${baseUrl}/v1/checkouts`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": apiKey,
+      },
+      body: JSON.stringify({
+        product_id: params.product_id,
+        customer: { email: params.user_email },
         metadata: {
           order_no: params.order_no,
           user_uuid: params.user_uuid,
@@ -39,15 +47,21 @@ export class CreemPaymentClient implements IPaymentClient {
           credits: params.credits.toString(),
           ...(params.metadata || {}),
         },
-        successUrl: params.success_url,
-        cancelUrl: params.cancel_url,
-      },
+        success_url: params.success_url,
+      }),
     })
+
+    const result = await response.json().catch(() => ({}))
+    if (!response.ok) {
+      throw new Error(
+        `Creem createCheckout failed: ${response.status} ${response.statusText} - ${JSON.stringify(result)}`
+      )
+    }
 
     return {
       order_no: params.order_no,
-      session_id: result.id!,
-      checkout_url: result.checkoutUrl!,
+      session_id: result.id,
+      checkout_url: result.checkout_url || result.checkoutUrl,
     }
   }
 
@@ -85,12 +99,28 @@ export class CreemPaymentClient implements IPaymentClient {
   }
 
   async retrieveSession(sessionId: string): Promise<any> {
-    const client = newCreemClient()
+    const apiKey = process.env.CREEM_API_KEY
+    if (!apiKey) {
+      throw new Error("CREEM_API_KEY is not set")
+    }
 
-    const result = await client.creem().retrieveCheckout({
-      xApiKey: client.apiKey(),
-      checkoutId: sessionId,
+    const env = (process.env.CREEM_ENV || "").toLowerCase()
+    const baseUrl = env === "production" ? "https://api.creem.io" : "https://test-api.creem.io"
+
+    const response = await fetch(`${baseUrl}/v1/checkouts/${sessionId}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": apiKey,
+      },
     })
+
+    const result = await response.json().catch(() => ({}))
+    if (!response.ok) {
+      throw new Error(
+        `Creem retrieveCheckout failed: ${response.status} ${response.statusText} - ${JSON.stringify(result)}`
+      )
+    }
 
     return result
   }

@@ -91,3 +91,21 @@ export async function deleteApiKey(apiKey: string): Promise<void> {
     .delete(apikeys)
     .where(eq(apikeys.api_key, apiKey))
 }
+
+/**
+ * Get User UUID by API Key (if valid)
+ */
+export async function getUserUuidByApiKey(apiKey: string): Promise<string | null> {
+  const [key] = await db()
+    .select({ user_uuid: apikeys.user_uuid })
+    .from(apikeys)
+    .where(
+      and(
+        eq(apikeys.api_key, apiKey),
+        eq(apikeys.status, ApiKeyStatus.Active)
+      )
+    )
+    .limit(1);
+
+  return key?.user_uuid || null;
+}

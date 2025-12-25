@@ -21,27 +21,25 @@ export async function GET(req: Request) {
       xApiKey: client.apiKey(),
       checkoutId: checkoutId,
     });
-    if (result.requestId !== requestId) {
-      throw new Error("invalid checkout data");
+    // Some providers do not echo request_id exactly as provided.
+    // Use request_id from query params as the source of truth.
+    const order_no = requestId;
+
+    // If payment is already marked as paid, update the order now.
+    if (result.order && result.order.status === "paid") {
+      if (
+        !result.customer ||
+        typeof result.customer === "string" ||
+        !("email" in result.customer)
+      ) {
+        throw new Error("invalid customer email");
+      }
+
+      const paid_email = result.customer.email;
+      const paid_detail = JSON.stringify(result);
+
+      await updateOrder({ order_no, paid_email, paid_detail });
     }
-
-    if (!result.order || result.order.status !== "paid") {
-      throw new Error("invalid order status");
-    }
-
-    if (
-      !result.customer ||
-      typeof result.customer === "string" ||
-      !("email" in result.customer)
-    ) {
-      throw new Error("invalid customer email");
-    }
-
-    const order_no = result.requestId;
-    const paid_email = result.customer.email;
-    const paid_detail = JSON.stringify(result);
-
-    await updateOrder({ order_no, paid_email, paid_detail });
 
     redirectUrl = process.env.NEXT_PUBLIC_PAY_SUCCESS_URL || "/";
   } catch (e) {

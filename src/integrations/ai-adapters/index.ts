@@ -10,10 +10,10 @@ export * from "./fal"
 export const AI_MODELS = {
   // LLM Models
   llm: {
-    "deepseek/deepseek-v3": {
-      displayName: "DeepSeek V3",
+    "deepseek/deepseek-chat-v3.1": {
+      displayName: "DeepSeek Chat v3.1",
       costTier: "budget",
-      provider: "fal",
+      provider: "openrouter",
       bestFor: "Cost-effective script generation",
     },
     "openai/gpt-4-turbo": {
@@ -102,7 +102,7 @@ export const AI_MODELS = {
 
 // Default model selections (T2V-First strategy)
 export const DEFAULT_MODELS = {
-  llm: "deepseek/deepseek-v3",
+  llm: "deepseek/deepseek-chat-v3.1",
   t2i: "fal-ai/flux/dev",
   t2v: "fal-ai/sora-2/text-to-video", // MVP: Sora 2 for direct T2V with audio
   tts: "fal-ai/vibevoice",

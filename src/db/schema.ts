@@ -1,12 +1,10 @@
 import {
   pgTable,
-  serial,
   varchar,
   text,
   boolean,
   integer,
   timestamp,
-  unique,
   uniqueIndex,
 } from "drizzle-orm/pg-core";
 
@@ -155,4 +153,50 @@ export const generations = pgTable("generations", {
   queue_position: integer(),
   processed_at: timestamp({ withTimezone: true }),
   metadata: text(), // JSON for additional data
+});
+
+// ==============================================================================
+// AISHIP / PromptShip Tables
+// ==============================================================================
+
+// Tool Runs table (Generic execution record for AI Ship tools)
+export const tool_runs = pgTable("tool_runs", {
+  id: integer().primaryKey().generatedAlwaysAsIdentity(),
+  uuid: varchar({ length: 255 }).notNull().unique(),
+  user_uuid: varchar({ length: 255 }).notNull(),
+  tool_id: varchar({ length: 100 }).notNull(), // e.g., "video-storyboard"
+  status: varchar({ length: 50 }).notNull().default("pending"), // pending, running, completed, failed
+  cost_credits: integer().notNull().default(0),
+  input_json: text(), // JSON string of user inputs
+  output_json: text(), // JSON string of tool results (the script/storyboard)
+  usage_json: text(), // JSON string of token usage / API metadata
+  error_message: text(),
+  created_at: timestamp({ withTimezone: true }).defaultNow(),
+  completed_at: timestamp({ withTimezone: true }),
+});
+
+// Public Prompts table (SEO Plaza)
+export const public_prompts = pgTable("public_prompts", {
+  id: integer().primaryKey().generatedAlwaysAsIdentity(),
+  uuid: varchar({ length: 255 }).notNull().unique(),
+  slug: varchar({ length: 255 }).notNull().unique(), // URL-friendly slug
+  title: varchar({ length: 255 }).notNull(),
+  description: text(),
+  
+  // Content
+  model: varchar({ length: 100 }), // sora, kling, runway
+  content_json: text().notNull(), // The full storyboard/prompt JSON
+  thumbnail_url: varchar({ length: 500 }), // Flux generated preview
+  tags: text(), // JSON array: ["cyberpunk", "ad"]
+
+  // Stats
+  views: integer().notNull().default(0),
+  copies: integer().notNull().default(0),
+  
+  // Status
+  is_featured: boolean().notNull().default(false),
+  is_public: boolean().notNull().default(true),
+  
+  created_at: timestamp({ withTimezone: true }).defaultNow(),
+  updated_at: timestamp({ withTimezone: true }),
 });

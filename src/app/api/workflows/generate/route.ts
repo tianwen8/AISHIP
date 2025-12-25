@@ -3,7 +3,7 @@
  * Generate a complete video workflow from user input
  */
 
-import { getUserUuid } from "@/services/user"
+import { getUserUuid } from "@/services/user-session"
 import { respData, respErr } from "@/lib/resp"
 import { createAIPlanner } from "@/services/ai-planner"
 import { createOrchestrator } from "@/services/orchestrator"

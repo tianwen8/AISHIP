@@ -1,499 +1,245 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { useSession, signOut } from "next-auth/react";
-import { estimateWorkflowCost } from "@/services/pricing";
-import { WaterfallGallery } from "@/components/WaterfallGallery";
+import { useState } from "react";
+import Link from "next/link";
+import { Search, Sparkles, Film, Video, Zap, CheckCircle2, PlayCircle, HelpCircle, ArrowRight } from "lucide-react";
 
-// Duration options
-const durations = [
-  { value: 8, label: "8s", icon: "⚡" },
-  { value: 15, label: "15s", icon: "📱" },
-  { value: 30, label: "30s", icon: "🎬" },
+// Mock Data: Cinematic Prompts (For Showcase)
+const MOCK_PROMPTS = [
+  {
+    id: "cyberpunk-detective",
+    title: "Cyberpunk Detective: Neon Rain",
+    slug: "cyberpunk-detective-neon-rain",
+    thumbnail: "https://fal.media/files/monkey/2wJ-7T3wK_3s4sF_q.png", 
+    models: ["Sora", "Kling"],
+    tags: ["Cyberpunk", "Sci-Fi"],
+    views: 1250,
+  },
+  {
+    id: "wes-anderson-kitchen",
+    title: "Symmetrical Pastel Kitchen",
+    slug: "wes-anderson-style-kitchen",
+    thumbnail: "https://fal.media/files/lion/4hK-9U2wL_8s2sD_p.png", 
+    models: ["Veo", "Runway"],
+    tags: ["Wes Anderson", "Symmetry"],
+    views: 890,
+  },
+  {
+    id: "fpv-drone-forest",
+    title: "Fast FPV Drone Through Forest",
+    slug: "fpv-drone-racing-forest",
+    thumbnail: "https://fal.media/files/tiger/7jM-1X5wN_6s9sA_r.png", 
+    models: ["Kling", "Luma"],
+    tags: ["FPV", "Action"],
+    views: 2100,
+  },
 ];
 
-// Platform options
-const platforms = [
-  { value: "tiktok", label: "TikTok", icon: "🎵" },
-  { value: "reels", label: "Instagram Reels", icon: "📷" },
-  { value: "shorts", label: "YouTube Shorts", icon: "▶️" },
-];
-
-// Voice options
-const voices = [
-  { value: "none", label: "No Voiceover", icon: "🔇" },
-  { value: "female", label: "Female Voice", icon: "👩" },
-  { value: "male", label: "Male Voice", icon: "👨" },
-];
-
-const featuredTemplates = [
+const FAQS = [
   {
-    id: 1,
-    title: "Product Showcase",
-    thumbnail: "/templates/product-showcase.jpg",
-    category: "product",
-    uses: 1234,
+    q: "How does the AI Director work?",
+    a: "Unlike simple prompt generators, our AI Director thinks like a filmmaker. It breaks your story idea into a structured shot list (storyboard), assigning camera movements, lighting, and sound to each shot for maximum cinematic effect."
   },
   {
-    id: 2,
-    title: "Tutorial Explainer",
-    thumbnail: "/templates/tutorial.jpg",
-    category: "story",
-    uses: 892,
+    q: "Which video models do you support?",
+    a: "We generate optimized prompts for OpenAI Sora, Kuaishou Kling, Runway Gen-3, and Google Veo. You can copy the specific prompt format for your preferred model."
   },
   {
-    id: 3,
-    title: "Promo Ad",
-    thumbnail: "/templates/promo.jpg",
-    category: "short",
-    uses: 2156,
+    q: "Can I generate long stories?",
+    a: "Yes! Our tool supports 'Episodic Mode'. Paste a long script, and the AI will break it down into multiple scenes, helping you generate a consistent series."
   },
   {
-    id: 4,
-    title: "Story Time",
-    thumbnail: "/templates/story.jpg",
-    category: "story",
-    uses: 756,
-  },
-  {
-    id: 5,
-    title: "Fashion Lookbook",
-    thumbnail: "/templates/fashion.jpg",
-    category: "product",
-    uses: 1523,
-  },
-  {
-    id: 6,
-    title: "Food Recipe",
-    thumbnail: "/templates/food.jpg",
-    category: "short",
-    uses: 945,
-  },
-  {
-    id: 7,
-    title: "Travel Vlog",
-    thumbnail: "/templates/travel.jpg",
-    category: "story",
-    uses: 678,
-  },
-  {
-    id: 8,
-    title: "Tech Review",
-    thumbnail: "/templates/tech.jpg",
-    category: "product",
-    uses: 1089,
-  },
+    q: "Do I get a refund if the prompt fails?",
+    a: "We guarantee the structure of the prompt. While we can't control the random nature of AI video models, our 'Director's Cut' prompts are tested to have a much higher success rate than raw text."
+  }
 ];
 
 export default function HomePage() {
-  const [prompt, setPrompt] = useState("");
-  const [duration, setDuration] = useState(15);
-  const [platform, setPlatform] = useState("tiktok");
-  const [voice, setVoice] = useState("none");
-  const [estimatedCost, setEstimatedCost] = useState(0);
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [referenceFile, setReferenceFile] = useState<File | null>(null);
-  const [referencePreview, setReferencePreview] = useState<string | null>(null);
-  const [userCredits, setUserCredits] = useState<number | null>(null);
-  const router = useRouter();
-  const { data: session, status } = useSession();
-
-  // Fetch user credits
-  useEffect(() => {
-    if (status === "authenticated" && session?.user) {
-      fetch("/api/user/credits")
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.code === 0 && data.data) {
-            setUserCredits(data.data.left_credits || 0);
-          }
-        })
-        .catch((err) => console.error("Failed to fetch credits:", err));
-    }
-  }, [status, session]);
-
-  // Handle file upload
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setReferenceFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setReferencePreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  // Remove reference file
-  const handleRemoveReference = () => {
-    setReferenceFile(null);
-    setReferencePreview(null);
-  };
-
-  // Real-time cost estimation
-  useEffect(() => {
-    if (prompt.trim()) {
-      // Estimate based on duration and voice
-      // Assume 3 scenes for MVP estimation
-      const sceneCount = Math.ceil(duration / 5); // ~5s per scene
-      const hasVoiceover = voice !== "none";
-
-      const cost = estimateWorkflowCost({
-        sceneCount,
-        totalDurationSeconds: duration,
-        hasVoiceover,
-        t2iModel: "fal-ai/flux-dev",
-        t2vModel: "fal-ai/kling-v1",
-        ttsModel: hasVoiceover ? "elevenlabs/turbo-v2" : undefined,
-      });
-
-      setEstimatedCost(cost);
-    } else {
-      setEstimatedCost(0);
-    }
-  }, [prompt, duration, voice]);
-
-  const handleGenerate = async () => {
-    if (!prompt.trim()) {
-      alert("Please enter a description for your video");
-      return;
-    }
-
-    // Check if user is logged in
-    if (status !== "authenticated") {
-      alert("Please sign in to generate videos. New users get 306 free Power Units!");
-      router.push("/login");
-      return;
-    }
-
-    // Check if user has enough Power Units
-    if (userCredits !== null && userCredits < estimatedCost) {
-      const confirmed = confirm(
-        `You have ${userCredits} Power Units but need ${estimatedCost} Power Units. Would you like to purchase more?`
-      );
-      if (confirmed) {
-        router.push("/pricing");
-      }
-      return;
-    }
-
-    setIsGenerating(true);
-
-    try {
-      // Create a temporary runId and redirect immediately
-      const tempRunId = `temp_${Date.now()}`
-
-      // Store generation params in sessionStorage for canvas to use
-      sessionStorage.setItem('generationParams', JSON.stringify({
-        prompt,
-        duration,
-        platform,
-        voice,
-        referenceImage: referencePreview, // Include reference image base64
-      }))
-
-      // Immediately redirect to canvas page
-      router.push(`/workspace/${tempRunId}`)
-    } catch (error: any) {
-      alert(`Error: ${error.message}`)
-      setIsGenerating(false)
-    }
-  }
-
-  // Old synchronous approach (kept as backup)
-  const handleGenerateOld = async () => {
-    if (!prompt.trim()) {
-      alert("Please enter a description for your video");
-      return;
-    }
-
-    setIsGenerating(true);
-
-    try {
-      // Call API to generate workflow
-      const response = await fetch("/api/generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          prompt,
-          duration,
-          platform,
-          voice,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to generate workflow");
-      }
-
-      const { runUuid } = await response.json();
-
-      // Redirect to canvas page
-      router.push(`/workspace/${runUuid}`);
-    } catch (error) {
-      console.error("Generation error:", error);
-      alert("Failed to generate workflow. Please try again.");
-    } finally {
-      setIsGenerating(false);
-    }
-  };
-
-  const handleUseTemplate = (templateId: number) => {
-    // TODO: Clone template and redirect to canvas
-    router.push(`/workspace/new?template=${templateId}`);
-  };
-
   return (
     <div className="min-h-screen bg-white">
-      {/* Header */}
-      <header className="border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg"></div>
-            <span className="text-xl font-bold text-gray-900">AI Video Studio</span>
+      
+      {/* 1. Hero Section (SEO H1) */}
+      <section className="relative overflow-hidden pt-20 pb-32 lg:pt-32 lg:pb-40">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-violet-50 text-violet-700 text-sm font-semibold mb-8 border border-violet-100 animate-in fade-in slide-in-from-bottom-4 duration-700">
+            <Sparkles className="w-4 h-4" />
+            <span>Now supporting Sora & Kling V1.6</span>
           </div>
-          <nav className="flex items-center gap-6">
-            <a href="/pricing" className="text-gray-600 hover:text-gray-900">
-              Pricing
-            </a>
+          
+          <h1 className="text-5xl lg:text-7xl font-extrabold text-gray-900 tracking-tight mb-8 leading-tight">
+            Stop Guessing Prompts. <br/>
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-indigo-600">Start Directing.</span>
+          </h1>
+          
+          <p className="text-xl text-gray-500 mb-10 max-w-2xl mx-auto leading-relaxed">
+            Transform vague ideas into Hollywood-level <strong>shot lists</strong> and <strong>storyboards</strong>. 
+            The only AI tool that understands camera movement, lighting, and narrative structure.
+          </p>
 
-            {status === "authenticated" && session?.user ? (
-              <>
-                {/* Credit Balance Display */}
-                <div className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border border-purple-200">
-                  <span className="text-purple-600">💎</span>
-                  <span className="font-semibold text-purple-900">
-                    {userCredits !== null ? userCredits : "..."}
-                  </span>
-                  <span className="text-sm text-purple-600">Power Units</span>
-                </div>
-
-                {/* User Menu */}
-                <div className="flex items-center gap-3">
-                  <div className="flex items-center gap-2">
-                    {session.user.image && (
-                      <img
-                        src={session.user.image}
-                        alt="User avatar"
-                        className="w-8 h-8 rounded-full border-2 border-gray-200"
-                      />
-                    )}
-                    <span className="text-sm text-gray-700">{session.user.name || session.user.email}</span>
-                  </div>
-                  <button
-                    onClick={() => signOut({ callbackUrl: "/" })}
-                    className="text-gray-600 hover:text-gray-900 text-sm"
-                  >
-                    Sign Out
-                  </button>
-                </div>
-              </>
-            ) : (
-              <>
-                <a href="/login" className="text-gray-600 hover:text-gray-900">
-                  Sign In
-                </a>
-                <a
-                  href="/login"
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-                >
-                  Sign Up - Get 306 Power Units
-                </a>
-              </>
-            )}
-          </nav>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <Link 
+              href="/tools/video-storyboard"
+              className="w-full sm:w-auto px-8 py-4 bg-gray-900 text-white text-lg font-bold rounded-xl hover:bg-gray-800 transition shadow-lg hover:translate-y-[-2px] flex items-center justify-center gap-2"
+            >
+              <Video className="w-5 h-5" />
+              Direct My Movie
+            </Link>
+            <Link 
+              href="#showcase"
+              className="w-full sm:w-auto px-8 py-4 bg-white text-gray-700 text-lg font-bold rounded-xl border border-gray-200 hover:bg-gray-50 transition flex items-center justify-center gap-2"
+            >
+              Explore Showcase
+            </Link>
+          </div>
         </div>
-      </header>
+        
+        {/* Background Gradients */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full max-w-7xl opacity-30 pointer-events-none">
+          <div className="absolute top-20 left-20 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl animate-blob"></div>
+          <div 
+            className="absolute top-20 right-20 w-72 h-72 bg-yellow-300 rounded-full mix-blend-multiply filter blur-xl animate-blob"
+            style={{ animationDelay: "2s" }}
+          ></div>
+          <div 
+            className="absolute -bottom-8 left-1/2 w-72 h-72 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl animate-blob"
+            style={{ animationDelay: "4s" }}
+          ></div>
+        </div>
+      </section>
 
-      {/* Hero Section */}
-      <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
-        <h1 className="text-5xl font-bold text-gray-900 mb-4">
-          Create Stunning Videos with AI
-        </h1>
-        <p className="text-xl text-gray-600 mb-12">
-          Transform your ideas into engaging content for TikTok, YouTube Shorts, and Instagram Reels
-        </p>
-
-        {/* Input Box */}
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 mb-8">
-          {/* Prompt Input */}
-          <textarea
-            value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-            placeholder="Describe your video... (e.g., A sunset over ocean waves with calming music)"
-            className="w-full h-32 text-lg border-0 outline-none resize-none placeholder-gray-400"
-          />
-
-          {/* Reference Image/Video Upload */}
-          <div className="border-t border-gray-200 mt-4 pt-4 mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Reference Image or Video (Optional)
-            </label>
-            {!referencePreview ? (
-              <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer hover:bg-gray-50 transition">
-                <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                  <svg
-                    className="w-10 h-10 mb-2 text-gray-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-                    />
-                  </svg>
-                  <p className="text-sm text-gray-500">
-                    <span className="font-semibold">Click to upload</span> or drag and drop
-                  </p>
-                  <p className="text-xs text-gray-500">PNG, JPG, MP4 (MAX. 10MB)</p>
-                </div>
-                <input
-                  type="file"
-                  className="hidden"
-                  accept="image/*,video/*"
-                  onChange={handleFileUpload}
-                />
-              </label>
-            ) : (
-              <div className="relative">
-                <img
-                  src={referencePreview}
-                  alt="Reference preview"
-                  className="w-full h-48 object-cover rounded-lg"
-                />
-                <button
-                  onClick={handleRemoveReference}
-                  className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-red-600 transition"
-                >
-                  ✕
-                </button>
+      {/* 2. Features Grid (Why Us?) */}
+      <section className="bg-gray-50 py-24">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Why Creators Choose PromptShip</h2>
+            <p className="text-gray-500 max-w-2xl mx-auto">Writing prompts is hard. Directing is harder. We automate the technical stuff so you can focus on the story.</p>
+          </div>
+          
+          <div className="grid md:grid-cols-3 gap-8">
+            <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition">
+              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-6 text-blue-600">
+                <Film className="w-6 h-6" />
               </div>
-            )}
+              <h3 className="text-xl font-bold text-gray-900 mb-3">Structured Shot Lists</h3>
+              <p className="text-gray-500 leading-relaxed">Don't just get a block of text. Get a breakdown: Shot 1 (Wide), Shot 2 (Close-up). Perfect for editing consistency.</p>
+            </div>
+            <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition">
+              <div className="w-12 h-12 bg-violet-100 rounded-lg flex items-center justify-center mb-6 text-violet-600">
+                <Zap className="w-6 h-6" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-3">Multi-Model Support</h3>
+              <p className="text-gray-500 leading-relaxed">Sora needs different words than Kling. Our engine translates your idea into the native language of each AI model.</p>
+            </div>
+            <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition">
+              <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mb-6 text-orange-600">
+                <PlayCircle className="w-6 h-6" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-3">Visual Previews (Flux)</h3>
+              <p className="text-gray-500 leading-relaxed">See it before you generate it. We generate a high-quality keyframe preview for every prompt using Flux.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 3. Showcase (The "Library") */}
+      <section id="showcase" className="py-24 border-t border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-end justify-between mb-12">
+            <div>
+              <h2 className="text-3xl font-bold text-gray-900 mb-2">Community Showcase</h2>
+              <p className="text-gray-500">Copy tested prompts from our community.</p>
+            </div>
+            <Link href="/library" className="hidden sm:flex items-center gap-2 text-violet-600 font-medium hover:text-violet-700">
+              View All Prompts <ArrowRight className="w-4 h-4" />
+            </Link>
           </div>
 
-          <div className="border-t border-gray-200 pt-4">
-            {/* Duration Selector */}
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Duration
-              </label>
-              <div className="flex gap-3">
-                {durations.map((d) => (
-                  <button
-                    key={d.value}
-                    onClick={() => setDuration(d.value)}
-                    className={`flex-1 py-2 px-4 rounded-lg border-2 transition ${
-                      duration === d.value
-                        ? "border-blue-600 bg-blue-50 text-blue-700"
-                        : "border-gray-200 hover:border-gray-300 text-gray-700"
-                    }`}
-                  >
-                    <span className="mr-1">{d.icon}</span>
-                    {d.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Platform Selector */}
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Platform
-              </label>
-              <div className="flex gap-3">
-                {platforms.map((p) => (
-                  <button
-                    key={p.value}
-                    onClick={() => setPlatform(p.value)}
-                    className={`flex-1 py-2 px-4 rounded-lg border-2 transition ${
-                      platform === p.value
-                        ? "border-blue-600 bg-blue-50 text-blue-700"
-                        : "border-gray-200 hover:border-gray-300 text-gray-700"
-                    }`}
-                  >
-                    <span className="mr-1">{p.icon}</span>
-                    <span className="text-sm">{p.label}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Voice Selector */}
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Voiceover
-              </label>
-              <div className="flex gap-3">
-                {voices.map((v) => (
-                  <button
-                    key={v.value}
-                    onClick={() => setVoice(v.value)}
-                    className={`flex-1 py-2 px-4 rounded-lg border-2 transition ${
-                      voice === v.value
-                        ? "border-blue-600 bg-blue-50 text-blue-700"
-                        : "border-gray-200 hover:border-gray-300 text-gray-700"
-                    }`}
-                  >
-                    <span className="mr-1">{v.icon}</span>
-                    <span className="text-sm">{v.label}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Cost Estimate (Credits primary, USD secondary) */}
-            {estimatedCost > 0 && (
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-700">Estimated Cost:</span>
-                  <div className="text-right">
-                    <div className="text-lg font-bold text-blue-700">
-                      ~{estimatedCost.toFixed(1)} Power Units
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+            {MOCK_PROMPTS.map((prompt) => (
+              <Link href={`/prompt/${prompt.slug}`} key={prompt.id} className="group block">
+                <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden hover:shadow-xl transition-all duration-300 h-full">
+                  <div className="aspect-video bg-gray-100 relative overflow-hidden">
+                    {/* Placeholder */}
+                     <div className="w-full h-full flex items-center justify-center bg-gray-200 text-gray-400">
+                       <Video className="w-12 h-12 opacity-20" />
+                     </div>
+                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
+                        <span className="text-white font-bold px-4 py-2 border-2 border-white rounded-lg">View Details</span>
+                     </div>
+                  </div>
+                  <div className="p-5">
+                    <div className="flex items-center gap-2 mb-2">
+                       {prompt.models.map(m => (
+                         <span key={m} className="text-xs font-bold text-violet-600 bg-violet-50 px-2 py-1 rounded">{m}</span>
+                       ))}
+                    </div>
+                    <h3 className="font-bold text-gray-900 truncate">{prompt.title}</h3>
+                    <div className="flex items-center gap-2 mt-2 text-xs text-gray-500">
+                       <CheckCircle2 className="w-3 h-3 text-green-500" /> Tested working
+                       <span>• {prompt.views} views</span>
                     </div>
                   </div>
                 </div>
-              </div>
-            )}
-
-            {/* Generate Button */}
-            <button
-              onClick={handleGenerate}
-              disabled={isGenerating || !prompt.trim()}
-              className={`w-full py-4 text-lg font-semibold rounded-lg transition shadow-lg ${
-                isGenerating || !prompt.trim()
-                  ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                  : "bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700"
-              }`}
-            >
-              {isGenerating ? "Generating Workflow..." : "Generate Video →"}
-            </button>
+              </Link>
+            ))}
+          </div>
+          
+          <div className="mt-8 text-center sm:hidden">
+            <Link href="/library" className="text-violet-600 font-medium">View All Prompts →</Link>
           </div>
         </div>
-
-        <p className="text-sm text-gray-500">
-          New users get 306 Power Units (1 video) • Daily login + share earns 306 more • No credit card required
-        </p>
       </section>
 
-      {/* Waterfall Gallery - Community Creations */}
-      <WaterfallGallery />
-
-      {/* Footer */}
-      <footer className="border-t border-gray-200 mt-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="text-center text-sm text-gray-500">
-            <p>© 2025 AI Video Studio. All rights reserved.</p>
-            <div className="mt-2 flex justify-center gap-6">
-              <a href="/terms" className="hover:text-gray-700">Terms</a>
-              <a href="/privacy" className="hover:text-gray-700">Privacy</a>
-              <a href="/contact" className="hover:text-gray-700">Contact</a>
-            </div>
+      {/* 4. FAQ Section (SEO Rich Snippets) */}
+      <section className="bg-gray-50 py-24">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Frequently Asked Questions</h2>
+            <p className="text-gray-500">Everything you need to know about AI video direction.</p>
           </div>
+          
+          <div className="space-y-6">
+            {FAQS.map((faq, i) => (
+              <div key={i} className="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm">
+                <h3 className="font-bold text-gray-900 mb-2 flex items-start gap-3">
+                  <HelpCircle className="w-5 h-5 text-violet-500 mt-0.5 shrink-0" />
+                  {faq.q}
+                </h3>
+                <p className="text-gray-600 ml-8 leading-relaxed">{faq.a}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 5. Footer */}
+      <footer className="bg-gray-900 text-gray-400 py-12 border-t border-gray-800">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-2 md:grid-cols-4 gap-8">
+          <div className="col-span-2">
+            <div className="flex items-center gap-2 mb-4 text-white">
+               <div className="w-8 h-8 bg-gradient-to-br from-violet-600 to-indigo-600 rounded-lg flex items-center justify-center font-bold">P</div>
+               <span className="text-xl font-bold">PromptShip</span>
+            </div>
+            <p className="text-sm max-w-xs">Building the future of AI storytelling. One shot at a time.</p>
+          </div>
+          <div>
+            <h4 className="text-white font-bold mb-4">Product</h4>
+            <ul className="space-y-2 text-sm">
+              <li><Link href="/tools/video-storyboard" className="hover:text-white">AI Director</Link></li>
+              <li><Link href="/library" className="hover:text-white">Prompt Library</Link></li>
+              <li><Link href="/pricing" className="hover:text-white">Pricing</Link></li>
+            </ul>
+          </div>
+          <div>
+            <h4 className="text-white font-bold mb-4">Legal</h4>
+            <ul className="space-y-2 text-sm">
+              <li><Link href="/terms" className="hover:text-white">Terms of Service</Link></li>
+              <li><Link href="/privacy" className="hover:text-white">Privacy Policy</Link></li>
+            </ul>
+          </div>
+        </div>
+        <div className="max-w-7xl mx-auto px-4 mt-12 pt-8 border-t border-gray-800 text-sm text-center">
+          © 2025 PromptShip AI. All rights reserved.
         </div>
       </footer>
     </div>

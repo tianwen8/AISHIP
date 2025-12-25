@@ -135,22 +135,3 @@ export async function updateUser(
 
   return user || null
 }
-
-/**
- * Update user signin information
- */
-export async function updateUserSignin(
-  uuid: string,
-  data: {
-    signin_ip?: string
-    signin_type?: string
-  }
-): Promise<void> {
-  await db()
-    .update(users)
-    .set({
-      ...data,
-      updated_at: new Date(),
-    })
-    .where(eq(users.uuid, uuid))
-}

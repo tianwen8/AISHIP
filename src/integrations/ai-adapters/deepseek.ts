@@ -7,12 +7,12 @@ import type { ILLMAdapter, LLMRequest, LLMResponse } from "./types"
 
 export class DeepSeekLLMAdapter implements ILLMAdapter {
   private apiKey: string
-  private baseUrl = "https://api.deepseek.com/v1"
+  private baseUrl = "https://openrouter.ai/api/v1"
 
   constructor() {
-    this.apiKey = process.env.DEEPSEEK_API_KEY || ""
+    this.apiKey = process.env.OPENROUTER_API_KEY || ""
     if (!this.apiKey) {
-      throw new Error("DEEPSEEK_API_KEY is not configured")
+      throw new Error("OPENROUTER_API_KEY is not configured")
     }
   }
 
@@ -33,7 +33,7 @@ export class DeepSeekLLMAdapter implements ILLMAdapter {
       })
 
       const requestBody: any = {
-        model: "deepseek-chat", // DeepSeek 模型名称
+        model: request.model || "deepseek/deepseek-chat-v3.1",
         messages,
         temperature: request.temperature || 0.7,
         max_tokens: request.maxTokens || 2000,
@@ -48,6 +48,9 @@ export class DeepSeekLLMAdapter implements ILLMAdapter {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          // Optional headers for OpenRouter analytics/attribution.
+          "HTTP-Referer": process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
+          "X-Title": "PromptShip",
           Authorization: `Bearer ${this.apiKey}`,
         },
         body: JSON.stringify(requestBody),

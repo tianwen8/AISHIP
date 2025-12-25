@@ -5,7 +5,7 @@
 
 import { db } from '@/db'
 import { orders } from '@/db/schema.index'
-import { eq } from 'drizzle-orm'
+import { eq, and, desc } from 'drizzle-orm'
 
 export enum OrderStatus {
   Created = 'created',
@@ -106,6 +106,23 @@ export async function insertOrder(data: {
 }
 
 /**
+ * Update order with checkout session info
+ */
+export async function updateOrderSession(
+  orderNo: string,
+  sessionId: string,
+  orderDetail: string
+): Promise<void> {
+  await db()
+    .update(orders)
+    .set({
+      stripe_session_id: sessionId,
+      order_detail: orderDetail,
+    })
+    .where(eq(orders.order_no, orderNo))
+}
+
+/**
  * Update order status to paid
  */
 export async function updateOrderStatus(
@@ -168,4 +185,42 @@ export async function findOrdersByUserUuid(userUuid: string): Promise<Order[]> {
     .from(orders)
     .where(eq(orders.user_uuid, userUuid))
     .orderBy(orders.created_at)
+}
+
+/**
+ * Get the first paid order for a user (used to determine if they are a paying customer)
+ */
+export async function getFirstPaidOrderByUserUuid(userUuid: string): Promise<Order | null> {
+  const [order] = await db()
+    .select()
+    .from(orders)
+    .where(
+      and(
+        eq(orders.user_uuid, userUuid),
+        eq(orders.status, OrderStatus.Paid)
+      )
+    )
+    .orderBy(orders.created_at)
+    .limit(1);
+
+  return order || null;
+}
+
+/**
+ * Get latest paid order for a user (used to determine plan tier)
+ */
+export async function getLatestPaidOrderByUserUuid(userUuid: string): Promise<Order | null> {
+  const [order] = await db()
+    .select()
+    .from(orders)
+    .where(
+      and(
+        eq(orders.user_uuid, userUuid),
+        eq(orders.status, OrderStatus.Paid)
+      )
+    )
+    .orderBy(desc(orders.created_at))
+    .limit(1)
+
+  return order || null
 }

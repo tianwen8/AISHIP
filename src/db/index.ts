@@ -14,6 +14,12 @@ export function db() {
     throw new Error("DATABASE_URL is not set");
   }
 
+  // Supabase/Postgres over the internet typically requires TLS.
+  // `postgres` (postgres-js) does not reliably honor `sslmode=require` from the URL in all environments,
+  // so we enable SSL by default and allow opting out via env.
+  const ssl =
+    process.env.DATABASE_SSL === "disable" ? false : { rejectUnauthorized: false };
+
   // In Cloudflare Workers, create new connection each time
   if (isCloudflareWorker) {
     // Workers environment uses minimal configuration
@@ -22,6 +28,7 @@ export function db() {
       max: 1, // Limit to 1 connection in Workers
       idle_timeout: 10, // Shorter timeout for Workers
       connect_timeout: 5,
+      ssl,
     });
 
     return drizzle(client);
@@ -38,6 +45,7 @@ export function db() {
     max: 10, // Maximum connections in pool
     idle_timeout: 30, // Idle connection timeout (seconds)
     connect_timeout: 10, // Connection timeout (seconds)
+    ssl,
   });
   dbInstance = drizzle({ client });
 

@@ -21,9 +21,9 @@ import type {
 } from "./types"
 
 // Initialize Fal.ai client
-if (process.env.FAL_API_KEY) {
+if (process.env.FAL_API_KEY || process.env.FAL_KEY) {
   fal.config({
-    credentials: process.env.FAL_API_KEY,
+    credentials: process.env.FAL_API_KEY || process.env.FAL_KEY,
   })
 }
 

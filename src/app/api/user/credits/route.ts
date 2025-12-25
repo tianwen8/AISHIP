@@ -1,4 +1,4 @@
-import { getUserUuid } from "@/services/user";
+import { getUserUuid } from "@/services/user-session";
 import { getUserCredits } from "@/services/credit";
 import { respData, respErr } from "@/lib/resp";
 

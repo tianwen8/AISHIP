@@ -118,7 +118,7 @@ export const providerMap = providers
 export const authOptions: NextAuthConfig = {
   providers,
   pages: {
-    signIn: "/auth/signin",
+    signIn: "/login",
   },
   callbacks: {
     async signIn({ user, account, profile, email, credentials }) {
