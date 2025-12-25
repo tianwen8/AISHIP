@@ -184,6 +184,13 @@ export default function AIStoryDirectorPage() {
     return blocks.join("\n");
   };
 
+  const buildStoryboardJson = (payload: DirectorOutput) => JSON.stringify(payload, null, 2);
+  const usageSteps = [
+    "Generate character reference images first using the character prompts.",
+    "Generate a scene reference image using the scene prompt.",
+    "Copy each shot prompt and attach your references for consistent results.",
+  ];
+
   const buildCharacterPrompt = (character: { anchors?: string; prompt?: string }) => {
     if (character?.prompt) return character.prompt;
     if (character?.anchors) {
@@ -341,10 +348,19 @@ export default function AIStoryDirectorPage() {
                 <div className="flex flex-wrap items-center gap-3">
                   <CopyButton text={buildStoryboardPack(result)} label="Copy storyboard pack" />
                   <CopyButton text={result.shots.map((shot) => shot.prompt_en).join("\n")} label="Copy shot prompts" />
+                  <CopyButton text={buildStoryboardJson(result)} label="Copy storyboard JSON" />
                 </div>
                 <p className="text-xs text-gray-500">
                   Recommended flow: generate character + scene references first, then copy each shot prompt with your references attached.
                 </p>
+                <div className="space-y-2 text-sm text-gray-700">
+                  {usageSteps.map((step) => (
+                    <div key={step} className="flex items-start gap-2">
+                      <span className="text-emerald-600 font-semibold">-</span>
+                      <span>{step}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
 
               {(result.style_lock || result.scene_prompt || (result.characters && result.characters.length > 0) || result.continuity_notes) && (

@@ -120,6 +120,12 @@ export default async function PromptDetailPage({
     }
     return blocks.join("\n");
   })();
+  const storyboardJson = JSON.stringify(content, null, 2);
+  const usageSteps = [
+    "Generate character reference images first using the character prompts.",
+    "Generate a scene reference image using the scene prompt.",
+    "Copy each shot prompt and attach your references for consistent results.",
+  ];
 
   const buildCharacterPrompt = (character: any) => {
     if (character?.prompt) return String(character.prompt);
@@ -219,6 +225,20 @@ export default async function PromptDetailPage({
 
             <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
               <div className="p-6 space-y-6">
+                <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
+                  <div className="text-xs font-semibold text-gray-500 uppercase mb-2">
+                    How to use this storyboard
+                  </div>
+                  <div className="space-y-2 text-sm text-gray-700">
+                    {usageSteps.map((step) => (
+                      <div key={step} className="flex items-start gap-2">
+                        <span className="text-emerald-600 font-semibold">-</span>
+                        <span>{step}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
                 <div className="flex items-center justify-between">
                   <h2 className="text-xl font-bold text-gray-900 font-display">Prompt blocks</h2>
                   {allPromptsText && (
@@ -247,6 +267,15 @@ export default async function PromptDetailPage({
                     />
                   </div>
                 ))}
+
+                <div className="flex flex-wrap items-center gap-3">
+                  {storyboardPack && (
+                    <CopyButton text={storyboardPack} label="Copy storyboard pack" slug={prompt.slug} />
+                  )}
+                  {storyboardJson && (
+                    <CopyButton text={storyboardJson} label="Copy storyboard JSON" slug={prompt.slug} />
+                  )}
+                </div>
               </div>
             </div>
 
