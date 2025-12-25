@@ -22,6 +22,7 @@ interface DirectorOutput {
     id: number;
     duration: number;
     description: string;
+    transition?: string;
     camera_movement: string;
     composition: string;
     lighting: string;
@@ -446,11 +447,16 @@ export default function AIStoryDirectorPage() {
                             {shot.duration}s
                           </span>
                         </div>
-                        <div className="flex gap-2">
-                          <span className="text-xs font-medium px-2 py-1 bg-emerald-50 text-emerald-700 rounded border border-emerald-100">
-                            {shot.camera_movement}
+                      <div className="flex gap-2">
+                        {shot.transition && (
+                          <span className="text-xs font-medium px-2 py-1 bg-gray-50 text-gray-600 rounded border border-gray-200">
+                            {shot.transition}
                           </span>
-                        </div>
+                        )}
+                        <span className="text-xs font-medium px-2 py-1 bg-emerald-50 text-emerald-700 rounded border border-emerald-100">
+                          {shot.camera_movement}
+                        </span>
+                      </div>
                       </div>
 
                       <p className="text-gray-900 font-medium mb-4 leading-relaxed">

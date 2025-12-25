@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { db } from "@/db";
 import { public_prompts } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { and, asc, desc, eq, gt, lt } from "drizzle-orm";
 import CopyButton from "@/components/prompt/CopyButton";
 import ViewTracker from "@/components/prompt/ViewTracker";
 
@@ -65,6 +65,30 @@ export default async function PromptDetailPage({
   const characters = Array.isArray(content.characters) ? content.characters : [];
   const scenePrompt = content.scene_prompt || content.scenePrompt || "";
   const created = formatDate(prompt.created_at || null);
+
+  const [prevPrompt] = await db()
+    .select({ slug: public_prompts.slug, title: public_prompts.title })
+    .from(public_prompts)
+    .where(
+      and(
+        eq(public_prompts.is_public, true),
+        lt(public_prompts.created_at, prompt.created_at)
+      )
+    )
+    .orderBy(desc(public_prompts.created_at))
+    .limit(1);
+
+  const [nextPrompt] = await db()
+    .select({ slug: public_prompts.slug, title: public_prompts.title })
+    .from(public_prompts)
+    .where(
+      and(
+        eq(public_prompts.is_public, true),
+        gt(public_prompts.created_at, prompt.created_at)
+      )
+    )
+    .orderBy(asc(public_prompts.created_at))
+    .limit(1);
 
   let promptBlocks: Array<{ label: string; text: string }> = [];
   if (typeof master === "string") {
@@ -359,6 +383,9 @@ export default async function PromptDetailPage({
                         <p className="text-sm text-gray-700 mb-2">{shot.description}</p>
                       )}
                       <div className="flex flex-wrap gap-2 text-xs text-gray-600">
+                        {shot.transition && (
+                          <span className="px-2 py-1 rounded border border-gray-200 bg-gray-50">Transition: {shot.transition}</span>
+                        )}
                         {shot.camera_movement && (
                           <span className="px-2 py-1 rounded border border-gray-200 bg-gray-50">Camera: {shot.camera_movement}</span>
                         )}
@@ -394,6 +421,32 @@ export default async function PromptDetailPage({
                 <p className="text-gray-500 text-sm font-mono bg-gray-50 p-3 rounded-lg border border-gray-100">
                   {negative}
                 </p>
+              </div>
+            )}
+
+            {(prevPrompt || nextPrompt) && (
+              <div className="bg-white rounded-2xl border border-gray-200 p-6">
+                <h3 className="text-lg font-bold text-gray-900 mb-4 font-display">Continue browsing</h3>
+                <div className="flex flex-col md:flex-row gap-3">
+                  {prevPrompt && (
+                    <Link
+                      href={`/prompt/${prevPrompt.slug}`}
+                      className="flex-1 border border-gray-200 rounded-xl p-4 hover:border-emerald-300 hover:bg-emerald-50 transition"
+                    >
+                      <div className="text-xs text-gray-500 uppercase">Previous</div>
+                      <div className="text-sm font-semibold text-gray-900">{prevPrompt.title}</div>
+                    </Link>
+                  )}
+                  {nextPrompt && (
+                    <Link
+                      href={`/prompt/${nextPrompt.slug}`}
+                      className="flex-1 border border-gray-200 rounded-xl p-4 hover:border-emerald-300 hover:bg-emerald-50 transition"
+                    >
+                      <div className="text-xs text-gray-500 uppercase">Next</div>
+                      <div className="text-sm font-semibold text-gray-900">{nextPrompt.title}</div>
+                    </Link>
+                  )}
+                </div>
               </div>
             )}
           </div>

@@ -18,6 +18,7 @@ export interface DirectorShot {
   id: number;
   duration: number; // Duration of this specific shot
   description: string; // Visual description
+  transition: string; // e.g. "cut", "match cut", "whip pan"
   camera_movement: string; // Professional camera movement term
   composition: string; // e.g. "Rule of thirds", "Symmetry"
   lighting: string; // e.g. "Golden hour", "Cyberpunk neon"
@@ -93,7 +94,7 @@ The user has provided a long story or article.
 **Output Rules (STRICT):**
 - Return ONLY a JSON object. No markdown. No extra text.
 - JSON keys: title, logline, story_arc, style_lock, continuity_notes, characters, scene_prompt, master_prompt, negative_prompt, shots, audio
-- shots must be an array of objects with: id, duration, description, camera_movement, composition, lighting, audio_sfx, prompt_en
+- shots must be an array of objects with: id, duration, description, transition, camera_movement, composition, lighting, audio_sfx, prompt_en
 - characters must be an array of objects with: id, anchors, prompt
 - audio must be an object with: music_prompt, voiceover_script (optional)
 - English only for all text fields.
