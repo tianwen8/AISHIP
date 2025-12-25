@@ -25,10 +25,20 @@ export interface DirectorShot {
   prompt_en: string; // The exact English prompt to use for this shot
 }
 
+export interface DirectorCharacter {
+  id: string;
+  anchors: string; // Visual anchor points for consistency
+  prompt: string; // Reference prompt for character generation
+}
+
 export interface DirectorOutput {
   title: string;
   logline: string; // One sentence summary (pitch)
   story_arc: string; // Brief explanation of the narrative structure
+  style_lock: string; // Global style consistency lock
+  continuity_notes: string; // Continuity notes across shots
+  characters: DirectorCharacter[];
+  scene_prompt: string; // Reference prompt for scene generation
   master_prompt: string; // One giant prompt that could generate the whole video (if supported)
   negative_prompt: string; // Common negative terms
   shots: DirectorShot[];
@@ -82,8 +92,9 @@ The user has provided a long story or article.
     systemPrompt += `
 **Output Rules (STRICT):**
 - Return ONLY a JSON object. No markdown. No extra text.
-- JSON keys: title, logline, story_arc, master_prompt, negative_prompt, shots, audio
+- JSON keys: title, logline, story_arc, style_lock, continuity_notes, characters, scene_prompt, master_prompt, negative_prompt, shots, audio
 - shots must be an array of objects with: id, duration, description, camera_movement, composition, lighting, audio_sfx, prompt_en
+- characters must be an array of objects with: id, anchors, prompt
 - audio must be an object with: music_prompt, voiceover_script (optional)
 - English only for all text fields.
 - Sum of shot durations must equal exactly ${Math.min(input.duration, 60)}.

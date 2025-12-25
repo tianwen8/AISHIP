@@ -5,10 +5,19 @@ import { Sparkles, Clapperboard, Video, Download, ArrowRight, Loader2, Save } fr
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { getToolDefinition } from "@/tools/definitions";
+import CopyButton from "@/components/prompt/CopyButton";
 
 interface DirectorOutput {
   title: string;
   logline: string;
+  style_lock?: string;
+  continuity_notes?: string;
+  characters?: Array<{
+    id: string;
+    anchors: string;
+    prompt?: string;
+  }>;
+  scene_prompt?: string;
   shots: Array<{
     id: number;
     duration: number;
@@ -140,6 +149,47 @@ export default function AIStoryDirectorPage() {
     } finally {
       setIsGenerating(false);
     }
+  };
+
+  const buildStoryboardPack = (payload: DirectorOutput) => {
+    const blocks: string[] = [];
+    blocks.push(`Title: ${payload.title}`);
+    blocks.push(`Logline: ${payload.logline}`);
+    if (payload.style_lock) {
+      blocks.push(`Style lock: ${payload.style_lock}`);
+    }
+    if (payload.characters && payload.characters.length > 0) {
+      blocks.push("Characters:");
+      payload.characters.forEach((character, index) => {
+        const label = character.id || `Character ${index + 1}`;
+        blocks.push(`- ${label}: ${character.anchors}`);
+        if (character.prompt) {
+          blocks.push(`  Reference prompt: ${character.prompt}`);
+        }
+      });
+    }
+    if (payload.scene_prompt) {
+      blocks.push(`Scene reference prompt: ${payload.scene_prompt}`);
+    }
+    if (payload.continuity_notes) {
+      blocks.push(`Continuity notes: ${payload.continuity_notes}`);
+    }
+    blocks.push("Shot list:");
+    payload.shots.forEach((shot, index) => {
+      blocks.push(
+        `Shot ${index + 1} (${shot.duration}s) - ${shot.description} | Camera: ${shot.camera_movement} | Composition: ${shot.composition} | Lighting: ${shot.lighting} | Audio: ${shot.audio_sfx}`
+      );
+      blocks.push(`Prompt: ${shot.prompt_en}`);
+    });
+    return blocks.join("\n");
+  };
+
+  const buildCharacterPrompt = (character: { anchors?: string; prompt?: string }) => {
+    if (character?.prompt) return character.prompt;
+    if (character?.anchors) {
+      return `Character reference sheet: ${character.anchors}. Neutral pose, full body, front view, side view, back view.`;
+    }
+    return "";
   };
 
   return (
@@ -287,6 +337,69 @@ export default function AIStoryDirectorPage() {
                 </div>
               </div>
 
+              <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm space-y-4">
+                <div className="flex flex-wrap items-center gap-3">
+                  <CopyButton text={buildStoryboardPack(result)} label="Copy storyboard pack" />
+                  <CopyButton text={result.shots.map((shot) => shot.prompt_en).join("\n")} label="Copy shot prompts" />
+                </div>
+                <p className="text-xs text-gray-500">
+                  Recommended flow: generate character + scene references first, then copy each shot prompt with your references attached.
+                </p>
+              </div>
+
+              {(result.style_lock || result.scene_prompt || (result.characters && result.characters.length > 0) || result.continuity_notes) && (
+                <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm space-y-6">
+                  <h2 className="text-xl font-bold text-gray-900 font-display">Reference sheets</h2>
+
+                  {result.style_lock && (
+                    <div className="space-y-2">
+                      <div className="text-xs font-semibold text-gray-500 uppercase">Style lock</div>
+                      <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-sm text-gray-700">
+                        {result.style_lock}
+                      </div>
+                    </div>
+                  )}
+
+                  {result.characters && result.characters.length > 0 && (
+                    <div className="space-y-3">
+                      <div className="text-xs font-semibold text-gray-500 uppercase">Character sheets</div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {result.characters.map((character, index) => (
+                          <div key={character.id || index} className="bg-gray-50 border border-gray-200 rounded-lg p-4 space-y-3">
+                            <div className="text-sm font-semibold text-gray-900">
+                              {character.id || `Character ${index + 1}`}
+                            </div>
+                            <div className="text-xs text-gray-600">{character.anchors}</div>
+                            {buildCharacterPrompt(character) && (
+                              <CopyButton text={buildCharacterPrompt(character)} label="Copy character prompt" />
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {result.scene_prompt && (
+                    <div className="space-y-2">
+                      <div className="text-xs font-semibold text-gray-500 uppercase">Scene reference prompt</div>
+                      <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-sm text-gray-700">
+                        {result.scene_prompt}
+                      </div>
+                      <CopyButton text={result.scene_prompt} label="Copy scene prompt" />
+                    </div>
+                  )}
+
+                  {result.continuity_notes && (
+                    <div className="space-y-2">
+                      <div className="text-xs font-semibold text-gray-500 uppercase">Continuity notes</div>
+                      <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-sm text-gray-700">
+                        {result.continuity_notes}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
               <div className="space-y-4">
                 {result.shots.map((shot, index) => (
                   <div key={shot.id} className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm flex flex-col md:flex-row">
@@ -333,6 +446,10 @@ export default function AIStoryDirectorPage() {
                         <p className="text-sm text-gray-700 font-mono break-all line-clamp-2 hover:line-clamp-none transition-all">
                           {shot.prompt_en}
                         </p>
+                      </div>
+
+                      <div className="mt-4 flex items-center gap-3">
+                        <CopyButton text={shot.prompt_en} label="Copy shot prompt" />
                       </div>
                     </div>
                   </div>

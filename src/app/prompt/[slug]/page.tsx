@@ -63,6 +63,7 @@ export default async function PromptDetailPage({
   const styleLock = content.style_lock || content.styleLock || "";
   const continuityNotes = content.continuity_notes || content.continuityNotes || "";
   const characters = Array.isArray(content.characters) ? content.characters : [];
+  const scenePrompt = content.scene_prompt || content.scenePrompt || "";
   const created = formatDate(prompt.created_at || null);
 
   let promptBlocks: Array<{ label: string; text: string }> = [];
@@ -80,6 +81,53 @@ export default async function PromptDetailPage({
     const duration = Number(shot.duration);
     return Number.isFinite(duration) ? sum + duration : sum;
   }, 0);
+
+  const storyboardPack = (() => {
+    const blocks: string[] = [];
+    blocks.push(`Title: ${prompt.title}`);
+    if (content.logline) {
+      blocks.push(`Logline: ${content.logline}`);
+    }
+    if (styleLock) {
+      blocks.push(`Style lock: ${styleLock}`);
+    }
+    if (characters.length > 0) {
+      blocks.push("Characters:");
+      characters.forEach((character: any, index: number) => {
+        const label = character.id || `Character ${index + 1}`;
+        blocks.push(`- ${label}: ${character.anchors || ""}`.trim());
+        if (character.prompt) {
+          blocks.push(`  Reference prompt: ${character.prompt}`);
+        }
+      });
+    }
+    if (scenePrompt) {
+      blocks.push(`Scene reference prompt: ${scenePrompt}`);
+    }
+    if (continuityNotes) {
+      blocks.push(`Continuity notes: ${continuityNotes}`);
+    }
+    if (shots.length > 0) {
+      blocks.push("Shot list:");
+      shots.forEach((shot: any, index: number) => {
+        blocks.push(
+          `Shot ${index + 1} (${shot.duration || "?"}s) - ${shot.description || ""} | Camera: ${shot.camera_movement || ""} | Composition: ${shot.composition || ""} | Lighting: ${shot.lighting || ""} | Audio: ${shot.audio_sfx || ""}`.trim()
+        );
+        if (shot.prompt_en) {
+          blocks.push(`Prompt: ${shot.prompt_en}`);
+        }
+      });
+    }
+    return blocks.join("\n");
+  })();
+
+  const buildCharacterPrompt = (character: any) => {
+    if (character?.prompt) return String(character.prompt);
+    if (character?.anchors) {
+      return `Character reference sheet: ${character.anchors}. Neutral pose, full body, front view, side view, back view.`;
+    }
+    return "";
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -120,11 +168,18 @@ export default async function PromptDetailPage({
                     <div className="font-medium text-gray-900">{created || "-"}</div>
                   </div>
                 </div>
-                <div className="mt-6 flex items-center gap-3">
+                <div className="mt-6 flex flex-wrap items-center gap-3">
+                  {storyboardPack && (
+                    <CopyButton
+                      text={storyboardPack}
+                      label="Copy storyboard pack"
+                      slug={prompt.slug}
+                    />
+                  )}
                   {allPromptsText && (
                     <CopyButton
                       text={allPromptsText}
-                      label="Copy all"
+                      label="Copy master prompt"
                       slug={prompt.slug}
                     />
                   )}
@@ -169,7 +224,7 @@ export default async function PromptDetailPage({
                   {allPromptsText && (
                     <CopyButton
                       text={allPromptsText}
-                      label="Copy all"
+                      label="Copy master prompt"
                       slug={prompt.slug}
                     />
                   )}
@@ -195,7 +250,7 @@ export default async function PromptDetailPage({
               </div>
             </div>
 
-            {(styleLock || characters.length > 0 || continuityNotes) && (
+            {(styleLock || characters.length > 0 || continuityNotes || scenePrompt) && (
               <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
                 <div className="p-6 space-y-4">
                   <h2 className="text-xl font-bold text-gray-900 font-display">Storyboard anchors</h2>
@@ -217,8 +272,28 @@ export default async function PromptDetailPage({
                             {character.anchors && (
                               <div className="text-xs text-gray-600 mt-1">{character.anchors}</div>
                             )}
+                            {buildCharacterPrompt(character) && (
+                              <div className="mt-3">
+                                <CopyButton
+                                  text={buildCharacterPrompt(character)}
+                                  label="Copy character prompt"
+                                  slug={prompt.slug}
+                                />
+                              </div>
+                            )}
                           </div>
                         ))}
+                      </div>
+                    </div>
+                  )}
+                  {scenePrompt && (
+                    <div>
+                      <div className="text-xs font-semibold text-gray-500 uppercase mb-2">Scene reference prompt</div>
+                      <div className="text-sm text-gray-700 bg-gray-50 rounded-lg border border-gray-200 p-4">
+                        {scenePrompt}
+                      </div>
+                      <div className="mt-3">
+                        <CopyButton text={scenePrompt} label="Copy scene prompt" slug={prompt.slug} />
                       </div>
                     </div>
                   )}
@@ -271,6 +346,11 @@ export default async function PromptDetailPage({
                       {shot.prompt_en && (
                         <div className="mt-3 bg-gray-50 p-3 rounded-lg border border-gray-200 text-xs font-mono text-gray-700">
                           {shot.prompt_en}
+                        </div>
+                      )}
+                      {shot.prompt_en && (
+                        <div className="mt-3">
+                          <CopyButton text={shot.prompt_en} label="Copy shot prompt" slug={prompt.slug} />
                         </div>
                       )}
                     </div>
