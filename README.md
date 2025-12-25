@@ -185,3 +185,42 @@ Quick copy: library cards include a copy button that records copies without logi
 2) Prompt detail: related prompts + next/prev navigation.
 3) Pricing flow: clarify Basic vs Pro usage limits on UI.
 4) Template hardening: tool registry docs + optional schema add-ons.
+
+
+## Plan Notes (Clarifications)
+- Preview watermark = brand mark on prompt thumbnails/previews to prevent reupload and reinforce branding.
+- Tag ops = fixed English tag taxonomy (8-12 tags) + tag landing entry on /library and / for discovery.
+- Copy CTA A/B = test copy button text/placement to improve copy rate.
+- Template abstraction status = partial (tool registry + pricing + plan gating done; docs + optional schema list still pending).
+
+
+## Prompt Spec (MVP Template)
+This is the model-neutral prompt structure stored in public_prompts.content_json.
+```json
+{
+  "title": "...",
+  "logline": "...",
+  "style_lock": "...",
+  "characters": [
+    { "id": "hero", "anchors": "2-3 visual anchors" }
+  ],
+  "shots": [
+    {
+      "id": 1,
+      "duration": 4,
+      "description": "...",
+      "camera_movement": "...",
+      "composition": "...",
+      "lighting": "...",
+      "audio_sfx": "...",
+      "prompt_en": "..."
+    }
+  ],
+  "master_prompt": "...",
+  "negative_prompt": "...",
+  "continuity_notes": "..."
+}
+```
+
+## Tag Taxonomy (Video)
+Recommended fixed tags (8-12): cinematic, documentary, advertising, travel, fantasy, sci-fi, thriller, horror, drone, handheld, slow-motion, montage.
