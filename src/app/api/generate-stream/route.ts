@@ -18,24 +18,20 @@ export async function POST(req: NextRequest) {
     async start(controller) {
       // Track if controller is closed to prevent errors
       let isClosed = false
+      const sendEvent = (event: string, data: any) => {
+        if (isClosed) {
+          return
+        }
+        try {
+          const message = `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`
+          controller.enqueue(encoder.encode(message))
+        } catch (err) {
+          isClosed = true
+          console.warn(`[SSE] Client disconnected, skipping event: ${event}`)
+        }
+      }
 
       try {
-        // Helper function to send SSE events
-        const sendEvent = (event: string, data: any) => {
-          if (isClosed) {
-            // Silently skip if already closed
-            return
-          }
-          try {
-            const message = `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`
-            controller.enqueue(encoder.encode(message))
-          } catch (err) {
-            // Controller already closed by client disconnect
-            isClosed = true
-            console.warn(`[SSE] Client disconnected, skipping event: ${event}`)
-          }
-        }
-
         // 1. Parse request body
         const body = await req.json()
         const { prompt, duration, platform, voice } = body
