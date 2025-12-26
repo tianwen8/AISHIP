@@ -7,7 +7,7 @@ import { eq, desc, and } from "drizzle-orm";
 export async function GET(req: Request) {
   try {
     // Fetch successful public runs with video artifacts
-    const featuredVideos = await db
+    const featuredVideos = await db()
       .select({
         id: runs.uuid,
         videoUrl: artifacts.url,
