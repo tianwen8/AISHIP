@@ -224,3 +224,21 @@ This is the model-neutral prompt structure stored in public_prompts.content_json
 
 ## Tag Taxonomy (Video)
 Recommended fixed tags (8-12): cinematic, documentary, advertising, travel, fantasy, sci-fi, thriller, horror, drone, handheld, slow-motion, montage.
+
+
+## Launch Checklist (Must)
+1) Seed content: 20-50 high-quality video storyboard prompts (characters + scene + shots).
+2) Copy flow stable: storyboard pack, character, scene, and shot copy all work.
+3) Payment loop stable: subscription + renewal + credits deduction display in header/account.
+4) SEO baseline: sitemap.xml and robots.txt reachable; prompt pages not empty.
+5) English-only UI: scan for non-English strings in user-facing pages.
+
+## Launch Checklist (Should)
+- Tag landing pages populated and linked (video tag taxonomy).
+- Prompt detail usage guide clear (character/scene first, then shots).
+- AI Director outputs not empty for character/scene prompts.
+- Safety wording or filter to reduce model rejection.
+
+
+## Seed Data (Upsert)
+Use seed_public_prompts_upsert.sql to safely refresh prompts without duplicate key errors.

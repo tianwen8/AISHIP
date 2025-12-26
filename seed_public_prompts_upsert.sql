@@ -1,5 +1,5 @@
 -- Seed data for public_prompts (PromptShip)
--- Run in Supabase SQL Editor after schema_bootstrap.sql
+-- Upsert version: safe to re-run
 
 INSERT INTO public_prompts
   (uuid, slug, title, description, model, content_json, thumbnail_url, tags, views, copies, is_featured, is_public)
@@ -285,4 +285,16 @@ VALUES
     true
   )
 
-);
+)
+ON CONFLICT (uuid) DO UPDATE SET
+  slug = EXCLUDED.slug,
+  title = EXCLUDED.title,
+  description = EXCLUDED.description,
+  model = EXCLUDED.model,
+  content_json = EXCLUDED.content_json,
+  thumbnail_url = EXCLUDED.thumbnail_url,
+  tags = EXCLUDED.tags,
+  views = EXCLUDED.views,
+  copies = EXCLUDED.copies,
+  is_featured = EXCLUDED.is_featured,
+  is_public = EXCLUDED.is_public;
