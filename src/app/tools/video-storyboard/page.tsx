@@ -364,8 +364,15 @@ export default function AIStoryDirectorPage() {
                 <div className="flex flex-wrap items-center gap-3">
                   <CopyButton text={buildStoryboardPack(result)} label="Copy storyboard pack" />
                   <CopyButton text={result.shots.map((shot) => shot.prompt_en).join("\n")} label="Copy shot prompts" />
-                  <CopyButton text={buildStoryboardJson(result)} label="Copy storyboard JSON" />
                 </div>
+                <details className="border border-gray-200 rounded-xl p-4 bg-gray-50">
+                  <summary className="cursor-pointer text-sm font-semibold text-gray-600">
+                    Advanced exports
+                  </summary>
+                  <div className="mt-3">
+                    <CopyButton text={buildStoryboardJson(result)} label="Copy storyboard JSON" />
+                  </div>
+                </details>
                 <p className="text-xs text-gray-500">
                   Recommended flow: generate character + scene references first, then copy each shot prompt with your references attached.
                 </p>

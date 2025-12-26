@@ -296,10 +296,18 @@ export default async function PromptDetailPage({
                   {storyboardPack && (
                     <CopyButton text={storyboardPack} label="Copy storyboard pack" slug={prompt.slug} />
                   )}
-                  {storyboardJson && (
-                    <CopyButton text={storyboardJson} label="Copy storyboard JSON" slug={prompt.slug} />
-                  )}
                 </div>
+
+                {storyboardJson && (
+                  <details className="border border-gray-200 rounded-xl p-4 bg-gray-50">
+                    <summary className="cursor-pointer text-sm font-semibold text-gray-600">
+                      Advanced exports
+                    </summary>
+                    <div className="mt-3">
+                      <CopyButton text={storyboardJson} label="Copy storyboard JSON" slug={prompt.slug} />
+                    </div>
+                  </details>
+                )}
               </div>
             </div>
 
