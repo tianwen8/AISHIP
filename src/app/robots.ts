@@ -11,8 +11,6 @@ export default function robots(): MetadataRoute.Robots {
           "/api/",
           "/account",
           "/login",
-          "/workspace",
-          "/runs",
           "/test-canvas",
           "/test-shotstack",
         ],
