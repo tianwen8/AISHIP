@@ -86,7 +86,6 @@ export async function POST(req: NextRequest) {
       user_uuid: userUuid,
       graph_uuid: graphUuid,
       graph_snapshot: workflowPlan, // Freeze workflow at run time
-      total_credits_deducted: estimatedCost, // Track deducted credits
     })
 
     // 6. Return runUuid to redirect to canvas
