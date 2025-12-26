@@ -284,8 +284,6 @@ VALUES
     false,
     true
   )
-
-)
 ON CONFLICT (uuid) DO UPDATE SET
   slug = EXCLUDED.slug,
   title = EXCLUDED.title,
