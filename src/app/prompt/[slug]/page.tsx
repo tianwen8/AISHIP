@@ -113,29 +113,30 @@ export default async function PromptDetailPage({
   const scenePrompt = content.scene_prompt || content.scenePrompt || "";
   const created = formatDate(prompt.created_at || null);
 
-  const [prevPrompt] = await db()
-    .select({ slug: public_prompts.slug, title: public_prompts.title })
-    .from(public_prompts)
-    .where(
-      and(
-        eq(public_prompts.is_public, true),
-        lt(public_prompts.created_at, prompt.created_at)
-      )
-    )
-    .orderBy(desc(public_prompts.created_at))
-    .limit(1);
+  const baseFilters = [eq(public_prompts.is_public, true)];
+  const createdAt = prompt.created_at || null;
 
-  const [nextPrompt] = await db()
-    .select({ slug: public_prompts.slug, title: public_prompts.title })
-    .from(public_prompts)
-    .where(
-      and(
-        eq(public_prompts.is_public, true),
-        gt(public_prompts.created_at, prompt.created_at)
-      )
-    )
-    .orderBy(asc(public_prompts.created_at))
-    .limit(1);
+  const prevPrompt = createdAt
+    ? (
+        await db()
+          .select({ slug: public_prompts.slug, title: public_prompts.title })
+          .from(public_prompts)
+          .where(and(...baseFilters, lt(public_prompts.created_at, createdAt)))
+          .orderBy(desc(public_prompts.created_at))
+          .limit(1)
+      )[0]
+    : undefined;
+
+  const nextPrompt = createdAt
+    ? (
+        await db()
+          .select({ slug: public_prompts.slug, title: public_prompts.title })
+          .from(public_prompts)
+          .where(and(...baseFilters, gt(public_prompts.created_at, createdAt)))
+          .orderBy(asc(public_prompts.created_at))
+          .limit(1)
+      )[0]
+    : undefined;
 
   let promptBlocks: Array<{ label: string; text: string }> = [];
   if (typeof master === "string") {
