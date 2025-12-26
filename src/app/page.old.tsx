@@ -144,6 +144,7 @@ export default function HomePage() {
         sceneCount,
         totalDurationSeconds: duration,
         hasVoiceover,
+        workflowType: "t2i-i2v",
         t2iModel: "fal-ai/flux-dev",
         t2vModel: "fal-ai/kling-v1",
         ttsModel: hasVoiceover ? "elevenlabs/turbo-v2" : undefined,
