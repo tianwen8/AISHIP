@@ -212,3 +212,7 @@ Use seed_public_prompts_upsert.sql to safely refresh prompts without duplicate k
 - Pro preview credits are stored in preview_credits and reset monthly (PRO_PREVIEW_CREDITS).
 - New SEO model routes: /sora-prompts, /veo-prompts, /kling-prompts, /seedream-prompts.
 - "Copy storyboard JSON" moved into an Advanced exports collapsible.
+
+
+## Brand (2025-12-26)
+- Rename PromptShip to Cineprompt (UI + docs).

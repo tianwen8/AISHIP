@@ -253,3 +253,7 @@ Use seed_public_prompts_upsert.sql to safely refresh prompts without duplicate k
 ## Checklist Notes (2025-12-26)
 - Replace "credits" wording with "preview credits" + usage limits in UI copy.
 - Ensure preview_credits and usage_counters tables exist (schema_bootstrap.sql).
+
+
+## Brand (2025-12-26)
+- Rename PromptShip to Cineprompt (UI + docs).

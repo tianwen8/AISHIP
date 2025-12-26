@@ -49,13 +49,25 @@ export function Header() {
           <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-lg flex items-center justify-center text-white font-bold shadow-sm">
             P
           </div>
-          <span className="text-xl font-bold text-gray-900 tracking-tight font-display">PromptShip</span>
+          <span className="text-xl font-bold text-gray-900 tracking-tight font-display">Cineprompt</span>
         </Link>
 
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center gap-6">
           <Link href="/library" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition">
             Library
+          </Link>
+          <Link href="/sora-prompts" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition">
+            Sora
+          </Link>
+          <Link href="/veo-prompts" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition">
+            Veo
+          </Link>
+          <Link href="/kling-prompts" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition">
+            Kling
+          </Link>
+          <Link href="/seedream-prompts" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition">
+            Seedream
           </Link>
           <Link href="/tools/video-storyboard" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition">
             AI Director
@@ -140,6 +152,10 @@ export function Header() {
         <div className="md:hidden bg-white border-t border-gray-100 px-4 pt-4 pb-6 shadow-lg absolute w-full left-0">
           <nav className="flex flex-col gap-4">
             <Link href="/library" className="text-base font-medium text-gray-900 py-2 border-b border-gray-50">Library</Link>
+            <Link href="/sora-prompts" className="text-base font-medium text-gray-900 py-2 border-b border-gray-50">Sora</Link>
+            <Link href="/veo-prompts" className="text-base font-medium text-gray-900 py-2 border-b border-gray-50">Veo</Link>
+            <Link href="/kling-prompts" className="text-base font-medium text-gray-900 py-2 border-b border-gray-50">Kling</Link>
+            <Link href="/seedream-prompts" className="text-base font-medium text-gray-900 py-2 border-b border-gray-50">Seedream</Link>
             <Link href="/tools/video-storyboard" className="text-base font-medium text-gray-900 py-2 border-b border-gray-50">AI Director Tool</Link>
             <Link href="/pricing" className="text-base font-medium text-gray-900 py-2 border-b border-gray-50">Pricing</Link>
             

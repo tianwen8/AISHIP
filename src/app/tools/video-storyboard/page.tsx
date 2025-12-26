@@ -53,7 +53,7 @@ export default function AIStoryDirectorPage() {
 
   const isPro = planTier === "pro";
   const toolMeta = getToolDefinition("video-storyboard");
-  const previewCost = toolMeta?.pricing.previewCost || 1;
+  const previewCost = toolMeta?.pricing.previewCost || 10;
 
   const loadPlan = async () => {
     try {
@@ -302,7 +302,7 @@ export default function AIStoryDirectorPage() {
                     onChange={(e) => setWithPreviewImage(e.target.checked)}
                     disabled={!isPro}
                   />
-                  Generate Flux preview image (uses {previewCost} preview credit)
+                  Generate Flux preview image (uses {previewCost} preview credits)
                 </label>
                 {!isPro && (
                   <button

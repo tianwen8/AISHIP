@@ -21,7 +21,7 @@ export const TOOL_DEFINITIONS: Record<string, ToolDefinitionMeta> = {
     description: "Generate professional shot lists and prompts from a story idea.",
     pricing: {
       baseCost: 0,
-      previewCost: 1,
+      previewCost: 10,
       previewRequiresPro: true,
     },
     supportsPreview: true,

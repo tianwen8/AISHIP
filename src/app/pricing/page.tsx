@@ -14,7 +14,7 @@ const pricingPlans = [
     interval: "month",
     features: [
       "Unlimited prompt packs",
-      "6 prompts/min · 60 prompts/day",
+      "Text-only storyboards",
       "Export prompts for Sora, Kling, Veo, Runway",
       "Email support",
       "Cancel anytime",
@@ -29,7 +29,7 @@ const pricingPlans = [
     interval: "month",
     features: [
       "Prompt + Flux preview images",
-      "20 prompts/min · 300 prompts/day",
+      "2000 preview credits per month",
       "Preview credits reset monthly",
       "Priority processing",
       "Priority email support",
@@ -155,7 +155,7 @@ export default function PricingPage() {
             <Card className="p-6">
               <h3 className="font-semibold text-lg mb-2">How do usage limits work?</h3>
               <p className="text-gray-600 text-sm">
-                Prompt generation is unlimited, but we apply fair-use limits per minute and per day. Pro includes higher limits plus preview credits.
+                Prompt generation is unlimited. Preview credits apply when you request Flux preview images.
               </p>
             </Card>
 
