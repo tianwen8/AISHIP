@@ -181,6 +181,29 @@ Please generate a professional storyboard in JSON format.
         `Scene reference image: ${outputData.logline}. ${outputData.style_lock}.`
       );
 
+      outputData.shots = outputData.shots.map((shot, index) => {
+        const transition = ensureText(shot?.transition, "cut");
+        const camera = ensureText(shot?.camera_movement, "static");
+        const composition = ensureText(shot?.composition, "centered");
+        const lighting = ensureText(shot?.lighting, "soft key light");
+        const audio = ensureText(shot?.audio_sfx, "ambient room tone");
+        const description = ensureText(shot?.description, `Shot ${index + 1} continuation.`);
+        const prompt = ensureText(
+          shot?.prompt_en,
+          `${outputData.style_lock}. ${description}.`
+        );
+        return {
+          ...shot,
+          transition,
+          camera_movement: camera,
+          composition,
+          lighting,
+          audio_sfx: audio,
+          description,
+          prompt_en: prompt,
+        };
+      });
+
       // Inject long-form metadata
       if (isLongForm) {
         outputData.is_long_form = true;
