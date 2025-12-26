@@ -5,6 +5,7 @@ import { public_prompts } from "@/db/schema";
 import { and, asc, desc, eq, gt, lt } from "drizzle-orm";
 import CopyButton from "@/components/prompt/CopyButton";
 import ViewTracker from "@/components/prompt/ViewTracker";
+import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
 
@@ -30,6 +31,52 @@ function parseContent(raw: string | null): any {
   } catch {
     return {};
   }
+}
+
+function extractSeoDescription(prompt: any, content: any): string {
+  if (prompt?.description) return String(prompt.description);
+  if (content?.logline) return String(content.logline);
+  if (content?.master_prompt) return String(content.master_prompt);
+  return "Shot-level video storyboard prompts for AI video generation.";
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const [prompt] = await db()
+    .select({
+      title: public_prompts.title,
+      description: public_prompts.description,
+      content_json: public_prompts.content_json,
+      thumbnail_url: public_prompts.thumbnail_url,
+    })
+    .from(public_prompts)
+    .where(eq(public_prompts.slug, slug))
+    .limit(1);
+
+  if (!prompt) {
+    return {
+      title: "Prompt not found - Cineprompt",
+      description: "The prompt you requested could not be found.",
+    };
+  }
+
+  const content = parseContent(prompt.content_json || "");
+  const description = extractSeoDescription(prompt, content);
+
+  return {
+    title: `${prompt.title} - Cineprompt`,
+    description,
+    openGraph: {
+      title: `${prompt.title} - Cineprompt`,
+      description,
+      type: "website",
+      images: prompt.thumbnail_url ? [prompt.thumbnail_url] : undefined,
+    },
+  };
 }
 
 function formatDate(value: Date | string | null): string {

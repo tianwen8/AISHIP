@@ -3,6 +3,7 @@ import { Manrope, Space_Grotesk } from 'next/font/google'
 import './globals.css'
 import SessionProvider from '@/components/SessionProvider'
 import { Header } from '@/components/layout/Header'
+import { Footer } from '@/components/layout/Footer'
 
 const manrope = Manrope({
   subsets: ['latin'],
@@ -32,6 +33,7 @@ export default function RootLayout({
         <SessionProvider>
           <Header />
           {children}
+          <Footer />
         </SessionProvider>
       </body>
     </html>
