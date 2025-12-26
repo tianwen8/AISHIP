@@ -3,6 +3,7 @@ import { findOrderByOrderNo } from "@/models/order";
 import { addCreditTransaction, findTransactionByTransNo, TransType } from "@/models/credit";
 import { PaymentStatus } from "@/integrations/payment/types";
 import { respOk } from "@/lib/resp";
+import { resetPreviewCredits } from "@/services/preview-credit";
 
 export async function POST(req: Request) {
   try {
@@ -38,16 +39,26 @@ export async function POST(req: Request) {
     const paid_email = session.customer?.email || "";
     const paid_detail = JSON.stringify(session);
     const user_uuid = session.metadata.user_uuid;
-    const credits = Number(session.metadata.credits || 0);
+    const planKey = session.metadata?.plan_key || "";
+    const productId = session.metadata?.product_id || "";
     const subscriptionId = session.subscription?.id || session.subscription_id;
 
-    if (!order_no || !user_uuid || !credits) {
+    if (!order_no || !user_uuid) {
       return respOk();
     }
 
     const order = await findOrderByOrderNo(order_no);
     if (!order) {
       return respOk();
+    }
+
+    const basicId = process.env.CREEM_PRODUCT_BASIC_ID || "";
+    const proId = process.env.CREEM_PRODUCT_PRO_ID || "";
+    let planTier: "basic" | "pro" | null = null;
+    if (planKey === "pro_monthly" || productId === proId || order.product_id === proId) {
+      planTier = "pro";
+    } else if (planKey === "basic_monthly" || productId === basicId || order.product_id === basicId) {
+      planTier = "basic";
     }
 
     if (order.status !== "paid") {
@@ -61,10 +72,23 @@ export async function POST(req: Request) {
           trans_no: transNo,
           user_uuid: user_uuid,
           trans_type: TransType.Charge,
-          credits: credits,
+          credits: 0,
           order_no: order_no,
         });
       }
+    }
+
+    if (planTier === "pro") {
+      await resetPreviewCredits({
+        user_uuid,
+        period_end: order.expired_at || null,
+      });
+    } else if (planTier === "basic") {
+      await resetPreviewCredits({
+        user_uuid,
+        period_end: order.expired_at || null,
+        amount: 0,
+      });
     }
 
     return respOk();

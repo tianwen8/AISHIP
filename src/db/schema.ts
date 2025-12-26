@@ -87,6 +87,27 @@ export const credits = pgTable("credits", {
   expired_at: timestamp({ withTimezone: true }),
 });
 
+// Preview Credits table (monthly pool for Pro)
+export const preview_credits = pgTable("preview_credits", {
+  id: integer().primaryKey().generatedAlwaysAsIdentity(),
+  user_uuid: varchar({ length: 255 }).notNull().unique(),
+  balance: integer().notNull().default(0),
+  period_start: timestamp({ withTimezone: true }),
+  period_end: timestamp({ withTimezone: true }),
+  updated_at: timestamp({ withTimezone: true }),
+});
+
+// Usage Counters (fair use limits)
+export const usage_counters = pgTable("usage_counters", {
+  id: integer().primaryKey().generatedAlwaysAsIdentity(),
+  user_uuid: varchar({ length: 255 }).notNull().unique(),
+  day_key: varchar({ length: 20 }).notNull(),
+  prompt_count: integer().notNull().default(0),
+  minute_key: varchar({ length: 20 }).notNull(),
+  minute_count: integer().notNull().default(0),
+  updated_at: timestamp({ withTimezone: true }),
+});
+
 // Posts table
 export const posts = pgTable("posts", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),

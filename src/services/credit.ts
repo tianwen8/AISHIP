@@ -6,15 +6,15 @@
  */
 
 import {
-  getCreditBalance,
   addCreditTransaction,
-  grantCredits as modelGrantCredits,
   TransType,
 } from "@/models/credit"
 import { getSnowId } from "@/lib/hash"
 import { getFirstPaidOrderByUserUuid, getLatestPaidOrderByUserUuid } from "@/models/order"
 import { UserCredits } from "@/types/user"
 import { Order } from "@/types/order"
+import { ensurePreviewCredits } from "@/services/preview-credit"
+import { getUsageLimits } from "@/services/usage"
 
 // Re-export TransType from model for convenience
 export { TransType }
@@ -32,11 +32,6 @@ export enum CreditsTransType {
   VideoGeneration = "deduct",
 }
 
-export enum CreditsAmount {
-  NewUserGet = 306, // 新用户赠送306算力（1条Seedance视频，5倍利润）
-  DailyCheckIn = 306, // 每日签到+分享赠送306算力（1条Seedance视频）
-  PingCost = 1,
-}
 
 /**
  * Get user's credit status
@@ -71,18 +66,17 @@ export async function getUserCredits(user_uuid: string): Promise<UserCredits> {
       }
     }
 
-    const balance = await getCreditBalance(user_uuid)
-    user_credits.left_credits = balance
+    user_credits.is_pro = user_credits.plan_tier === "pro"
 
-    if (user_credits.left_credits < 0) {
-      user_credits.left_credits = 0
-    }
+    const previewSummary = await ensurePreviewCredits({
+      user_uuid,
+      plan_tier: user_credits.plan_tier,
+      period_end: latest_paid_order?.expired_at || null,
+    })
+    user_credits.preview_credits = previewSummary.balance
+    user_credits.preview_credits_reset_at = previewSummary.period_end
 
-    if (user_credits.plan_tier) {
-      user_credits.is_pro = user_credits.plan_tier === "pro"
-    } else if (user_credits.left_credits > 0) {
-      user_credits.is_pro = true
-    }
+    user_credits.usage_limits = getUsageLimits(user_credits.plan_tier)
 
     return user_credits
   } catch (e) {

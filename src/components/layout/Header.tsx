@@ -9,7 +9,7 @@ import { useRouter, usePathname } from "next/navigation";
 export function Header() {
   const { data: session, status } = useSession();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [credits, setCredits] = useState<number | null>(null);
+  const [previewCredits, setPreviewCredits] = useState<number | null>(null);
   const [planTier, setPlanTier] = useState<"basic" | "pro" | null>(null);
   const router = useRouter();
   const pathname = usePathname();
@@ -21,7 +21,7 @@ export function Header() {
       const res = await fetch("/api/user/credits");
       const data = await res.json();
       if (data.code === 0 && data.data) {
-        setCredits(data.data.left_credits);
+        setPreviewCredits(data.data.preview_credits ?? 0);
         setPlanTier(data.data.plan_tier || null);
       }
     } catch (error) {
@@ -78,7 +78,9 @@ export function Header() {
               {/* Credits Badge */}
               <Link href="/pricing" className="group flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded-full text-xs font-semibold border border-emerald-100 hover:bg-emerald-100 transition">
                 <Sparkles className="w-3 h-3 text-emerald-600 group-hover:animate-pulse" />
-                <span>{credits !== null ? credits : "..."} Credits</span>
+                <span>
+                  Preview {previewCredits !== null ? previewCredits : "..."}
+                </span>
               </Link>
 
               {/* User Dropdown (Simplified as direct links for MVP) */}

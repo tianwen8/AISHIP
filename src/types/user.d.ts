@@ -26,4 +26,14 @@ export interface UserCredits {
   is_recharged?: boolean;
   is_pro?: boolean;
   plan_tier?: "basic" | "pro" | null;
+  preview_credits?: number;
+  preview_credits_reset_at?: string | Date | null;
+  usage_limits?: {
+    perMinute: number;
+    perDay: number;
+  };
+  usage_remaining?: {
+    perMinute: number;
+    perDay: number;
+  };
 }

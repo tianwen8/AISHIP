@@ -17,7 +17,7 @@ export async function POST(req: Request) {
     const pricingConfig: Record<string, any> = {
       basic_monthly: {
         amount: 490, // $4.90
-        credits: 150,
+        credits: 0,
         interval: "month",
         valid_months: 1,
         currency: "usd",
@@ -26,7 +26,7 @@ export async function POST(req: Request) {
       },
       pro_monthly: {
         amount: 990, // $9.90
-        credits: 300,
+        credits: 0,
         interval: "month",
         valid_months: 1,
         currency: "usd",

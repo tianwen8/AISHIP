@@ -44,6 +44,27 @@ CREATE TABLE "credits" (
   CONSTRAINT "credits_trans_no_unique" UNIQUE("trans_no")
 );
 
+CREATE TABLE "preview_credits" (
+  "id" integer PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "preview_credits_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 2147483647 START WITH 1 CACHE 1),
+  "user_uuid" varchar(255) NOT NULL,
+  "balance" integer NOT NULL DEFAULT 0,
+  "period_start" timestamp with time zone,
+  "period_end" timestamp with time zone,
+  "updated_at" timestamp with time zone,
+  CONSTRAINT "preview_credits_user_uuid_unique" UNIQUE("user_uuid")
+);
+
+CREATE TABLE "usage_counters" (
+  "id" integer PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "usage_counters_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 2147483647 START WITH 1 CACHE 1),
+  "user_uuid" varchar(255) NOT NULL,
+  "day_key" varchar(20) NOT NULL,
+  "prompt_count" integer NOT NULL DEFAULT 0,
+  "minute_key" varchar(20) NOT NULL,
+  "minute_count" integer NOT NULL DEFAULT 0,
+  "updated_at" timestamp with time zone,
+  CONSTRAINT "usage_counters_user_uuid_unique" UNIQUE("user_uuid")
+);
+
 CREATE TABLE "feedbacks" (
   "id" integer PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "feedbacks_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 2147483647 START WITH 1 CACHE 1),
   "created_at" timestamp with time zone,

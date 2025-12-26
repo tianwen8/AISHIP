@@ -20,8 +20,8 @@ export const TOOL_DEFINITIONS: Record<string, ToolDefinitionMeta> = {
     name: "AI Video Director",
     description: "Generate professional shot lists and prompts from a story idea.",
     pricing: {
-      baseCost: 20,
-      previewCost: 30,
+      baseCost: 0,
+      previewCost: 1,
       previewRequiresPro: true,
     },
     supportsPreview: true,

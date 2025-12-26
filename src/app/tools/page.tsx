@@ -33,7 +33,7 @@ export default function ToolsPage() {
                   <Sparkles className="w-5 h-5" />
                 </div>
                 <span className="text-xs font-semibold text-gray-500">
-                  {tool.pricing.baseCost} credits
+                  Unlimited prompts
                 </span>
               </div>
               <h2 className="text-xl font-bold text-gray-900 mb-2 font-display">

@@ -35,8 +35,9 @@ export default async function AccountPage() {
 
   // 2. Fetch Credits Balance and Plan Tier
   const creditSummary = await getUserCredits(user.uuid);
-  const currentBalance = creditSummary.left_credits || 0;
+  const previewBalance = creditSummary.preview_credits || 0;
   const planTier = creditSummary.plan_tier || "free";
+  const usageLimits = creditSummary.usage_limits || { perMinute: 6, perDay: 60 };
 
   // 3. Fetch Tool Runs (History)
   const history = await db()
@@ -54,7 +55,7 @@ export default async function AccountPage() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 font-display">My Studio</h1>
-            <p className="text-gray-500 mt-1">Manage your credits and view your generation history.</p>
+            <p className="text-gray-500 mt-1">Manage your plan and preview credits.</p>
           </div>
           <div className="flex items-center gap-4">
             <Link 
@@ -73,11 +74,11 @@ export default async function AccountPage() {
             <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-50 rounded-full translate-x-10 -translate-y-10 group-hover:scale-110 transition duration-500"></div>
             <div className="relative z-10">
               <div className="text-sm font-medium text-gray-500 mb-1 flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-emerald-500" /> Available Credits
+                <Sparkles className="w-4 h-4 text-emerald-500" /> Preview Credits
               </div>
-              <div className="text-4xl font-bold text-gray-900 mb-4">{currentBalance}</div>
+              <div className="text-4xl font-bold text-gray-900 mb-4">{previewBalance}</div>
               <Link href="/pricing" className="text-sm font-semibold text-emerald-600 hover:text-emerald-700 flex items-center gap-1">
-                Top up credits <ArrowRight className="w-4 h-4" />
+                Upgrade for more <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
           </div>
@@ -85,10 +86,12 @@ export default async function AccountPage() {
           {/* Projects Count */}
           <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
             <div className="text-sm font-medium text-gray-500 mb-1 flex items-center gap-2">
-              <FileText className="w-4 h-4 text-blue-500" /> Total Projects
+              <FileText className="w-4 h-4 text-blue-500" /> Usage Limits
             </div>
-            <div className="text-4xl font-bold text-gray-900 mb-4">{history.length}</div>
-            <div className="text-sm text-gray-400">Lifetime generations</div>
+            <div className="text-3xl font-bold text-gray-900 mb-2">
+              {usageLimits.perMinute}/min
+            </div>
+            <div className="text-sm text-gray-500">{usageLimits.perDay} per day</div>
           </div>
 
           {/* Member Status */}
@@ -153,7 +156,7 @@ export default async function AccountPage() {
                             {run.created_at ? formatDistanceToNow(new Date(run.created_at), { addSuffix: true }) : "Unknown date"}
                           </span>
                           <span>|</span>
-                          <span>{run.cost_credits} Credits</span>
+                          <span>{run.cost_credits} Preview credits</span>
                           <span>|</span>
                           <span className="uppercase text-xs font-bold bg-green-50 text-green-700 px-2 py-0.5 rounded border border-green-100">
                             {run.status}

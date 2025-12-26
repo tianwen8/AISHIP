@@ -11,11 +11,10 @@ const pricingPlans = [
     id: "basic_monthly",
     name: "Basic",
     price: "$4.90",
-    credits: 150,
     interval: "month",
     features: [
-      "Prompt-only storyboards",
-      "150 credits per month",
+      "Unlimited prompt packs",
+      "6 prompts/min · 60 prompts/day",
       "Export prompts for Sora, Kling, Veo, Runway",
       "Email support",
       "Cancel anytime",
@@ -27,11 +26,11 @@ const pricingPlans = [
     id: "pro_monthly",
     name: "Pro",
     price: "$9.90",
-    credits: 300,
     interval: "month",
     features: [
       "Prompt + Flux preview images",
-      "300 credits per month",
+      "20 prompts/min · 300 prompts/day",
+      "Preview credits reset monthly",
       "Priority processing",
       "Priority email support",
       "Cancel anytime",
@@ -121,7 +120,7 @@ export default function PricingPage() {
                   <span className="text-5xl font-bold">{plan.price}</span>
                   <span className="text-lg opacity-90">/month</span>
                 </div>
-                <p className="text-sm opacity-90 mt-2">{plan.credits} credits per month</p>
+                <p className="text-sm opacity-90 mt-2">Billed monthly</p>
               </div>
 
               <div className="p-6 space-y-4">
@@ -154,9 +153,9 @@ export default function PricingPage() {
           <h2 className="text-2xl font-bold text-center mb-8 font-display">Frequently Asked Questions</h2>
           <div className="space-y-6">
             <Card className="p-6">
-              <h3 className="font-semibold text-lg mb-2">How do credits work?</h3>
+              <h3 className="font-semibold text-lg mb-2">How do usage limits work?</h3>
               <p className="text-gray-600 text-sm">
-                Credits are consumed when you generate storyboards. Pro can also spend credits on Flux preview images.
+                Prompt generation is unlimited, but we apply fair-use limits per minute and per day. Pro includes higher limits plus preview credits.
               </p>
             </Card>
 
@@ -175,9 +174,9 @@ export default function PricingPage() {
             </Card>
 
             <Card className="p-6">
-              <h3 className="font-semibold text-lg mb-2">Do credits roll over?</h3>
+              <h3 className="font-semibold text-lg mb-2">Do preview credits roll over?</h3>
               <p className="text-gray-600 text-sm">
-                Credits are valid for the duration of your subscription. Unused credits expire at the end of each billing period.
+                Preview credits reset each billing period and do not roll over.
               </p>
             </Card>
           </div>

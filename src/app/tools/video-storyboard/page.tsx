@@ -43,14 +43,17 @@ export default function AIStoryDirectorPage() {
   const [style, setStyle] = useState("Cinematic");
   const [withPreviewImage, setWithPreviewImage] = useState(false);
   const [planTier, setPlanTier] = useState<"basic" | "pro" | null>(null);
+  const [previewCredits, setPreviewCredits] = useState<number | null>(null);
+  const [usageLimits, setUsageLimits] = useState<{ perMinute: number; perDay: number } | null>(
+    null
+  );
 
   const [isGenerating, setIsGenerating] = useState(false);
   const [result, setResult] = useState<DirectorOutput | null>(null);
 
   const isPro = planTier === "pro";
   const toolMeta = getToolDefinition("video-storyboard");
-  const baseCost = toolMeta?.pricing.baseCost || 20;
-  const previewCost = toolMeta?.pricing.previewCost || 30;
+  const previewCost = toolMeta?.pricing.previewCost || 1;
 
   const loadPlan = async () => {
     try {
@@ -58,6 +61,8 @@ export default function AIStoryDirectorPage() {
       const data = await res.json();
       if (data?.code === 0 && data?.data) {
         setPlanTier(data.data.plan_tier || null);
+        setPreviewCredits(data.data.preview_credits ?? null);
+        setUsageLimits(data.data.usage_limits || null);
       }
     } catch {
       setPlanTier(null);
@@ -126,7 +131,7 @@ export default function AIStoryDirectorPage() {
         }
         if (response.status === 402) {
           const confirmPurchase = confirm(
-            `Insufficient credits. This run costs ${data.required} credits but you have ${data.current}. Would you like to top up?`
+            `No preview credits remaining. This run needs ${data.required} preview credits. Upgrade your plan to continue.`
           );
           if (confirmPurchase) {
             router.push("/pricing");
@@ -138,11 +143,16 @@ export default function AIStoryDirectorPage() {
           router.push("/pricing");
           return;
         }
+        if (response.status === 429) {
+          alert(data?.error || "Rate limit reached. Please try again later.");
+          return;
+        }
         const details = data?.details ? ` ${JSON.stringify(data.details)}` : "";
         throw new Error((data.message || data.error || "Generation failed") + details);
       }
 
       setResult(data.data);
+      loadPlan();
       window.dispatchEvent(new CustomEvent("credits-updated"));
     } catch (error: any) {
       console.error("Generation error:", error);
@@ -276,7 +286,12 @@ export default function AIStoryDirectorPage() {
               </button>
 
               <p className="text-center text-xs text-gray-500">
-                Cost: {baseCost} credits (text) + {previewCost} credits for Flux preview (Pro)
+                {usageLimits
+                  ? `Usage limits: ${usageLimits.perMinute}/min, ${usageLimits.perDay}/day`
+                  : "Usage limits apply. Pro includes higher caps."}
+                {isPro && previewCredits !== null
+                  ? ` · Preview credits: ${previewCredits} per month`
+                  : " · Preview credits are Pro-only."}
               </p>
 
               <div className="flex items-center justify-between gap-3 text-xs text-gray-600">
@@ -287,7 +302,7 @@ export default function AIStoryDirectorPage() {
                     onChange={(e) => setWithPreviewImage(e.target.checked)}
                     disabled={!isPro}
                   />
-                  Generate Flux preview image
+                  Generate Flux preview image (uses {previewCost} preview credit)
                 </label>
                 {!isPro && (
                   <button

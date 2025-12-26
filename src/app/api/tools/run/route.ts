@@ -1,14 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { db } from "@/db";
-import { users, tool_runs, credits } from "@/db/schema";
+import { users, tool_runs } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { getTool } from "@/tools/registry";
 import { getToolCost } from "@/tools/definitions";
 import { nanoid } from "nanoid";
-import { creditsToUnits } from "@/services/pricing";
 import { getUserCredits } from "@/services/credit";
 import { FalT2IAdapter } from "@/integrations/ai-adapters/fal";
+import { checkAndBumpUsage } from "@/services/usage";
+import { deductPreviewCredits } from "@/services/preview-credit";
 
 export const maxDuration = 60; // Allow 60s for LLM processing
 
@@ -57,11 +58,9 @@ export async function POST(req: NextRequest) {
     }
 
     const user = userRecord[0];
-    // IMPORTANT: Use the model layer so we apply the same unit conversion rules everywhere.
-    // Credits are stored as micro-units in DB; model converts back to display units.
     const userCredits = await getUserCredits(user.uuid);
-    const currentBalance = userCredits.left_credits || 0;
     const wantsPreview = !!safeInput.withPreviewImage;
+    const previewBalance = userCredits.preview_credits || 0;
     const { totalCost, previewAllowed } = getToolCost(tool.meta, {
       withPreviewImage: wantsPreview,
       planTier: userCredits.plan_tier || "free",
@@ -74,10 +73,25 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    if (currentBalance < totalCost) {
+    if (wantsPreview && previewBalance < totalCost) {
       return NextResponse.json(
-        { error: "Insufficient credits", required: totalCost, current: currentBalance },
+        { error: "No preview credits remaining", required: totalCost, current: previewBalance },
         { status: 402 } // Payment Required
+      );
+    }
+
+    const usageCheck = await checkAndBumpUsage({
+      user_uuid: user.uuid,
+      plan_tier: userCredits.plan_tier || "free",
+    });
+    if (!usageCheck.allowed) {
+      const message =
+        usageCheck.reason === "daily_limit"
+          ? "Daily generation limit reached. Upgrade to Pro for higher limits."
+          : "Too many requests. Please wait a minute and try again.";
+      return NextResponse.json(
+        { error: message, limits: usageCheck.limits },
+        { status: 429 }
       );
     }
 
@@ -97,6 +111,7 @@ export async function POST(req: NextRequest) {
     // 7. Transaction: Deduct Credits & Save Run
     const runUuid = nanoid();
     let previewImageUrl: string | undefined = undefined;
+    let remainingPreviewCredits = previewBalance;
 
     if (wantsPreview) {
       const t2i = new FalT2IAdapter();
@@ -115,43 +130,45 @@ export async function POST(req: NextRequest) {
       };
     }
     
-    await db().transaction(async (tx) => {
-      // A. Deduct Credits
-      await tx.insert(credits).values({
-        trans_no: `USE_${runUuid}`,
+    if (wantsPreview) {
+      const deduction = await deductPreviewCredits({
         user_uuid: user.uuid,
-        trans_type: "deduct",
-        // Store as micro-units in DB for consistency with the pricing module/model layer.
-        credits: creditsToUnits(-totalCost),
-        created_at: new Date(),
-        // order_no can be null for usage
+        cost: totalCost,
       });
+      if (!deduction.success) {
+        return NextResponse.json(
+          { error: "No preview credits remaining", required: totalCost, current: previewBalance },
+          { status: 402 }
+        );
+      }
+      remainingPreviewCredits = deduction.balance;
+    }
 
-      // B. Save Tool Run
-      await tx.insert(tool_runs).values({
-        uuid: runUuid,
-        user_uuid: user.uuid,
-        tool_id: tool.meta.id,
-        status: "completed",
-        cost_credits: totalCost,
-        input_json: JSON.stringify(safeInput),
-        output_json: JSON.stringify(output),
-        usage_json: JSON.stringify({
-          model: "deepseek-chat",
-          preview_image: wantsPreview,
-          plan_tier: userCredits.plan_tier || "free",
-        }),
-        created_at: new Date(),
-        completed_at: new Date(),
-      });
+    await db().insert(tool_runs).values({
+      uuid: runUuid,
+      user_uuid: user.uuid,
+      tool_id: tool.meta.id,
+      status: "completed",
+      cost_credits: wantsPreview ? totalCost : 0,
+      input_json: JSON.stringify(safeInput),
+      output_json: JSON.stringify(output),
+      usage_json: JSON.stringify({
+        model: "deepseek-chat",
+        preview_image: wantsPreview,
+        plan_tier: userCredits.plan_tier || "free",
+      }),
+      created_at: new Date(),
+      completed_at: new Date(),
     });
 
     // 8. Return Success
     return NextResponse.json({
       success: true,
       data: output,
-      credits_deducted: totalCost,
-      remaining_credits: currentBalance - totalCost,
+      credits_deducted: wantsPreview ? totalCost : 0,
+      remaining_credits: wantsPreview ? remainingPreviewCredits : 0,
+      preview_credits_deducted: wantsPreview ? totalCost : 0,
+      preview_credits_remaining: remainingPreviewCredits,
       run_id: runUuid
     });
 
