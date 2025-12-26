@@ -60,9 +60,9 @@ export default function LoginPage() {
         <div className="space-y-3 mb-8">
           {[
             "Director-level shot planning",
-            "Free credits for new accounts",
             "Export prompts for Sora, Kling, Veo, Runway",
             "Prompt library + SEO pages built-in",
+            "Pro unlocks preview images via Flux",
           ].map((item) => (
             <div key={item} className="flex items-center gap-3 text-sm text-gray-700">
               <span className="text-emerald-600 font-semibold">-</span>

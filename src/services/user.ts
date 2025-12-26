@@ -1,8 +1,5 @@
-import { CreditsAmount, CreditsTransType } from "./credit";
 import { findUserByEmail, createUser } from "@/models/user";
 import { User } from "@/types/user";
-import { getOneYearLaterTimestr } from "@/lib/time";
-import { increaseCredits } from "./credit";
 import { getUuid } from "@/lib/hash";
 
 // save user to database, if user not exist, create a new user
@@ -31,13 +28,7 @@ export async function saveUser(user: User) {
         signin_ip: user.signin_ip,
       });
 
-      // increase credits for new user, expire in one year
-      await increaseCredits({
-        user_uuid: user.uuid,
-        trans_type: CreditsTransType.NewUser,
-        credits: CreditsAmount.NewUserGet,
-        expired_at: getOneYearLaterTimestr(),
-      });
+      // No automatic credits on signup for now.
 
       user = {
         uuid: dbUser.uuid,
