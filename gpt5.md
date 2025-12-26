@@ -216,3 +216,16 @@ Use seed_public_prompts_upsert.sql to safely refresh prompts without duplicate k
 
 ## Brand (2025-12-26)
 - Rename Cineprompt to Cineprompt (UI + docs).
+
+
+## Update Log (2025-12-26)
+- Brand: Cineprompt naming aligned across UI + docs.
+- SEO: model landing pages, OG defaults, JSON-LD (home/library/prompt).
+- UX: model cards added on home/library; global footer added.
+- Analytics: GA4 + Clarity scripts added in root layout.
+
+## Analytics + SEO Config (2025-12-26)
+- GA4 ID: G-HX6WWC0W1Z (hardcoded in root layout).
+- Clarity ID: urlkjjs73f (hardcoded in root layout).
+- GSC: Cloudflare verification; env var NEXT_PUBLIC_GSC_VERIFICATION optional.
+- Default OG image: /og-default.svg (override later with branded art).
