@@ -23,6 +23,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const urls: MetadataRoute.Sitemap = [
     { url: `${baseUrl}/`, changeFrequency: "daily", priority: 1 },
     { url: `${baseUrl}/library`, changeFrequency: "daily", priority: 0.9 },
+    { url: `${baseUrl}/sora-prompts`, changeFrequency: "weekly", priority: 0.8 },
+    { url: `${baseUrl}/veo-prompts`, changeFrequency: "weekly", priority: 0.8 },
+    { url: `${baseUrl}/kling-prompts`, changeFrequency: "weekly", priority: 0.8 },
+    { url: `${baseUrl}/seedream-prompts`, changeFrequency: "weekly", priority: 0.8 },
     { url: `${baseUrl}/pricing`, changeFrequency: "weekly", priority: 0.6 },
     { url: `${baseUrl}/tools/video-storyboard`, changeFrequency: "weekly", priority: 0.7 },
   ];

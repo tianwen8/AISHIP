@@ -23,6 +23,13 @@ const FILTERS = [
   { id: "montage", label: "Montage" },
 ];
 
+const MODEL_LINKS = [
+  { href: "/sora-prompts", label: "Sora" },
+  { href: "/veo-prompts", label: "Veo" },
+  { href: "/kling-prompts", label: "Kling" },
+  { href: "/seedream-prompts", label: "Seedream" },
+];
+
 function parseTags(raw: string | null): string[] {
   if (!raw) return [];
   const trimmed = raw.trim();
@@ -132,6 +139,19 @@ export default async function LibraryPage({
                 }`}
               >
                 {filter.label}
+              </Link>
+            ))}
+          </div>
+
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+            <span className="text-xs uppercase tracking-wider text-gray-400 mr-2">Browse by model</span>
+            {MODEL_LINKS.map((model) => (
+              <Link
+                key={model.href}
+                href={model.href}
+                className="px-4 py-1.5 rounded-full text-xs font-semibold border border-emerald-100 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition"
+              >
+                {model.label}
               </Link>
             ))}
           </div>

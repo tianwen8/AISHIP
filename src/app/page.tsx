@@ -22,6 +22,20 @@ const TAGS = [
   "montage",
 ];
 
+const MODEL_LINKS = [
+  { href: "/sora-prompts", label: "Sora prompts" },
+  { href: "/veo-prompts", label: "Veo prompts" },
+  { href: "/kling-prompts", label: "Kling prompts" },
+  { href: "/seedream-prompts", label: "Seedream prompts" },
+];
+
+const MODELS = [
+  { label: "Sora", href: "/sora-prompts", copy: "Cinematic prompt packs" },
+  { label: "Veo", href: "/veo-prompts", copy: "Director-grade storyboards" },
+  { label: "Kling", href: "/kling-prompts", copy: "Continuity-first shots" },
+  { label: "Seedream", href: "/seedream-prompts", copy: "Seedream/Jimeng prompts" },
+];
+
 function parseTags(raw: string | null): string[] {
   if (!raw) return [];
   const trimmed = raw.trim();
@@ -146,6 +160,19 @@ export default async function HomePage({
                 }`}
               >
                 #{tagItem}
+              </Link>
+            ))}
+          </div>
+
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+            <span className="text-xs uppercase tracking-wider text-gray-400 mr-2">Browse by model</span>
+            {MODEL_LINKS.map((model) => (
+              <Link
+                key={model.href}
+                href={model.href}
+                className="px-4 py-1.5 rounded-full text-xs font-semibold border border-emerald-100 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition"
+              >
+                {model.label}
               </Link>
             ))}
           </div>
