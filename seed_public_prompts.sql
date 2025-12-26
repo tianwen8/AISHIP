@@ -115,7 +115,7 @@ VALUES
     230,
     true,
     true
-  ,
+  ),
   (
     'pp_009',
     'rooftop-chase-dawn',
