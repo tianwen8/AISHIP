@@ -242,3 +242,14 @@ Recommended fixed tags (8-12): cinematic, documentary, advertising, travel, fant
 
 ## Seed Data (Upsert)
 Use seed_public_prompts_upsert.sql to safely refresh prompts without duplicate key errors.
+
+
+## Update Log (2025-12-26)
+- Pricing model updated: prompt generation uses fair-use limits (Basic 6/min 60/day, Pro 20/min 300/day).
+- Pro preview credits now live in preview_credits with monthly reset; configure PRO_PREVIEW_CREDITS.
+- New SEO landing routes: /sora-prompts, /veo-prompts, /kling-prompts, /seedream-prompts.
+- Storyboard JSON export moved into an "Advanced exports" collapsible.
+
+## Checklist Notes (2025-12-26)
+- Replace "credits" wording with "preview credits" + usage limits in UI copy.
+- Ensure preview_credits and usage_counters tables exist (schema_bootstrap.sql).
