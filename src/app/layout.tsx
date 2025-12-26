@@ -15,7 +15,7 @@ const spaceGrotesk = Space_Grotesk({
 })
 
 export const metadata: Metadata = {
-  title: 'PromptShip - AI Video Director & Storyboard Generator',
+  title: 'Cineprompt - AI Video Director & Storyboard Generator',
   description: 'Create Hollywood-level shot lists and prompts for Sora, Kling, Runway, and Veo. The ultimate AI video director tool.',
 }
 

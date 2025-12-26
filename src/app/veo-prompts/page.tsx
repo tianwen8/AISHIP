@@ -1,4 +1,15 @@
 import { ModelPromptsPage } from "@/components/prompt/ModelPromptsPage";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Veo Video Prompts - Cineprompt",
+  description: "Director-grade Veo storyboards with camera language and continuity anchors.",
+  openGraph: {
+    title: "Veo Video Prompts - Cineprompt",
+    description: "Director-grade Veo storyboards with camera language and continuity anchors.",
+    type: "website",
+  },
+};
 
 export default async function VeoPromptsPage() {
   return (

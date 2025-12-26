@@ -1,4 +1,4 @@
--- Seed data for public_prompts (PromptShip)
+-- Seed data for public_prompts (Cineprompt)
 -- Upsert version: safe to re-run
 
 INSERT INTO public_prompts

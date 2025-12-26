@@ -6,7 +6,7 @@ export default function TermsPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <a href="/" className="flex items-center gap-2">
             <div className="w-8 h-8 bg-gradient-to-br from-emerald-600 to-teal-600 rounded-lg"></div>
-            <span className="text-xl font-bold text-gray-900">PromptShip</span>
+            <span className="text-xl font-bold text-gray-900">Cineprompt</span>
           </a>
         </div>
       </header>
@@ -19,7 +19,7 @@ export default function TermsPage() {
           <section>
             <h2 className="text-2xl font-bold text-gray-900 mb-4">1. Acceptance of Terms</h2>
             <p className="text-gray-700">
-              By accessing or using PromptShip ("Service"), you agree to be bound by these Terms of Service.
+              By accessing or using Cineprompt ("Service"), you agree to be bound by these Terms of Service.
               If you do not agree to these terms, please do not use our service.
             </p>
           </section>
@@ -27,7 +27,7 @@ export default function TermsPage() {
           <section>
             <h2 className="text-2xl font-bold text-gray-900 mb-4">2. Service Description</h2>
             <p className="text-gray-700">
-              PromptShip provides AI-powered video generation services on a subscription basis.
+              Cineprompt provides AI-powered video generation services on a subscription basis.
               We use cutting-edge AI models to help you create professional videos quickly and easily.
             </p>
           </section>
@@ -76,7 +76,7 @@ export default function TermsPage() {
             </p>
             <h3 className="text-xl font-semibold text-gray-900 mb-2">Our Platform</h3>
             <p className="text-gray-700">
-              All rights, title, and interest in the PromptShip software, website, and branding remain
+              All rights, title, and interest in the Cineprompt software, website, and branding remain
               our exclusive property.
             </p>
           </section>

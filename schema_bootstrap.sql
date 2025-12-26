@@ -1,5 +1,5 @@
 -- =========================================================
--- ShipAny 2.6 Base Schema + PromptShip MVP additions
+-- ShipAny 2.6 Base Schema + Cineprompt MVP additions
 -- Run in Supabase SQL Editor (test DB only)
 -- =========================================================
 
@@ -141,7 +141,7 @@ CREATE TABLE "users" (
 
 CREATE UNIQUE INDEX "email_provider_unique_idx" ON "users" USING btree ("email","signin_provider");
 
--- 2) PromptShip MVP additions
+-- 2) Cineprompt MVP additions
 CREATE TABLE IF NOT EXISTS "tool_runs" (
   "id" integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   "uuid" varchar(255) NOT NULL UNIQUE,

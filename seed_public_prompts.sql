@@ -1,4 +1,4 @@
--- Seed data for public_prompts (PromptShip)
+-- Seed data for public_prompts (Cineprompt)
 -- Run in Supabase SQL Editor after schema_bootstrap.sql
 
 INSERT INTO public_prompts

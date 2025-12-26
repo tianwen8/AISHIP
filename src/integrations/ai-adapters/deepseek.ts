@@ -50,7 +50,7 @@ export class DeepSeekLLMAdapter implements ILLMAdapter {
           "Content-Type": "application/json",
           // Optional headers for OpenRouter analytics/attribution.
           "HTTP-Referer": process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
-          "X-Title": "PromptShip",
+          "X-Title": "Cineprompt",
           Authorization: `Bearer ${this.apiKey}`,
         },
         body: JSON.stringify(requestBody),

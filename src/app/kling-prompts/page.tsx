@@ -1,4 +1,15 @@
 import { ModelPromptsPage } from "@/components/prompt/ModelPromptsPage";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Kling Video Prompts - Cineprompt",
+  description: "Kling-first prompt packs with motion beats and consistent character anchors.",
+  openGraph: {
+    title: "Kling Video Prompts - Cineprompt",
+    description: "Kling-first prompt packs with motion beats and consistent character anchors.",
+    type: "website",
+  },
+};
 
 export default async function KlingPromptsPage() {
   return (

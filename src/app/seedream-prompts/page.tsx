@@ -1,4 +1,15 @@
 import { ModelPromptsPage } from "@/components/prompt/ModelPromptsPage";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Seedream Video Prompts - Cineprompt",
+  description: "Seedream and Jimeng-ready storyboards built for cinematic video continuity.",
+  openGraph: {
+    title: "Seedream Video Prompts - Cineprompt",
+    description: "Seedream and Jimeng-ready storyboards built for cinematic video continuity.",
+    type: "website",
+  },
+};
 
 export default async function SeedreamPromptsPage() {
   return (

@@ -50,7 +50,7 @@ export default function LoginPage() {
             <Sparkles className="w-6 h-6" />
           </div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent mb-2 font-display">
-            PromptShip
+            Cineprompt
           </h1>
           <p className="text-gray-600">
             Generate cinematic shot lists and prompts in minutes.

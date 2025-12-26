@@ -1,4 +1,4 @@
-# Deployment Guide - PromptShip (Video Prompt SaaS)
+# Deployment Guide - Cineprompt (Video Prompt SaaS)
 
 ## Prerequisites
 
@@ -51,7 +51,7 @@ NEXT_PUBLIC_PAY_SUCCESS_URL="/dashboard"
 NEXT_PUBLIC_PAY_FAIL_URL="/pricing"
 NEXT_PUBLIC_PAY_CANCEL_URL="/pricing"
 NEXT_PUBLIC_WEB_URL="https://your-domain.vercel.app"
-NEXT_PUBLIC_PROJECT_NAME="PromptShip"
+NEXT_PUBLIC_PROJECT_NAME="Cineprompt"
 ```
 
 #### AI Services

@@ -4,6 +4,17 @@ import { db } from "@/db";
 import { public_prompts } from "@/db/schema";
 import { and, desc, ilike, or, eq } from "drizzle-orm";
 import QuickCopyButton from "@/components/prompt/QuickCopyButton";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Cineprompt - AI Video Prompts Library",
+  description: "Explore cinematic storyboards and prompts for Sora, Kling, Runway, and Veo. Copy, remix, and build video faster.",
+  openGraph: {
+    title: "Cineprompt - AI Video Prompts Library",
+    description: "Explore cinematic storyboards and prompts for Sora, Kling, Runway, and Veo. Copy, remix, and build video faster.",
+    type: "website",
+  },
+};
 
 export const dynamic = "force-dynamic";
 
@@ -110,7 +121,7 @@ export default async function HomePage({
             AI video prompts and storyboards
           </div>
           <h1 className="text-5xl font-extrabold text-gray-900 tracking-tight mb-5 font-display">
-            PromptShip: AI Video Prompts Library
+            Cineprompt: AI Video Prompts Library
           </h1>
           <p className="text-lg text-gray-600 max-w-3xl mx-auto">
             Explore cinematic storyboards and prompts for Sora, Kling, Runway, and Veo. Copy, remix, and build your next video faster.
@@ -298,7 +309,7 @@ export default async function HomePage({
         <div className="max-w-5xl mx-auto px-4 text-center">
           <h2 className="text-2xl font-bold mb-3 font-display">Share prompts, grow your audience</h2>
           <p className="text-gray-400 max-w-2xl mx-auto">
-            PromptShip is a community prompt library for AI video creators. Share your best storyboards and discover what works.
+            Cineprompt is a community prompt library for AI video creators. Share your best storyboards and discover what works.
           </p>
           <div className="mt-6 flex items-center justify-center gap-4">
                   <Link href="/library" className="text-white font-semibold inline-flex items-center gap-2">

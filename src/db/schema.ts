@@ -177,7 +177,7 @@ export const generations = pgTable("generations", {
 });
 
 // ==============================================================================
-// AISHIP / PromptShip Tables
+// AISHIP / Cineprompt Tables
 // ==============================================================================
 
 // Tool Runs table (Generic execution record for AI Ship tools)

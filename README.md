@@ -1,11 +1,11 @@
-# AISHIP: PromptShip (Video Edition)
+# AISHIP: Cineprompt (Video Edition)
 
 > **Build Fast. Ship AI SaaS.**
 >
-> 当前版本�?*PromptShip MVP** - 专注�?AI 视频分镜提示词生成的垂直 SaaS 模板�?
+> 当前版本�?*Cineprompt MVP** - 专注�?AI 视频分镜提示词生成的垂直 SaaS 模板�?
 ## 🎯 项目定位
 
-PromptShip 是一�?**"AI 视频提示词广�?+ 智能分镜导演"** 平台�?它旨在帮助用户将模糊的创意转化为好莱坞级的视频分镜脚本，适用�?Sora, Kling, Runway, Veo 等主流视频生成模型�?
+Cineprompt 是一�?**"AI 视频提示词广�?+ 智能分镜导演"** 平台�?它旨在帮助用户将模糊的创意转化为好莱坞级的视频分镜脚本，适用�?Sora, Kling, Runway, Veo 等主流视频生成模型�?
 **核心价值：**
 1.  **Free Prompt Plaza (SEO 引流)**: 高质量的视频提示词库，配�?Flux 生成的电影级预览图，吸引用户点击复制�?2.  **AI Director Studio (付费核心)**: 智能编剧与分镜工具。输入一个想法，输出一套包含运镜、光影、音效的完整拍摄脚本。支持长篇连载模式�?
 ---
@@ -175,7 +175,7 @@ Quick copy: library cards include a copy button that records copies without logi
 
 ## Update Log (2025-12-25)
 - UI refresh: emerald/teal palette, new fonts (Manrope + Space Grotesk), hero background shapes.
-- Login/Contact/Terms/Privacy pages cleaned to PromptShip branding and ASCII-only text.
+- Login/Contact/Terms/Privacy pages cleaned to Cineprompt branding and ASCII-only text.
 - Prompt detail copy flow: CopyButton records copies internally via slug (no server->client handler props).
 - Next.js 15 fix: server components await searchParams/params before access.
 - CRLF issue fixed in src/app/tools/video-storyboard/page.tsx (removed literal \\r\\n).
@@ -256,4 +256,4 @@ Use seed_public_prompts_upsert.sql to safely refresh prompts without duplicate k
 
 
 ## Brand (2025-12-26)
-- Rename PromptShip to Cineprompt (UI + docs).
+- Rename Cineprompt to Cineprompt (UI + docs).

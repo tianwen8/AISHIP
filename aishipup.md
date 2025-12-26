@@ -1,11 +1,11 @@
-# 项目名称：PromptShip（AI 视频分镜提示词工厂,面向英文用户
+# 项目名称：Cineprompt（AI 视频分镜提示词工厂,面向英文用户
 目标：用一个“视频分镜提示词生成器”跑通【会员/支付/credits】闭环，并把 AISHIP 变成可复用的“微工具模板”（以后上新工具只加一个 Tool 文件 + SEO 页面，不重写支付/用户/计费/记录）。
 
 ---
 
 ## 1. 产品定义（我们要做什么网站）
 ### 1.1 一句话定位
-PromptShip 是一个“按模型输出”的 AI 视频分镜提示词生成器：
+Cineprompt 是一个“按模型输出”的 AI 视频分镜提示词生成器：
 - 输入：故事概要 + 人物设定 + 风格 + 时长/镜头数
 - 输出：可直接复制到 Sora / Veo / Kling / Runway 的【分镜 Shot List + Master Prompt + Consistency Pack(人物一致性包)】
 

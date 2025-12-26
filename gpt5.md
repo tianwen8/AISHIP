@@ -1,6 +1,6 @@
 # GPT-5 对本项目的理解（用于对齐 Gemini 最�?MVP 数据库）
 
-本文件用于把 `aishipup.md` 的“PromptShip 提示词站 / 可复�?SaaS 模板”目标，和当前代码仓库的**真实实现**对齐，方便你�?Gemini 侧配置最小可用的数据库与联调路径�?
+本文件用于把 `aishipup.md` 的“Cineprompt 提示词站 / 可复�?SaaS 模板”目标，和当前代码仓库的**真实实现**对齐，方便你�?Gemini 侧配置最小可用的数据库与联调路径�?
 ## 1. 产品目标（从 AI 视频项目 �?提示�?SaaS 模板�?
 当前项目正在从“AI 视频生成/工作流”转向一个更轻、更可复用的 Micro‑SaaS 模板�?
 - **免费层（SEO 引流�?*：Prompt Library（提示词广场），提供可复制的成品提示词与分镜示例�?- **付费层（核心变现�?*：Video Storyboard 生成器，把用户的故事想法转成结构化分�?+ 可直接复制到 Sora/Kling/Veo/Runway 的提示词（并记录到历史）�?- **模板化核�?*：平台层（Auth/支付/Credits/历史/Runner）只做一次；以后新增工具应尽量只新增一�?Tool 文件并注册�?
@@ -23,10 +23,10 @@
 - 查询余额 API：`src/app/api/user/credits/route.ts`
 - 支付：`src/app/api/checkout/route.ts` + `src/app/api/pay/notify/creem/route.ts`
 
-### 2.3 遗留的“AI 视频工作�?画布”链路（可忽略，不是 PromptShip MVP 必需�?- `/api/generate`：`src/app/api/generate/route.ts`
+### 2.3 遗留的“AI 视频工作�?画布”链路（可忽略，不是 Cineprompt MVP 必需�?- `/api/generate`：`src/app/api/generate/route.ts`
 - `/workspace/[runId]`：`src/app/workspace/[runId]/page.tsx`
-- 这条链路�?PromptShip（`/tools/video-storyboard`）是两套产品线并存�?
-## 3. PromptShip MVP 的“平台层”在代码里对应什�?
+- 这条链路�?Cineprompt（`/tools/video-storyboard`）是两套产品线并存�?
+## 3. Cineprompt MVP 的“平台层”在代码里对应什�?
 ### 3.1 Auth（登录）
 - 使用 NextAuth v5（JWT session）；用户信息会落库到 `users`（推荐与 ShipAny 2.6 基座一致：`uuid/email/nickname/avatar_url/signin_*...`�?- 登录后会�?JWT/session 里写�?`user.uuid/email/...`（见 `src/auth/config.ts`�?- 用户落库入口：`src/auth/handler.ts` �?`src/services/user.ts` �?`src/models/user.ts`
 
@@ -49,25 +49,25 @@
 
 当前代码的现实态：
 - `ToolDefinition` 只有静�?`price`，没�?`estimateCredits`（`src/tools/registry.ts`�?- 只有一个统一 API：`POST /api/tools/run`（`src/app/api/tools/run/route.ts`�?- 工具页目前只实现�?`video-storyboard`：`/tools/video-storyboard`（`src/app/tools/video-storyboard/page.tsx`�?
-结论：PromptShip MVP 可以先跑通闭环，但“可复用模板”还需要把 Tool Contract 补齐（后续迭代点）�?
+结论：Cineprompt MVP 可以先跑通闭环，但“可复用模板”还需要把 Tool Contract 补齐（后续迭代点）�?
 ## 5. 最�?MVP 的数据库：建议“最少要有哪些表�?
-为了跑�?PromptShip 的最小闭环（登录→余额→生成→扣费→历史→支付回补），建�?Gemini 侧至少准备这些表�?
-**必须（PromptShip MVP 主链路）**
+为了跑�?Cineprompt 的最小闭环（登录→余额→生成→扣费→历史→支付回补），建�?Gemini 侧至少准备这些表�?
+**必须（Cineprompt MVP 主链路）**
 - `users`：登录后落库的用户（�?ShipAny 2.6 基座为准，避�?NextAuth 标准表与自定�?users 混用�?- `credits`：积�?Power Units 账本（入�?扣减都写这里�?- `orders`：支付订单（Creem webhook 更新此表并触发入账）
 - `tool_runs`：工具运行历史（`/account` 会读取）
 
 **可选（SEO Prompt Plaza �?DB 时再加）**
 - `public_prompts`：`/library`、`/prompt/[slug]` 未来从这里读（当前页面为 mock�?
-**可忽略（PromptShip MVP 不需要）**
+**可忽略（Cineprompt MVP 不需要）**
 - `runs/graphs/jobs/artifacts/...`：属于旧 AI 视频工作流线（在 `src/db/schema-extended.ts` 中）
 
 ## 6. 重要提醒：credits/Power Units 的“单位体系”与本项目当前口�?
 代码里同时存在两种用法：
 
 - **A：Power Units 微单位体系（SCALE=10�?*：模型层明确写了“DB �?micro-units，展示层换算”（`src/models/credit.ts` + `src/services/pricing.ts`）�?
-PromptShip MVP（提示词站）链路目前已对齐为�?- DB `credits.credits` �?micro-units（SCALE=10�?- 页面/接口展示�?`src/models/credit.ts#getCreditBalance` 换算为展示单�?- `/api/tools/run` 扣费写入 micro-units（`creditsToUnits(-tool.price)`�?
-仍可能存在“旧 AI 视频工作流链路”的口径差异（例�?`/api/generate` / orchestrator / workspace 相关），如果你只�?PromptShip MVP，可先不启用那条链路�?
-## 7. DB baseline (Route B): ShipAny base + PromptShip add-ons
+Cineprompt MVP（提示词站）链路目前已对齐为�?- DB `credits.credits` �?micro-units（SCALE=10�?- 页面/接口展示�?`src/models/credit.ts#getCreditBalance` 换算为展示单�?- `/api/tools/run` 扣费写入 micro-units（`creditsToUnits(-tool.price)`�?
+仍可能存在“旧 AI 视频工作流链路”的口径差异（例�?`/api/generate` / orchestrator / workspace 相关），如果你只�?Cineprompt MVP，可先不启用那条链路�?
+## 7. DB baseline (Route B): ShipAny base + Cineprompt add-ons
 - Use the combined schema in this repo: `schema_bootstrap.sql`
 - It creates 9 tables: `affiliates`, `apikeys`, `credits`, `feedbacks`, `orders`, `posts`, `users`, `tool_runs`, `public_prompts`
 - `MVP_SETUP.sql` is removed; do not reintroduce it (NextAuth default tables conflict with ShipAny users schema)
@@ -141,7 +141,7 @@ Quick copy: library cards include a copy button that records copies without logi
 - Prompt detail copy flow: CopyButton now records copies internally (slug prop), no event handler crossing.
 - CRLF literal fix in src/app/tools/video-storyboard/page.tsx.
 - UI theme refresh: emerald/teal palette, Manrope + Space Grotesk fonts, hero background shapes.
-- Pages normalized to PromptShip branding (login/contact/terms/privacy).
+- Pages normalized to Cineprompt branding (login/contact/terms/privacy).
 
 ## Next Plan (Short)
 1) Prompt library polish: curated tags, preview watermark, copy CTA A/B.
@@ -215,4 +215,4 @@ Use seed_public_prompts_upsert.sql to safely refresh prompts without duplicate k
 
 
 ## Brand (2025-12-26)
-- Rename PromptShip to Cineprompt (UI + docs).
+- Rename Cineprompt to Cineprompt (UI + docs).

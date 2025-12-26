@@ -1,4 +1,4 @@
-# PromptShip Template Guide (Reusable SaaS Baseline)
+# Cineprompt Template Guide (Reusable SaaS Baseline)
 
 This guide documents how to extend the template with new tools and optional tables.
 

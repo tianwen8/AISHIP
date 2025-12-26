@@ -6,7 +6,7 @@ export default function PrivacyPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <a href="/" className="flex items-center gap-2">
             <div className="w-8 h-8 bg-gradient-to-br from-emerald-600 to-teal-600 rounded-lg"></div>
-            <span className="text-xl font-bold text-gray-900">PromptShip</span>
+            <span className="text-xl font-bold text-gray-900">Cineprompt</span>
           </a>
         </div>
       </header>

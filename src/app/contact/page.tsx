@@ -5,7 +5,7 @@ export default function ContactPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <a href="/" className="flex items-center gap-2">
             <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-lg"></div>
-            <span className="text-xl font-bold text-gray-900 font-display">PromptShip</span>
+            <span className="text-xl font-bold text-gray-900 font-display">Cineprompt</span>
           </a>
         </div>
       </header>

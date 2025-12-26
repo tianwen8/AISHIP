@@ -4,6 +4,17 @@ import { db } from "@/db";
 import { public_prompts } from "@/db/schema";
 import { and, desc, ilike, or, eq } from "drizzle-orm";
 import QuickCopyButton from "@/components/prompt/QuickCopyButton";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Cineprompt Library - Video Storyboard Prompts",
+  description: "Browse curated AI video prompts and storyboards with copy-ready shot lists.",
+  openGraph: {
+    title: "Cineprompt Library - Video Storyboard Prompts",
+    description: "Browse curated AI video prompts and storyboards with copy-ready shot lists.",
+    type: "website",
+  },
+};
 
 export const dynamic = "force-dynamic";
 
@@ -236,10 +247,10 @@ export default async function LibraryPage({
 
       <section className="bg-gray-900 text-white py-16 mt-16">
         <div className="max-w-4xl mx-auto px-4 text-center">
-          <h2 className="text-2xl font-bold mb-4 font-display">Why use PromptShip?</h2>
+          <h2 className="text-2xl font-bold mb-4 font-display">Why use Cineprompt?</h2>
           <p className="text-gray-400 leading-relaxed">
             AI video generation is expensive. Wasting credits on bad prompts hurts.
-            PromptShip provides tested, director-approved shot lists that ensure your videos look professional on the first try.
+            Cineprompt provides tested, director-approved shot lists that ensure your videos look professional on the first try.
           </p>
         </div>
       </section>
