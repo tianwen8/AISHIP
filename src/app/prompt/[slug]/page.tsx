@@ -74,7 +74,7 @@ export async function generateMetadata({
       title: `${prompt.title} - Cineprompt`,
       description,
       type: "website",
-      images: prompt.thumbnail_url ? [prompt.thumbnail_url] : undefined,
+      images: prompt.thumbnail_url ? [prompt.thumbnail_url] : ["/og-default.svg"],
     },
   };
 }
@@ -206,8 +206,21 @@ export default async function PromptDetailPage({
     return "";
   };
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "CreativeWork",
+    name: prompt.title,
+    description: prompt.description || content.logline || "Video storyboard prompt pack.",
+    image: prompt.thumbnail_url || "https://cineprompt.pro/og-default.svg",
+    datePublished: prompt.created_at || undefined,
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <ViewTracker slug={prompt.slug} />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">

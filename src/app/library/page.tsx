@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Search, Sparkles, Video, Zap } from "lucide-react";
+import { Search, Sparkles, Video, Zap, Camera } from "lucide-react";
 import { db } from "@/db";
 import { public_prompts } from "@/db/schema";
 import { and, desc, ilike, or, eq } from "drizzle-orm";
@@ -13,6 +13,7 @@ export const metadata: Metadata = {
     title: "Cineprompt Library - Video Storyboard Prompts",
     description: "Browse curated AI video prompts and storyboards with copy-ready shot lists.",
     type: "website",
+    images: ["/og-default.svg"],
   },
 };
 
@@ -35,10 +36,10 @@ const FILTERS = [
 ];
 
 const MODEL_LINKS = [
-  { href: "/sora-prompts", label: "Sora" },
-  { href: "/veo-prompts", label: "Veo" },
-  { href: "/kling-prompts", label: "Kling" },
-  { href: "/seedream-prompts", label: "Seedream" },
+  { href: "/sora-prompts", label: "Sora", copy: "Cinematic prompts tuned for Sora scenes." },
+  { href: "/veo-prompts", label: "Veo", copy: "Director-grade shot lists for Veo." },
+  { href: "/kling-prompts", label: "Kling", copy: "Continuity-first prompt packs." },
+  { href: "/seedream-prompts", label: "Seedream", copy: "Seedream/Jimeng-ready storyboards." },
 ];
 
 function parseTags(raw: string | null): string[] {
@@ -109,8 +110,20 @@ export default async function LibraryPage({
     .orderBy(desc(public_prompts.created_at))
     .limit(60);
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name: "Cineprompt Library",
+    description: "Browse curated AI video prompts and storyboards with copy-ready shot lists.",
+    url: "https://cineprompt.pro/library",
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <section className="relative overflow-hidden bg-white border-b border-gray-200 pt-20 pb-16 px-4">
         <div className="absolute -top-24 left-0 w-72 h-72 bg-emerald-100 rounded-full blur-3xl opacity-70 pointer-events-none" aria-hidden="true"></div>
         <div className="absolute -bottom-32 right-0 w-72 h-72 bg-teal-100 rounded-full blur-3xl opacity-70 pointer-events-none" aria-hidden="true"></div>
@@ -154,17 +167,25 @@ export default async function LibraryPage({
             ))}
           </div>
 
-          <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
-            <span className="text-xs uppercase tracking-wider text-gray-400 mr-2">Browse by model</span>
-            {MODEL_LINKS.map((model) => (
-              <Link
-                key={model.href}
-                href={model.href}
-                className="px-4 py-1.5 rounded-full text-xs font-semibold border border-emerald-100 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition"
-              >
-                {model.label}
-              </Link>
-            ))}
+          <div className="mt-8">
+            <div className="text-xs uppercase tracking-wider text-gray-400 mb-4">Browse by model</div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {MODEL_LINKS.map((model) => (
+                <Link
+                  key={model.href}
+                  href={model.href}
+                  className="bg-white border border-gray-200 rounded-2xl p-4 text-left hover:shadow-lg transition"
+                >
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
+                      <Camera className="w-5 h-5" />
+                    </div>
+                    <div className="text-base font-semibold text-gray-900">{model.label}</div>
+                  </div>
+                  <div className="text-sm text-gray-600">{model.copy}</div>
+                </Link>
+              ))}
+            </div>
           </div>
         </div>
       </section>
