@@ -43,6 +43,7 @@ interface Run {
   workflow_plan: WorkflowPlan;
   estimated_credits: number;
   used_credits: number;
+  graph_snapshot?: WorkflowPlan;
 }
 
 const emptyWorkflowPlan: WorkflowPlan = {
@@ -264,7 +265,7 @@ export default function WorkspacePage() {
           run_uuid: data.runUuid,
           status: RunStatus.Completed,
           workflow_plan: data.workflowPlan || prevRun?.workflow_plan || emptyWorkflowPlan,
-          graph_snapshot: data.workflowPlan || prevRun?.graph_snapshot || {},
+          graph_snapshot: data.workflowPlan || prevRun?.graph_snapshot || emptyWorkflowPlan,
           estimated_credits: data.estimatedCredits || prevRun?.estimated_credits || 0,
           used_credits: 0,
         } as any));
