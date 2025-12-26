@@ -10,10 +10,8 @@ export async function GET(req: Request) {
     const featuredVideos = await db()
       .select({
         id: runs.uuid,
-        videoUrl: artifacts.url,
+        videoUrl: artifacts.file_url,
         thumbnailUrl: artifacts.metadata,
-        prompt: runs.user_input,
-        duration: runs.total_duration,
         createdAt: runs.created_at,
         userName: users.nickname,
         userAvatar: users.avatar_url,
@@ -24,7 +22,7 @@ export async function GET(req: Request) {
       .where(
         and(
           eq(runs.status, "completed"),
-          eq(artifacts.type, "video") // Only fetch video artifacts
+          eq(artifacts.artifact_type, "video") // Only fetch video artifacts
         )
       )
       .orderBy(desc(runs.created_at))
@@ -35,8 +33,8 @@ export async function GET(req: Request) {
         id: v.id,
         videoUrl: v.videoUrl,
         thumbnailUrl: v.thumbnailUrl || v.videoUrl, // Fallback to video URL if no thumbnail
-        prompt: v.prompt || "No description",
-        duration: v.duration || 15,
+        prompt: "Video run",
+        duration: 15,
         createdAt: v.createdAt?.toISOString() || new Date().toISOString(),
         userName: v.userName || "Anonymous",
         userAvatar: v.userAvatar,
