@@ -45,6 +45,17 @@ interface Run {
   used_credits: number;
 }
 
+const emptyWorkflowPlan: WorkflowPlan = {
+  scenes: [],
+  aspectRatio: "9:16",
+  recommendedModels: {
+    llm: "deepseek/deepseek-chat",
+    t2i: "fal-ai/flux-dev",
+    t2v: "fal-ai/kling-v1",
+  },
+  estimatedCredits: 0,
+};
+
 // Internal canvas component that uses useReactFlow
 function CanvasContent({
   nodes,
@@ -227,7 +238,7 @@ export default function WorkspacePage() {
         setRun({
           run_uuid: data.runUuid,
           status: RunStatus.Running,
-          workflow_plan: {},
+          workflow_plan: emptyWorkflowPlan,
           estimated_credits: 0,
           used_credits: 0,
         });
@@ -252,7 +263,7 @@ export default function WorkspacePage() {
           ...prevRun,
           run_uuid: data.runUuid,
           status: RunStatus.Completed,
-          workflow_plan: data.workflowPlan || prevRun?.workflow_plan || {},
+          workflow_plan: data.workflowPlan || prevRun?.workflow_plan || emptyWorkflowPlan,
           graph_snapshot: data.workflowPlan || prevRun?.graph_snapshot || {},
           estimated_credits: data.estimatedCredits || prevRun?.estimated_credits || 0,
           used_credits: 0,
