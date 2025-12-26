@@ -3,19 +3,5 @@
   "devCommand": "npm run dev",
   "installCommand": "npm install",
   "framework": "nextjs",
-  "regions": ["iad1"],
-  "env": {
-    "DATABASE_URL": "@database_url",
-    "DIRECT_URL": "@direct_url",
-    "NEXTAUTH_URL": "@nextauth_url",
-    "NEXTAUTH_SECRET": "@nextauth_secret",
-    "AUTH_GOOGLE_ID": "@auth_google_id",
-    "AUTH_GOOGLE_SECRET": "@auth_google_secret",
-    "CREEM_ENV": "@creem_env",
-    "CREEM_API_KEY": "@creem_api_key",
-    "CREEM_WEBHOOK_SECRET": "@creem_webhook_secret",
-    "CREEM_PRODUCTS": "@creem_products",
-    "OPENAI_API_KEY": "@openai_api_key",
-    "FAL_API_KEY": "@fal_api_key"
-  }
+  "regions": ["iad1"]
 }
